@@ -20,45 +20,78 @@ export function CardArt() {
   return (
     <div
       className="relative w-[220px] overflow-hidden rounded-2xl border-[1.5px] border-[rgba(166,63,255,0.4)] p-5"
-      style={{ background: 'linear-gradient(165deg,#1b2650,#111a33 55%)' }}
+      style={{ background: 'linear-gradient(165deg,#1b2650,#111a33 55%)', animation: 'ob-pop 520ms cubic-bezier(.2,.8,.2,1) both' }}
     >
-      <div className="astro-ghost -right-1.5 top-[26px] text-[100px]">7</div>
+      <div
+        className="pointer-events-none absolute inset-[-40%]"
+        style={{
+          background: 'linear-gradient(115deg,transparent 43%,rgba(255,255,255,0.1) 50%,transparent 57%)',
+          animation: 'ob-sweep 5s ease-in-out infinite',
+        }}
+      />
+      <div className="astro-ghost -right-1.5 top-[26px] text-[100px]" style={{ animation: 'ob-drift 11s ease-in-out infinite' }}>
+        7
+      </div>
       <div className="relative mb-3.5 h-[100px] rounded-[11px]" style={{ background: 'linear-gradient(160deg,#2c3c74,#131c3a)' }}>
         <div className="absolute bottom-0 left-1/2 h-[74%] w-[54%] -translate-x-1/2 rounded-t-full bg-white/[0.07]" />
       </div>
-      <div className="font-display relative text-[32px] leading-[0.94] text-astro-text">SNAKEBITE</div>
-      <div className="relative mt-0.5 text-xs text-astro-text-muted">Tunde Okafor &middot; No. 7</div>
+      <div
+        className="font-display relative text-[32px] leading-[0.94] text-astro-text"
+        style={{ animation: 'ob-rise 620ms cubic-bezier(.2,.8,.2,1) both', animationDelay: '240ms' }}
+      >
+        SNAKEBITE
+      </div>
+      <div
+        className="relative mt-0.5 text-xs text-astro-text-muted"
+        style={{ animation: 'ob-rise 620ms cubic-bezier(.2,.8,.2,1) both', animationDelay: '420ms' }}
+      >
+        Tunde Okafor &middot; No. 7
+      </div>
     </div>
   )
 }
 
 const LIT = new Set([2, 5, 7, 11, 14, 17, 19, 22, 25, 28, 30, 33, 36, 39, 41, 44, 47, 50, 52, 55, 58, 61, 63, 66, 69, 72, 75, 78, 81, 84])
+// Canonical TEAM_ID order (Astro App.dc.html), same fix as draw/api.ts's GREEK_TEAMS.
 const TEAMS: Array<[string, string]> = [
-  ['ALPHA', '#e0483f'],
-  ['BETA', '#38bdf8'],
-  ['GAMMA', '#4ade80'],
-  ['DELTA', '#f2a93b'],
-  ['EPSILON', '#8b93b8'],
+  ['ALPHA', '#38bdf8'],
+  ['BETA', '#e0483f'],
+  ['GAMMA', '#a63fff'],
+  ['DELTA', '#4ade80'],
+  ['EPSILON', '#f2a93b'],
 ]
 
 export function BallotArt() {
   return (
     <div className="flex flex-col items-center gap-5">
       <div className="grid grid-cols-12 gap-[7px]" style={{ width: 270 }}>
-        {Array.from({ length: 96 }, (_, n) => (
-          <div
-            key={n}
-            className="aspect-square rounded-[3px]"
-            style={{ background: LIT.has(n) ? '#a63fff' : '#1b2650', opacity: LIT.has(n) ? 1 : 0.55 }}
-          />
-        ))}
+        {Array.from({ length: 96 }, (_, n) => {
+          const on = LIT.has(n)
+          return (
+            <div
+              key={n}
+              className="aspect-square rounded-[3px]"
+              style={
+                on
+                  ? { animation: 'ob-light 520ms cubic-bezier(.2,.8,.2,1) both', animationDelay: `${260 + n * 9}ms` }
+                  : { background: '#1b2650', opacity: 0.55 }
+              }
+            />
+          )
+        })}
       </div>
       <div className="flex flex-wrap justify-center gap-[7px]">
-        {TEAMS.map(([label, colour]) => (
+        {TEAMS.map(([label, colour], n) => (
           <div
             key={label}
             className="rounded-[7px] border px-2 py-1.5 text-[9px] font-extrabold tracking-[0.08em]"
-            style={{ color: colour, background: '#111a33', borderColor: `${colour}55` }}
+            style={{
+              color: colour,
+              background: '#111a33',
+              borderColor: `${colour}55`,
+              animation: 'ob-team 420ms cubic-bezier(.2,.8,.2,1) both',
+              animationDelay: `${1250 + n * 110}ms`,
+            }}
           >
             {label}
           </div>
@@ -79,21 +112,26 @@ export function RatingArt() {
   return (
     <div className="flex flex-col items-center gap-5">
       <div className="grid grid-cols-5 gap-2">
-        {SCORES.map((v) => (
+        {SCORES.map((v, n) => (
           <div
             key={v}
             className="font-display flex size-11 items-center justify-center rounded-[10px] text-xl"
-            style={
-              v === 8
+            style={{
+              ...(v === 8
                 ? { background: 'rgba(166,63,255,0.2)', color: '#c589ff', border: '1px solid rgba(166,63,255,0.5)' }
-                : { background: '#182448', color: '#6d7496', border: '1px solid rgba(255,255,255,0.07)' }
-            }
+                : { background: '#182448', color: '#6d7496', border: '1px solid rgba(255,255,255,0.07)' }),
+              animation: 'ob-pop 360ms cubic-bezier(.2,.8,.2,1) both',
+              animationDelay: `${n * 55}ms`,
+            }}
           >
             {v}
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-3.5 rounded-[14px] border-[1.5px] border-[rgba(166,63,255,0.4)] bg-astro-surface px-[22px] py-4">
+      <div
+        className="flex items-center gap-3.5 rounded-[14px] border-[1.5px] border-[rgba(166,63,255,0.4)] bg-astro-surface px-[22px] py-4"
+        style={{ animation: 'ob-avg 2.6s ease-out infinite' }}
+      >
         <div className="font-display text-[46px] leading-[0.85] text-astro-accent">7.8</div>
         <div className="text-xs leading-[1.4] text-astro-text-muted">
           your rating
@@ -102,15 +140,17 @@ export function RatingArt() {
         </div>
       </div>
       <div className="flex max-w-[280px] flex-wrap justify-center gap-[7px]">
-        {TAGS.map((t) => (
+        {TAGS.map((t, n) => (
           <div
             key={t.label}
             className="whitespace-nowrap rounded-full px-3 py-[7px] text-[11.5px] font-bold"
-            style={
-              t.self
+            style={{
+              ...(t.self
                 ? { background: 'rgba(166,63,255,0.16)', color: '#c589ff', border: '1px solid rgba(166,63,255,0.5)' }
-                : { background: '#182448', color: '#9aa3c4', border: '1px solid rgba(255,255,255,0.07)' }
-            }
+                : { background: '#182448', color: '#9aa3c4', border: '1px solid rgba(255,255,255,0.07)' }),
+              animation: 'ob-tag 460ms cubic-bezier(.2,.8,.2,1) both',
+              animationDelay: `${700 + n * 130}ms`,
+            }}
           >
             {t.label}
           </div>
@@ -136,7 +176,12 @@ export function MemorialArt() {
           <use href="#astro-ball" />
         </g>
       </svg>
-      <div className="font-display relative text-[34px] leading-[0.95] text-astro-text">NO. 13</div>
+      <div
+        className="font-display relative text-[34px] leading-[0.95] text-astro-text"
+        style={{ animation: 'ob-rise 900ms cubic-bezier(.16,.84,.24,1) both' }}
+      >
+        NO. 13
+      </div>
     </div>
   )
 }
