@@ -1,0 +1,130 @@
+/* Astro primitives. Every value here is lifted from the design files verbatim.
+   Import after tokens.css and keyframes.css. Framework-agnostic on purpose. */
+
+.astro-page { background: #0a0f1f; color: #eef0f9; font-family: Manrope, sans-serif; -webkit-font-smoothing: antialiased; }
+.astro-frame { max-width: 1440px; margin: 0 auto; }
+.astro-content { padding: 34px 42px 70px; min-width: 0; }
+.astro-display { font-family: "Bebas Neue", sans-serif; line-height: 1; margin: 0; }
+
+/* ---- eyebrow / labels ---- */
+.astro-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; color: #6d7496; }
+.astro-eyebrow--wide { font-size: 11px; letter-spacing: 0.16em; }
+
+/* ---- cards ---- */
+/* ordinary content card: feed, tables, panels. Stays a plain rounded rect. */
+.astro-card { background: #111a33; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; }
+.astro-card--sunken { background: #0f1730; }
+
+/* SPECIAL card: player / hero / promo / cup. Needs all three motif parts below. */
+.astro-card--special {
+  position: relative; overflow: hidden;
+  background: linear-gradient(165deg,#1b2650,#111a33 55%);
+  border: 1.5px solid rgba(166,63,255,0.34);
+  border-radius: 16px;
+  clip-path: polygon(0 0,100% 0,100% calc(100% - 24px),calc(100% - 24px) 100%,0 100%);
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), border-color 220ms ease;
+}
+.astro-card--special:hover { transform: translateY(-6px) rotate(-1.4deg); border-color: rgba(166,63,255,0.7); }
+
+/* motif part 2: diagonal foil. MUST be inset:-40% or the sweep clips. */
+.astro-foil {
+  position: absolute; inset: -40%; pointer-events: none;
+  background: linear-gradient(115deg,transparent 43%,rgba(255,255,255,0.09) 50%,transparent 57%);
+  animation: astro-sweep 8s ease-in-out infinite;
+}
+
+/* motif part 3: ghost number. Sizes 96-250px depending on card. */
+.astro-ghost {
+  position: absolute; pointer-events: none;
+  font-family: "Bebas Neue", sans-serif; line-height: 1;
+  color: rgba(255,255,255,0.04);
+  animation: astro-drift 10s ease-in-out infinite;
+}
+.astro-ghost--cup { color: rgba(242,169,59,0.07); }
+
+/* ---- stat tile ---- */
+.astro-tile { background: #182448; border-radius: 12px; padding: 15px 17px; min-width: 0; }
+.astro-tile__label { font-size: 10px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; color: #6d7496; margin-bottom: 6px; }
+.astro-tile__value { font-family: "Bebas Neue", sans-serif; font-size: 42px; line-height: 0.95; color: #eef0f9; }
+.astro-tile__value--md { font-size: 34px; }
+.astro-tile__value--sm { font-size: 26px; }
+
+/* ---- rating chip: square-ish badge holding a number ---- */
+.astro-rating {
+  width: 38px; height: 38px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Bebas Neue", sans-serif; font-size: 19px;
+  background: #182448; color: #6d7496; border: 1px solid rgba(255,255,255,0.07);
+  transition: border-color 160ms ease;
+}
+.astro-rating:hover { border-color: #a63fff; }
+.astro-rating--standout { background: rgba(166,63,255,0.18); color: #c589ff; border-color: rgba(166,63,255,0.5); }
+.astro-rating--picked { animation: astro-pop 300ms cubic-bezier(.2,.8,.2,1); }
+/* mobile voting grid uses 46px height instead of 38px */
+.astro-rating--touch { width: auto; height: 46px; border-radius: 10px; font-size: 21px; }
+
+/* ---- community metric pill: FULLY ROUND + cyan. Never mix into a stat grid. ---- */
+.astro-community {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #182448; border: 1px solid rgba(56,189,248,0.3); border-radius: 999px;
+  padding: 6px 13px; font-size: 12px; font-weight: 700; color: #38bdf8;
+}
+.astro-community svg { fill: #38bdf8; }
+
+/* ---- status / severity badges ---- */
+.astro-badge { display: inline-block; border-radius: 7px; padding: 4px 9px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.astro-badge--accent { background: rgba(166,63,255,0.18); border: 1px solid rgba(166,63,255,0.5); color: #c589ff; }
+.astro-badge--cyan { background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; }
+.astro-badge--green { background: rgba(74,222,128,0.13); border: 1px solid rgba(74,222,128,0.45); color: #4ade80; }
+.astro-badge--amber { background: rgba(242,169,59,0.14); border: 1px solid rgba(242,169,59,0.45); color: #f2a93b; }
+.astro-badge--red { background: rgba(224,72,63,0.13); border: 1px solid rgba(224,72,63,0.5); color: #e0483f; }
+.astro-badge--neutral { background: #0f1730; border: 1px solid rgba(255,255,255,0.07); color: #6d7496; }
+
+/* ---- nav ---- */
+.astro-nav { flex: 0 0 240px; position: sticky; top: 0; height: 100vh; overflow-y: auto; background: #111a33; border-right: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; }
+.astro-nav__item {
+  display: flex; align-items: center; gap: 13px; padding: 11px 14px; border-radius: 11px;
+  font-size: 13.5px; font-weight: 600; color: #9aa3c4; cursor: pointer;
+  border-left: 2px solid transparent; background: transparent;
+}
+.astro-nav__item--active {
+  font-weight: 800; color: #eef0f9;
+  background: linear-gradient(90deg,rgba(166,63,255,0.22),rgba(166,63,255,0.04));
+  border-left-color: #a63fff;
+}
+/* attention markers: count = owed by you, amber = deadline, dot = new */
+.astro-marker { margin-left: auto; flex: 0 0 auto; min-width: 20px; height: 19px; padding: 0 6px; border-radius: 999px; font-size: 10.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; background: #a63fff; color: #0a0f1f; }
+.astro-marker--deadline { background: #f2a93b; color: #20150a; }
+.astro-marker--dot { min-width: 7px; width: 7px; height: 7px; padding: 0; background: #a63fff; }
+
+/* ---- buttons ---- */
+.astro-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 14px; padding: 13px 22px; border-radius: 11px; cursor: pointer; border: 0; letter-spacing: 0.01em; transition: background 180ms ease, transform 120ms ease; }
+.astro-btn:active { transform: translateY(1px) scale(0.985); }
+.astro-btn--primary { background: #a63fff; color: #0a0f1f; }
+.astro-btn--primary:hover { background: #c589ff; transform: translateY(-2px); }
+.astro-btn--cup { background: #f2a93b; color: #20150a; }
+.astro-btn--ghost { background: #182448; border: 1px solid rgba(255,255,255,0.07); color: #9aa3c4; font-size: 12.5px; padding: 11px 16px; border-radius: 9px; }
+.astro-btn--admin { background: #38bdf8; color: #04121d; font-size: 12.5px; padding: 11px 17px; border-radius: 9px; }
+.astro-btn--touch { min-height: 48px; }
+.astro-btn--dashed { background: transparent; border: 1px dashed rgba(56,189,248,0.45); color: #38bdf8; font-size: 12.5px; font-weight: 700; padding: 13px 16px; border-radius: 10px; }
+
+/* ---- grids: always auto-fit with a real floor, never fixed columns ---- */
+.astro-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr)); }
+.astro-grid--cards { gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); }
+.astro-grid--halves { gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+
+/* ---- tables: give name columns a PIXEL floor and let wide tables scroll ---- */
+.astro-table { background: #111a33; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; overflow-x: auto; }
+.astro-table__head { padding: 14px 20px; background: #182448; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #6d7496; }
+.astro-table__row { padding: 13px 20px; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
+/* e.g. grid-template-columns: 66px minmax(118px,1fr) 54px minmax(118px,1fr) 128px; min-width: 520px; */
+
+/* ---- phone frame ---- */
+.astro-phone { width: 390px; height: 780px; background: #0a0f1f; border: 1px solid rgba(255,255,255,0.09); border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; flex: 0 0 auto; }
+.astro-phone__body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; }
+
+/* ---- memorial: warmer ground, NO foil, nothing quick ---- */
+.astro-memorial-card { background: linear-gradient(165deg,#241a3f,#1b2650 44%,#111a33); border: 1.5px solid rgba(166,63,255,0.4); border-radius: 16px; }
+.astro-memorial-glow { position: absolute; left: 50%; top: 50%; background: radial-gradient(ellipse at center,rgba(166,63,255,0.4) 0%,rgba(166,63,255,0.12) 42%,transparent 72%); pointer-events: none; animation: astro-glow 14s ease-in-out infinite; }
+/* NB: astro-glow keyframes carry translate(-50%,-50%) themselves — an animated
+   transform replaces a static one, so centring must live inside the keyframes. */

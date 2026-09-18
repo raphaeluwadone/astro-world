@@ -1,0 +1,209 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./styles/astro-keyframes.css";
+@import "./styles/astro-primitives.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-display);
+    --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+    --font-sans: 'Manrope', 'Segoe UI', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+
+    /* Astro brand tokens, exposed as Tailwind utilities: bg-astro-surface, text-astro-cyan, etc. */
+    --color-astro-bg: var(--astro-bg);
+    --color-astro-surface: var(--astro-surface);
+    --color-astro-surface-2: var(--astro-surface-2);
+    --color-astro-surface-sunken: var(--astro-surface-sunken);
+    --color-astro-accent: var(--astro-accent);
+    --color-astro-accent-soft: var(--astro-accent-soft);
+    --color-astro-accent-strong: var(--astro-accent-strong);
+    --color-astro-text: var(--astro-text);
+    --color-astro-text-muted: var(--astro-text-muted);
+    --color-astro-text-dim: var(--astro-text-dim);
+    --color-astro-text-disabled: var(--astro-text-disabled);
+    --color-astro-cyan: var(--astro-cyan);
+    --color-astro-green: var(--astro-green);
+    --color-astro-red: var(--astro-red);
+    --color-astro-amber: var(--astro-amber);
+    --color-astro-grey-team: var(--astro-grey-team);
+    --color-team-alpha: var(--team-alpha);
+    --color-team-beta: var(--team-beta);
+    --color-team-gamma: var(--team-gamma);
+    --color-team-delta: var(--team-delta);
+    --color-team-epsilon: var(--team-epsilon);
+
+    /* Admin portal surfaces — deliberately darker, a different application */
+    --color-astro-admin-bg: var(--astro-admin-bg);
+    --color-astro-admin-chrome: var(--astro-admin-chrome);
+    --color-astro-admin-card: var(--astro-admin-card);
+    --color-astro-admin-raised: var(--astro-admin-raised);
+
+    /* Ink-on-fill: text colors for content sitting on a colored background */
+    --color-astro-on-accent: var(--astro-on-accent);
+    --color-astro-on-cyan: var(--astro-on-cyan);
+    --color-astro-on-amber: var(--astro-on-amber);
+    --color-astro-surface-memorial: var(--astro-surface-memorial);
+    --color-astro-text-rail: var(--astro-text-rail);
+}
+
+/*
+  Astro is dark-mode only by product decision (no light theme, no toggle) —
+  see ~/.claude .../memory/project_astro_app.md for the design rationale.
+  These values are set directly on :root rather than gated behind `.dark`.
+*/
+:root {
+    /* shadcn semantic tokens, mapped to the Astro palette */
+    --background: #0a0f1f;
+    --foreground: #eef0f9;
+    --card: #111a33;
+    --card-foreground: #eef0f9;
+    --popover: #111a33;
+    --popover-foreground: #eef0f9;
+    --primary: #a63fff;
+    --primary-foreground: #ffffff;
+    --secondary: #182448;
+    --secondary-foreground: #eef0f9;
+    --muted: #182448;
+    --muted-foreground: #9aa3c4;
+    --accent: #1e2c56;
+    --accent-foreground: #eef0f9;
+    --destructive: #e0483f;
+    --border: rgba(255, 255, 255, 0.07);
+    --input: rgba(255, 255, 255, 0.07);
+    --ring: #a63fff;
+    --radius: 0.75rem;
+    --sidebar: #111a33;
+    --sidebar-foreground: #eef0f9;
+    --sidebar-primary: #a63fff;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #1e2c56;
+    --sidebar-accent-foreground: #eef0f9;
+    --sidebar-border: rgba(255, 255, 255, 0.07);
+    --sidebar-ring: #a63fff;
+
+    /* Astro design tokens (see the design handoff bundle for the full spec) */
+    --astro-bg: #0a0f1f;
+    --astro-surface: #111a33;
+    --astro-surface-2: #182448;
+    --astro-surface-sunken: #0f1730;
+    --astro-accent: #a63fff;
+    --astro-accent-soft: #c589ff;
+    --astro-accent-strong: #7c22e0;
+    --astro-text: #eef0f9;
+    --astro-text-muted: #9aa3c4;
+    --astro-text-dim: #6d7496;
+    --astro-text-disabled: #3c4570;
+    --astro-cyan: #38bdf8;
+    --astro-green: #4ade80;
+    --astro-red: #e0483f;
+    --astro-amber: #f2a93b;
+    --astro-grey-team: #8b93b8;
+
+    /* Team colors: contextual per-matchday identifiers, never brand colors */
+    --team-alpha: #e0483f;
+    --team-beta: #38bdf8;
+    --team-gamma: #4ade80;
+    --team-delta: #f2a93b;
+    --team-epsilon: #8b93b8;
+
+    /* Admin portal surfaces — deliberately darker, a different application (IMPLEMENTATION.md acceptance check) */
+    --astro-admin-bg: #080c18;
+    --astro-admin-chrome: #0b101f;
+    --astro-admin-card: #0f1730;
+    --astro-admin-raised: #16203d;
+    --astro-surface-memorial: #0d1428;
+
+    /* Borders */
+    --astro-border-soft: rgba(255, 255, 255, 0.07);
+    --astro-border-soft-admin: rgba(255, 255, 255, 0.09);
+    --astro-border-hairline: rgba(255, 255, 255, 0.05);
+    --astro-border-accent: rgba(166, 63, 255, 0.22);
+    --astro-border-accent-strong: rgba(166, 63, 255, 0.4);
+    --astro-border-cup: rgba(242, 169, 59, 0.5);
+    --astro-accent-tint: rgba(166, 63, 255, 0.16);
+    --astro-text-rail: #4d5578;
+
+    /* Ink on colored fills */
+    --astro-on-accent: #0a0f1f;
+    --astro-on-cyan: #04121d;
+    --astro-on-amber: #20150a;
+
+    /* Placeholders — no photography exists yet */
+    --astro-ph-photo: linear-gradient(160deg, #2c3c74, #131c3a);
+    --astro-ph-avatar: linear-gradient(140deg, #243463, #182448);
+    --astro-ph-line: #2c3c74;
+
+    /* The only permitted gradients */
+    --astro-grad-hero: linear-gradient(165deg, #2a1147, #1b2650 42%, #111a33);
+    --astro-grad-promo: linear-gradient(100deg, #2a1147, #111a33 62%);
+    --astro-grad-cup: linear-gradient(100deg, #2f1a09, #241a3f 46%, #111a33);
+    --astro-grad-memorial: linear-gradient(165deg, #241a3f, #1b2650 44%, #111a33);
+    --astro-grad-progress: linear-gradient(90deg, #7c22e0, #a63fff);
+    --astro-grad-nav-active: linear-gradient(90deg, rgba(166, 63, 255, 0.22), rgba(166, 63, 255, 0.04));
+    --astro-grad-foil: linear-gradient(115deg, transparent 43%, rgba(255, 255, 255, 0.09) 50%, transparent 57%);
+
+    /* Radii — exact scale from the design, do not collapse into the shadcn --radius scale */
+    --astro-r-chip: 7px;
+    --astro-r-control: 9px;
+    --astro-r-tile: 12px;
+    --astro-r-panel: 13px;
+    --astro-r-card: 16px;
+    --astro-r-card-lg: 18px;
+    --astro-r-phone: 26px;
+    --astro-r-pill: 999px;
+
+    /* Motion */
+    --astro-ease-out: cubic-bezier(.2, .8, .2, 1);
+    --astro-ease-rev: cubic-bezier(.16, .84, .24, 1);
+    --astro-t-press: 120ms;
+    --astro-t-hover: 180ms;
+    --astro-t-card: 220ms;
+    --astro-t-screen: 300ms;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}

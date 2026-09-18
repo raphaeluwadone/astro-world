@@ -1,0 +1,92 @@
+/* Astro keyframes — extracted verbatim from the design files. Do not retime or "simplify". */
+
+@keyframes astro-rise { from { transform: translateY(10px); opacity: 0.001 } to { transform: none; opacity: 1 } }
+
+@keyframes astro-deal { from { transform: translateY(16px) rotate(-3deg); opacity: 0.001 } to { transform: none; opacity: 1 } }
+
+@keyframes astro-pop { 0% { transform: scale(0.84) } 58% { transform: scale(1.07) } 100% { transform: scale(1) } }
+
+@keyframes astro-sweep { 0% { transform: translateX(-130%) } 100% { transform: translateX(130%) } }
+
+@keyframes astro-drift { 0%, 100% { transform: translateY(0) rotate(0deg) } 50% { transform: translateY(-9px) rotate(-1.5deg) } }
+
+@keyframes astro-glow { 0%, 100% { opacity: 0.32; transform: scale(1) } 50% { opacity: 0.6; transform: scale(1.08) } }
+
+@keyframes astro-beat { 0%, 100% { transform: scale(1) } 30% { transform: scale(1.22) } 55% { transform: scale(0.96) } }
+
+@keyframes astro-squash { 0% { transform: scale(1) } 35% { transform: scale(1.06, 0.9) } 70% { transform: scale(0.98, 1.04) } 100% { transform: scale(1) } }
+
+@keyframes st-orbit { to { transform: rotate(360deg) } }
+
+@keyframes st-tumble { from { transform: perspective(74px) rotate3d(0.38,1,0.22,0deg) } to { transform: perspective(74px) rotate3d(0.38,1,0.22,360deg) } }
+
+@keyframes st-roll { 0% { transform: translateX(-74px) } 100% { transform: translateX(74px) } }
+
+@keyframes st-trail { 0%, 100% { opacity: 0 } 40% { opacity: 1 } }
+
+@keyframes st-jostle { 0%, 100% { transform: translate(0,0) rotate(0deg) } 30% { transform: translate(-3px,-7px) rotate(-22deg) } 65% { transform: translate(4px,-4px) rotate(16deg) } }
+
+@keyframes st-drum { to { transform: rotate(-360deg) } }
+
+@keyframes st-outofplay {
+  0% { transform: translateX(-46px) }
+  46% { transform: translateX(16px) }
+  58% { transform: translateX(22px) }
+  66% { transform: translateX(19px) }
+  74% { transform: translateX(21px) }
+  100% { transform: translateX(21px) }
+}
+
+@keyframes st-bounce {
+  0% { transform: translate(0,0) }
+  25% { transform: translate(26px,-22px) }
+  50% { transform: translate(52px,0) }
+  75% { transform: translate(78px,-22px) }
+  100% { transform: translate(104px,0) }
+}
+
+@keyframes st-boxblink { 0%, 100% { stroke-opacity: 0.28 } 50% { stroke-opacity: 0.7 } }
+
+@keyframes st-rest { 0%, 100% { opacity: 0.34; transform: translate(-50%,-50%) scale(1) } 50% { opacity: 0.62; transform: translate(-50%,-50%) scale(1.07) } }
+
+@keyframes st-arcover {
+  0% { transform: translate(0,0); opacity: 0 }
+  8% { opacity: 1 }
+  20% { transform: translate(28px,-30px) }
+  40% { transform: translate(56px,-50px) }
+  60% { transform: translate(84px,-55px) }
+  80% { transform: translate(112px,-40px) }
+  94% { transform: translate(140px,-8px); opacity: 1 }
+  100% { transform: translate(148px,2px); opacity: 0 }
+}
+
+@keyframes st-draw { 0% { stroke-dashoffset: 300 } 70%, 100% { stroke-dashoffset: 0 } }
+
+@keyframes st-sigh { 0%, 100% { transform: scale(1,1) } 50% { transform: scale(1.06,0.9) } }
+
+@keyframes st-escape { 0% { transform: translateY(0); opacity: 0 } 30% { opacity: 0.8 } 100% { transform: translateY(-26px); opacity: 0 } }
+
+@keyframes st-flicker { 0%, 62%, 70%, 100% { opacity: 0.5 } 66% { opacity: 0.12 } 82% { opacity: 0.18 } 88% { opacity: 0.5 } }
+
+@keyframes st-strike {
+  0% { transform: translate(-58px,-6px); opacity: 0 }
+  10% { opacity: 1 }
+  42% { transform: translate(0,0) }
+  56% { transform: translate(6px,3px) }
+  70% { transform: translate(2px,6px) }
+  100% { transform: translate(2px,6px); opacity: 1 }
+}
+
+@keyframes st-netbulge { 0%, 38% { transform: scale(1,1) } 48% { transform: scale(1.1,1.06) } 60% { transform: scale(0.98,0.99) } 72%, 100% { transform: scale(1,1) } }
+
+@keyframes st-standing { 0%, 100% { opacity: 0.42 } 50% { opacity: 0.85 } }
+
+@keyframes st-vigil { 0% { stroke-dashoffset: 277; opacity: 0 } 14% { opacity: 0.8 } 66% { stroke-dashoffset: 0; opacity: 0.8 } 100% { stroke-dashoffset: 0; opacity: 0 } }
+
+@keyframes st-breathe { 0%, 100% { opacity: 0.26; transform: scale(0.92) } 50% { opacity: 0.8; transform: scale(1.06) } }
+
+@keyframes st-ring { 0%, 38% { transform: scale(0.6); opacity: 0 } 52% { transform: scale(1.15); opacity: 0.85 } 100% { transform: scale(1.5); opacity: 0 } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important }
+}
