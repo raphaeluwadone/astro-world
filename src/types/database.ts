@@ -434,6 +434,60 @@ export type Database = {
           },
         ]
       }
+      player_claims: {
+        Row: {
+          birthday_day: number | null
+          birthday_month: number | null
+          claimant_user_id: string
+          id: string
+          instagram_handle: string | null
+          player_id: string
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["player_claim_status"]
+        }
+        Insert: {
+          birthday_day?: number | null
+          birthday_month?: number | null
+          claimant_user_id: string
+          id?: string
+          instagram_handle?: string | null
+          player_id: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["player_claim_status"]
+        }
+        Update: {
+          birthday_day?: number | null
+          birthday_month?: number | null
+          claimant_user_id?: string
+          id?: string
+          instagram_handle?: string | null
+          player_id?: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["player_claim_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_claims_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_claims_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_comparisons: {
         Row: {
           created_at: string
@@ -568,12 +622,15 @@ export type Database = {
       players: {
         Row: {
           bio: string | null
+          birthday_day: number | null
+          birthday_month: number | null
           created_at: string
           favourite_club: string | null
           favourite_number: number | null
           full_name: string
           height_cm: number | null
           id: string
+          instagram_handle: string | null
           is_admin: boolean
           joined_at: string
           nickname: string
@@ -587,12 +644,15 @@ export type Database = {
         }
         Insert: {
           bio?: string | null
+          birthday_day?: number | null
+          birthday_month?: number | null
           created_at?: string
           favourite_club?: string | null
           favourite_number?: number | null
           full_name: string
           height_cm?: number | null
           id?: string
+          instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
           nickname: string
@@ -606,12 +666,15 @@ export type Database = {
         }
         Update: {
           bio?: string | null
+          birthday_day?: number | null
+          birthday_month?: number | null
           created_at?: string
           favourite_club?: string | null
           favourite_number?: number | null
           full_name?: string
           height_cm?: number | null
           id?: string
+          instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
           nickname?: string
@@ -1002,6 +1065,7 @@ export type Database = {
       comparison_source: "self" | "community"
       foot_type: "left" | "right" | "both"
       matchday_status: "open" | "balloted" | "drawn" | "complete"
+      player_claim_status: "pending" | "approved" | "rejected"
       position_type: "GK" | "DEF" | "ATT" | "UTIL"
       tag_source: "self" | "community"
       vote_direction: "up" | "down"
@@ -1140,6 +1204,7 @@ export const Constants = {
       comparison_source: ["self", "community"],
       foot_type: ["left", "right", "both"],
       matchday_status: ["open", "balloted", "drawn", "complete"],
+      player_claim_status: ["pending", "approved", "rejected"],
       position_type: ["GK", "DEF", "ATT", "UTIL"],
       tag_source: ["self", "community"],
       vote_direction: ["up", "down"],

@@ -10,8 +10,6 @@ import { signUp } from '@/features/auth/api'
 import { AuthLayout } from '@/features/auth/AuthLayout'
 
 const schema = z.object({
-  nickname: z.string().min(1, 'Everyone needs a nickname').max(40),
-  fullName: z.string().min(1, 'Enter your full name').max(80),
   email: z.string().email('Enter a valid email'),
   password: z.string().min(8, 'At least 8 characters'),
 })
@@ -39,7 +37,7 @@ function SignupPage() {
       if (result.confirmationRequired) {
         setConfirmationRequired(true)
       } else {
-        await navigate({ to: '/' })
+        await navigate({ to: '/join' })
       }
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -63,16 +61,6 @@ function SignupPage() {
   return (
     <AuthLayout title="ASTRO" subtitle="Create your account">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="nickname">Nickname</Label>
-          <Input id="nickname" autoComplete="nickname" {...register('nickname')} />
-          {errors.nickname && <p className="text-xs text-astro-red">{errors.nickname.message}</p>}
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="fullName">Full name</Label>
-          <Input id="fullName" autoComplete="name" {...register('fullName')} />
-          {errors.fullName && <p className="text-xs text-astro-red">{errors.fullName.message}</p>}
-        </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" autoComplete="email" {...register('email')} />

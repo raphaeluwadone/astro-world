@@ -1,32 +1,20 @@
 import { supabase } from '@/lib/supabase'
 
-export async function signUp({
-  email,
-  password,
-  nickname,
-  fullName,
-}: {
-  email: string
-  password: string
-  nickname: string
-  fullName: string
-}) {
+export async function signUp({ email, password }: { email: string; password: string }) {
   const { data, error } = await supabase.auth.signUp({ email, password })
   if (error) throw error
 
   // Local dev has email confirmations disabled, so a session comes back
-  // immediately. A real deployment may require confirming first — in
-  // that case there's no session yet, so the player row can't be
-  // created until they confirm and log in (handled by the caller).
+  // immediately. A real deployment may require confirming first: in
+  // that case there's no session yet, so the Join flow can't start until
+  // they confirm and log in (handled by the caller).
   if (!data.session || !data.user) {
     return { confirmationRequired: true as const }
   }
 
-  const { error: playerError } = await supabase
-    .from('players')
-    .insert({ user_id: data.user.id, nickname, full_name: fullName })
-  if (playerError) throw playerError
-
+  // No player row is created here anymore: every new account goes
+  // through the Join flow (nickname/surname match against the existing
+  // roster, claim or create), which is what actually creates or links one.
   return { confirmationRequired: false as const }
 }
 
