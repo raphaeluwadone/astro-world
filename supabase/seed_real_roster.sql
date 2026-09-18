@@ -4,16 +4,15 @@
 -- real 2025/26 season totals from before this app existed; legacy_appearances
 -- stays 0 until a fuller record with appearance counts is available.
 --
--- Known open items, not resolved yet (see chat): #19 and #45 are both
--- "Ohis" with no distinguishing detail; #3 (Debo) and #6 (Tomi) have an
--- alt name of unclear type, noted in bio for now.
+-- Known open item, not resolved yet (see chat): #19 and #45 are both
+-- "Ohis" with no distinguishing detail.
 insert into players (nickname, full_name, legacy_goals, legacy_assists, legacy_appearances, bio) values
-  ('Kunle', 'Kunle', 69, 25, 0, null),
+  ('Skinny N', 'Kunle', 69, 25, 0, null),
   ('Wale', 'Wale', 32, 48, 0, null),
-  ('Debo', 'Debo', 57, 13, 0, 'Possible additional name mentioned: zeazou (nickname or surname unconfirmed).'),
+  ('zeazou', 'Debo', 57, 13, 0, null),
   ('Fred', 'Fred', 39, 22, 0, null),
   ('Chukkie', 'Chuka Okonkwo', 32, 29, 0, null),
-  ('Tomi', 'Tomi', 46, 12, 0, 'Possible surname mentioned: Akigbogun (unconfirmed).'),
+  ('Tomi', 'Tomi Akigbogun', 46, 12, 0, null),
   ('Dan J', 'Dan J', 39, 15, 0, null),
   ('AK', 'AK', 36, 17, 0, null),
   ('Gbaja', 'Gbaja', 27, 26, 0, null),
