@@ -53,6 +53,22 @@ export async function fetchNextMatchday() {
   return data
 }
 
+export interface NewMatchdayFields {
+  playedAt: string
+  venue: string | null
+  capacity: 30 | 36
+}
+
+export async function createMatchday(fields: NewMatchdayFields): Promise<string> {
+  const { data, error } = await supabase
+    .from('matchdays')
+    .insert({ played_at: fields.playedAt, venue: fields.venue, capacity: fields.capacity })
+    .select('id')
+    .single()
+  if (error) throw error
+  return data.id
+}
+
 export async function fetchLastCompleteMatchday() {
   const { data, error } = await supabase
     .from('matchdays')

@@ -23,7 +23,7 @@ export function TextField({
   value: string
   onChange: (value: string) => void
   hint?: string
-  type?: 'text' | 'number'
+  type?: 'text' | 'number' | 'date' | 'time'
 }) {
   return (
     <div>

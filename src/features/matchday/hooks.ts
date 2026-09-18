@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Database } from '@/types/database'
 import {
   claimMonthlySlot,
+  createMatchday,
   fetchActivePlayers,
   fetchAvailability,
   fetchBallotEntries,
@@ -85,6 +86,14 @@ export function useClaimMonthlySlot(month: string | undefined) {
   return useMutation({
     mutationFn: (playerId: string) => claimMonthlySlot(playerId, month!),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['monthly-members', month] }),
+  })
+}
+
+export function useCreateMatchday() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createMatchday,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] }),
   })
 }
 
