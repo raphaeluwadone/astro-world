@@ -27,3 +27,11 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw error
 }
+
+/** The one number the signed-out landing page can show: everything else
+ * on `players` needs a session (players_select_all is `to authenticated`). */
+export async function fetchPublicRosterSize(): Promise<number> {
+  const { data, error } = await supabase.rpc('public_roster_size')
+  if (error) throw error
+  return data
+}

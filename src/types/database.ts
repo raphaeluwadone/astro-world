@@ -633,6 +633,9 @@ export type Database = {
           instagram_handle: string | null
           is_admin: boolean
           joined_at: string
+          legacy_appearances: number
+          legacy_assists: number
+          legacy_goals: number
           nickname: string
           onboarded_at: string | null
           photo_url: string | null
@@ -655,6 +658,9 @@ export type Database = {
           instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
+          legacy_appearances?: number
+          legacy_assists?: number
+          legacy_goals?: number
           nickname: string
           onboarded_at?: string | null
           photo_url?: string | null
@@ -677,6 +683,9 @@ export type Database = {
           instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
+          legacy_appearances?: number
+          legacy_assists?: number
+          legacy_goals?: number
           nickname?: string
           onboarded_at?: string | null
           photo_url?: string | null
@@ -1056,6 +1065,7 @@ export type Database = {
           played_at: string
         }[]
       }
+      public_roster_size: { Args: never; Returns: number }
       ratings_open_for: { Args: { p_match_id: string }; Returns: boolean }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
     }

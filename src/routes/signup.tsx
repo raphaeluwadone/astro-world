@@ -49,7 +49,7 @@ function SignupPage() {
       <AuthLayout title="ASTRO" subtitle="Almost there">
         <p className="text-sm text-astro-text-muted">
           Check your email to confirm your account, then{' '}
-          <Link to="/login" className="font-semibold text-astro-accent">
+          <Link to="/login" search={{ view: 'signin' }} className="font-semibold text-astro-accent">
             sign in
           </Link>
           .
@@ -78,7 +78,7 @@ function SignupPage() {
       </form>
       <p className="mt-5 text-center text-xs text-astro-text-muted">
         Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-astro-accent">
+        <Link to="/login" search={{ view: 'signin' }} className="font-semibold text-astro-accent">
           Sign in
         </Link>
       </p>
