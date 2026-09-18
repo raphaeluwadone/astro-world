@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { Database } from '@/types/database'
+import { EmptyState } from '@/components/states/EmptyState'
+import { OutOfPlayIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import { PlayerCard } from './components/PlayerCard'
 import { usePlayerCards } from './hooks'
 
@@ -64,7 +67,9 @@ export function PlayersPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
+        <PageLoader />
+      ) : filtered.length === 0 ? (
+        <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="Loosen a filter and we'll find someone." />
       ) : (
         <>
           <div

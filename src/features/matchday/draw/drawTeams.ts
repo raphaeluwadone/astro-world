@@ -1,28 +1,29 @@
 /**
  * The team-draw algorithm. See project memory / conversation for the
- * full problem statement — short version: split 30 balloted players
- * into 5 random teams of 6, minimizing how many pairs of players end up
- * together again from last week. Zero repeat pairings isn't always
- * possible, so this reports how many it couldn't avoid rather than
- * assuming it always finds a perfect split.
+ * full problem statement. Short version: split the balloted players
+ * into random teams of 6 (almost always 5 teams/30 players, occasionally
+ * 6 teams/36 when the admin opens a sixth side for the week), minimizing
+ * how many pairs of players end up together again from last week. Zero
+ * repeat pairings isn't always possible, so this reports how many it
+ * couldn't avoid rather than assuming it always finds a perfect split.
  *
  * pairKey and shuffle were written by Raphael (paired, reviewed line by
  * line); partitionIntoTeams, countRepeatPairings and drawTeams below
  * were then written by Claude at Raphael's request, with a walkthrough
  * to follow.
  *
- * PROVEN MATHEMATICAL FLOOR, not an implementation gap: whenever 6 or
- * more people from the SAME previous team all return the following
- * week, at least one repeat pairing among them is unavoidable — there
- * are only 5 teams to split them across, so by the pigeonhole
- * principle at least two of them must land on the same new team. This
- * was verified empirically (300,000 attempts still capped at exactly
- * the predicted minimum) before being written down here. Don't "fix"
- * a non-zero repeatPairingsCount by raising maxAttempts further in a
- * case like this — it's not stuck, it's already optimal.
+ * PROVEN MATHEMATICAL FLOOR, not an implementation gap: whenever more
+ * than `teamCount` people from the SAME previous team all return the
+ * following week, at least one repeat pairing among them is unavoidable:
+ * there are only `teamCount` teams to split them across, so by the
+ * pigeonhole principle at least two of them must land on the same new
+ * team. This was verified empirically (300,000 attempts still capped at
+ * exactly the predicted minimum, at the original 5-team/30-player size)
+ * before being written down here. Don't "fix" a non-zero
+ * repeatPairingsCount by raising maxAttempts further in a case like
+ * this: it's not stuck, it's already optimal.
  */
 
-const TEAM_COUNT = 5
 const TEAM_SIZE = 6
 
 /**
@@ -55,12 +56,14 @@ export function shuffle<T>(items: T[]): T[] {
 }
 
 /**
- * Splits an already-shuffled array of 30 player ids into 5 teams of 6,
- * in order (first 6 -> team 0, next 6 -> team 1, ...).
+ * Splits an already-shuffled array of player ids into teams of 6, in
+ * order (first 6 -> team 0, next 6 -> team 1, ...). Team count is
+ * whatever the input divides into (5 for 30 players, 6 for 36).
  */
 export function partitionIntoTeams(shuffledPlayerIds: string[]): string[][] {
+  const teamCount = shuffledPlayerIds.length / TEAM_SIZE
   const teams: string[][] = []
-  for (let team = 0; team < TEAM_COUNT; team++) {
+  for (let team = 0; team < teamCount; team++) {
     teams.push(shuffledPlayerIds.slice(team * TEAM_SIZE, (team + 1) * TEAM_SIZE))
   }
   return teams
@@ -101,8 +104,8 @@ export function drawTeams(
   previousPairings: Set<string>,
   maxAttempts = 2000,
 ): DrawResult {
-  if (playerIds.length !== TEAM_COUNT * TEAM_SIZE) {
-    throw new Error(`Expected exactly ${TEAM_COUNT * TEAM_SIZE} players, got ${playerIds.length}`)
+  if (playerIds.length === 0 || playerIds.length % TEAM_SIZE !== 0) {
+    throw new Error(`Expected a multiple of ${TEAM_SIZE} players, got ${playerIds.length}`)
   }
 
   let best: DrawResult | null = null

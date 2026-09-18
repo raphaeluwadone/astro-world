@@ -1,4 +1,7 @@
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { EmptyState } from '@/components/states/EmptyState'
+import { EmptyPitchIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import { MostMentioned } from './components/MostMentioned'
 import { PostCard } from './components/PostCard'
 import { PostComposer } from './components/PostComposer'
@@ -31,9 +34,9 @@ export function CommunityPage() {
           />
 
           {feedLoading ? (
-            <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
+            <PageLoader />
           ) : feed.length === 0 ? (
-            <p className="text-sm text-astro-text-dim">Nobody's posted anything yet.</p>
+            <EmptyState icon={<EmptyPitchIcon />} title="Nobody's said anything yet." body="Be the keen one." />
           ) : (
             feed.map((post) => (
               <PostCard

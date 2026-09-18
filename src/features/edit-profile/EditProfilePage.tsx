@@ -1,5 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { InlineLoader } from '@/components/states/InlineLoader'
+import { PageLoader } from '@/components/states/PageLoader'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { useTagPool } from '@/features/community/hooks'
 import { useCareerStats, useMatchRatings, usePlayerTags } from '@/features/profile/hooks'
@@ -53,7 +55,7 @@ export function EditProfilePage() {
   }
 
   if (!player || !draft) {
-    return <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
+    return <PageLoader />
   }
 
   const careerAvg = average(matchRatings.map((r) => r.avg_rating))
@@ -111,8 +113,9 @@ export function EditProfilePage() {
             type="button"
             disabled={updatePlayer.isPending}
             onClick={save}
-            className="rounded-[11px] bg-astro-accent px-[22px] py-3 text-[13.5px] font-extrabold text-astro-on-accent transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+            className="flex items-center gap-2 rounded-[11px] bg-astro-accent px-[22px] py-3 text-[13.5px] font-extrabold text-astro-on-accent transition-transform hover:-translate-y-0.5 disabled:opacity-60"
           >
+            {updatePlayer.isPending && <InlineLoader size={16} />}
             {updatePlayer.isPending ? 'Saving…' : 'Save changes'}
           </button>
         </div>

@@ -1,9 +1,15 @@
 import type { ReactNode } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
+import { DrumLoader } from '@/components/states/DrumLoader'
+import { EmptyState } from '@/components/states/EmptyState'
+import { EmptyPitchIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
+import { monthOf } from './api'
 import { AvailabilityCard } from './components/AvailabilityCard'
 import { DrawnTeams } from './components/DrawnTeams'
 import { LastResults } from './components/LastResults'
+import { MonthlySlots } from './components/MonthlySlots'
 import { StandbyQueue } from './components/StandbyQueue'
 import { WhoRepliedList } from './components/WhoRepliedList'
 import { useRunTeamDraw } from './draw/hooks'
@@ -11,10 +17,14 @@ import {
   useActivePlayers,
   useAvailability,
   useBallotEntries,
+  useClaimMonthlySlot,
   useDrawnTeams,
   useLastCompleteMatchday,
   useMatchResults,
+  useMonthlyMembers,
   useNextMatchday,
+  useRunBallotSelection,
+  useUpdateMatchdayCapacity,
 } from './hooks'
 
 function formatMatchdayDate(playedAt: string) {
@@ -36,9 +46,14 @@ export function MatchdayPage() {
   const { data: teams = [] } = useDrawnTeams(matchday?.id)
   const { data: results = [] } = useMatchResults(lastComplete?.id)
   const runDraw = useRunTeamDraw(matchday?.id)
+  const runBallot = useRunBallotSelection(matchday?.id)
+  const updateCapacity = useUpdateMatchdayCapacity(matchday?.id)
+  const month = matchday ? monthOf(matchday.played_at) : undefined
+  const { data: monthlyMembers = [] } = useMonthlyMembers(month)
+  const claimMonthlySlot = useClaimMonthlySlot(month)
 
   if (matchdayLoading) {
-    return <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
+    return <PageLoader />
   }
 
   if (!matchday) {
@@ -47,12 +62,14 @@ export function MatchdayPage() {
         <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
           The ballot
         </div>
-        <h1 className="font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
+        <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
           Matchday
         </h1>
-        <p className="mt-4 text-sm text-astro-text-muted">
-          No upcoming matchday has been created yet.
-        </p>
+        <EmptyState
+          icon={<EmptyPitchIcon />}
+          title="Nobody's said yes yet."
+          body="There's no upcoming matchday on the books. Check back once the admin opens one."
+        />
       </div>
     )
   }
@@ -91,6 +108,74 @@ export function MatchdayPage() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
+          {month && (
+            <MonthlySlots
+              members={monthlyMembers}
+              monthLabel={new Date(matchday.played_at).toLocaleDateString('en-GB', { month: 'long' })}
+              playerId={player?.id ?? null}
+              onClaim={() => player?.id && claimMonthlySlot.mutate(player.id)}
+              isClaiming={claimMonthlySlot.isPending}
+            />
+          )}
+
+          {matchday.status === 'open' && (
+            <div className="astro-card p-[22px]">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3.5">
+                <div>
+                  <h2 className="mb-[5px] font-display text-[26px] leading-none text-astro-text">
+                    The Ballot
+                  </h2>
+                  <p className="text-[13px] text-astro-text-muted">
+                    First come, first served: {matchday.capacity} spots, {monthlyMembers.length} held monthly.
+                  </p>
+                </div>
+                {player?.is_admin && !runBallot.isPending && (
+                  <Button onClick={() => runBallot.mutate()} disabled={runBallot.isPending}>
+                    Run the Ballot
+                  </Button>
+                )}
+              </div>
+
+              {player?.is_admin && (
+                <div className="mb-3.5 flex items-center gap-2.5">
+                  <span className="astro-eyebrow">Sides this week</span>
+                  {([30, 36] as const).map((cap) => (
+                    <button
+                      key={cap}
+                      type="button"
+                      disabled={updateCapacity.isPending}
+                      onClick={() => updateCapacity.mutate(cap)}
+                      className={
+                        matchday.capacity === cap
+                          ? 'rounded-lg bg-astro-accent px-3 py-1.5 text-xs font-extrabold text-astro-on-accent'
+                          : 'rounded-lg border border-border bg-astro-surface-2 px-3 py-1.5 text-xs font-bold text-astro-text-muted'
+                      }
+                    >
+                      {cap / 6} teams &middot; {cap}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {runBallot.isSuccess ? (
+                <p className="text-xs text-astro-text-muted">
+                  Balloted: {runBallot.data.balloted} in ({runBallot.data.monthlyIn} monthly),{' '}
+                  {runBallot.data.standby} on standby.
+                </p>
+              ) : (
+                <p className="text-xs text-astro-text-dim">
+                  {inCount} marked in this week so far. Randomizing into teams happens after the ballot,
+                  on game day.
+                </p>
+              )}
+              {runBallot.isError && (
+                <p className="mt-3 text-xs text-astro-red">
+                  {runBallot.error instanceof Error ? runBallot.error.message : 'Something went wrong.'}
+                </p>
+              )}
+            </div>
+          )}
+
           {matchday.status !== 'open' && (
             <div className="astro-card p-[22px]">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3.5">
@@ -104,25 +189,31 @@ export function MatchdayPage() {
                       : `${balloted.length} balloted, ${standby.length} on standby.`}
                   </p>
                 </div>
-                {player?.is_admin && (matchday.status === 'balloted' || runDraw.isSuccess) && teams.length === 0 && (
+                {player?.is_admin && (matchday.status === 'balloted' || runDraw.isSuccess) && teams.length === 0 && !runDraw.isPending && (
                   <Button onClick={() => runDraw.mutate()} disabled={runDraw.isPending}>
-                    {runDraw.isPending ? 'Drawing…' : 'Run the Draw'}
+                    Run the Draw
                   </Button>
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <InfoPill color="#4ade80" icon="check">No repeat pairings from last Sunday</InfoPill>
-                <InfoPill color="#4ade80" icon="check">Teams of 6 &middot; 5 sides</InfoPill>
-                <InfoPill color="#38bdf8" icon="info">
-                  {inCount} marked in, {balloted.length} balloted, {standby.length} on standby
-                </InfoPill>
-                <InfoPill color="#38bdf8" icon="info">Rating is not used to balance sides</InfoPill>
-              </div>
+              {runDraw.isPending ? (
+                <DrumLoader label="Drawing the sides…" />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <InfoPill color="#4ade80" icon="check">No repeat pairings from last Sunday</InfoPill>
+                  <InfoPill color="#4ade80" icon="check">
+                    Teams of 6 &middot; {matchday.capacity / 6} sides
+                  </InfoPill>
+                  <InfoPill color="#38bdf8" icon="info">
+                    {balloted.length} balloted, {standby.length} on standby
+                  </InfoPill>
+                  <InfoPill color="#38bdf8" icon="info">Rating is not used to balance sides</InfoPill>
+                </div>
+              )}
 
               {runDraw.isSuccess && (
                 <p className="mt-3 text-xs text-astro-text-muted">
-                  Drawn — {runDraw.data.repeatPairingsCount} repeat pairing
+                  Drawn: {runDraw.data.repeatPairingsCount} repeat pairing
                   {runDraw.data.repeatPairingsCount === 1 ? '' : 's'} from last week.
                 </p>
               )}
@@ -132,7 +223,7 @@ export function MatchdayPage() {
                 </p>
               )}
 
-              {teams.length === 0 && <StandbyQueue entries={ballotEntries} />}
+              {teams.length === 0 && !runDraw.isPending && <StandbyQueue entries={ballotEntries} />}
             </div>
           )}
 

@@ -1,5 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { EmptyState } from '@/components/states/EmptyState'
+import { EmptyPitchIcon, InTheNetIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import { RatingRow } from './components/RatingRow'
 import { useMyMatchToRate, useMyScores, useRatingsOpen, useRoster, useSubmitRating } from './hooks'
 
@@ -14,7 +17,7 @@ export function VotingPage() {
   const submit = useSubmitRating(match?.matchId, playerId ?? undefined)
 
   if (matchLoading) {
-    return <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
+    return <PageLoader />
   }
 
   if (!match) {
@@ -23,12 +26,14 @@ export function VotingPage() {
         <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
           Ratings
         </div>
-        <h1 className="font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
+        <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
           Rate the Lot of Them
         </h1>
-        <p className="mt-4 text-sm text-astro-text-muted">
-          No match to rate yet. You&rsquo;ll see this once you&rsquo;ve played one.
-        </p>
+        <EmptyState
+          icon={<EmptyPitchIcon />}
+          title="No match to rate yet."
+          body="You'll see this once you've played one."
+        />
       </div>
     )
   }
@@ -37,6 +42,7 @@ export function VotingPage() {
   const myTeamPlayers = subjects.filter((p) => p.team_id === match.myTeam.id)
   const oppTeamPlayers = subjects.filter((p) => p.team_id === match.oppTeam.id)
   const ratedCount = subjects.filter((p) => scores.has(p.id)).length
+  const allRated = subjects.length > 0 && ratedCount === subjects.length
 
   const closesLabel = new Date(match.playedAt).toLocaleDateString('en-GB', {
     weekday: 'short',
@@ -67,6 +73,18 @@ export function VotingPage() {
           </div>
         </div>
       </div>
+
+      {allRated && (
+        <div className="astro-card mb-6 flex flex-wrap items-center gap-4 border-[rgba(74,222,128,0.34)] px-6 py-4">
+          <InTheNetIcon />
+          <div>
+            <div className="text-[15px] font-bold text-astro-text">In the net.</div>
+            <p className="text-[13px] text-astro-text-muted">
+              All {subjects.length} rated. See you Sunday.
+            </p>
+          </div>
+        </div>
+      )}
 
       {myTeamPlayers.length > 0 && (
         <>

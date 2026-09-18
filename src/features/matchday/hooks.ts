@@ -1,14 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Database } from '@/types/database'
 import {
+  claimMonthlySlot,
   fetchActivePlayers,
   fetchAvailability,
   fetchBallotEntries,
   fetchDrawnTeams,
   fetchLastCompleteMatchday,
   fetchMatchResults,
+  fetchMonthlyMembers,
   fetchNextMatchday,
+  runBallotSelection,
   setAvailability,
+  updateMatchdayCapacity,
 } from './api'
 
 type AvailabilityStatus = Database['public']['Enums']['availability_status']
@@ -64,6 +68,41 @@ export function useSetAvailability(matchdayId: string | undefined) {
       setAvailability(matchdayId!, playerId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability', matchdayId] })
+    },
+  })
+}
+
+export function useMonthlyMembers(month: string | undefined) {
+  return useQuery({
+    queryKey: ['monthly-members', month],
+    queryFn: () => fetchMonthlyMembers(month!),
+    enabled: !!month,
+  })
+}
+
+export function useClaimMonthlySlot(month: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (playerId: string) => claimMonthlySlot(playerId, month!),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['monthly-members', month] }),
+  })
+}
+
+export function useUpdateMatchdayCapacity(matchdayId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (capacity: 30 | 36) => updateMatchdayCapacity(matchdayId!, capacity),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] }),
+  })
+}
+
+export function useRunBallotSelection(matchdayId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => runBallotSelection(matchdayId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] })
+      queryClient.invalidateQueries({ queryKey: ['ballot-entries', matchdayId] })
     },
   })
 }

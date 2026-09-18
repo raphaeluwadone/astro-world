@@ -1,4 +1,7 @@
 import { Link } from '@tanstack/react-router'
+import { EmptyState } from '@/components/states/EmptyState'
+import { OutOfPlayIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import { Achievements } from './components/Achievements'
 import { Comparisons } from './components/Comparisons'
 import { HeroCard } from './components/HeroCard'
@@ -28,8 +31,10 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
   const { data: tags = [] } = usePlayerTags(playerId)
   const { data: comparisons = [] } = useComparisons(playerId)
 
-  if (isLoading) return <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
-  if (!player) return <p className="text-sm text-astro-text-dim">Player not found.</p>
+  if (isLoading) return <PageLoader />
+  if (!player) {
+    return <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="This player doesn't exist, or the link's wrong." />
+  }
 
   const careerAvg = average(matchRatings.map((r) => r.avg_rating))
 

@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { EmptyState } from '@/components/states/EmptyState'
+import { OutOfPlayIcon } from '@/components/states/icons'
 import type { AvailabilityRow, PlayerSummary } from '../api'
 
 type ReplyStatus = 'in' | 'out' | 'no_reply'
@@ -102,7 +104,7 @@ export function WhoRepliedList({
           </div>
         ))}
         {filtered.length === 0 && (
-          <div className="py-6 text-center text-sm text-astro-text-dim">No matching players.</div>
+          <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="Loosen the search and we'll find someone." />
         )}
       </div>
     </div>

@@ -1,12 +1,15 @@
 import { supabase } from '@/lib/supabase'
 import { drawTeams, pairKey } from './drawTeams'
 
+// Almost always 5 teams (30 players); Zeta only comes into play the
+// occasional week an admin opens a 6th side (36 players, see matchdays.capacity).
 const GREEK_TEAMS = [
   { name: 'Alpha', colour: '#e0483f' },
   { name: 'Beta', colour: '#38bdf8' },
   { name: 'Gamma', colour: '#4ade80' },
   { name: 'Delta', colour: '#f2a93b' },
   { name: 'Epsilon', colour: '#8b93b8' },
+  { name: 'Zeta', colour: '#cbd5f5' },
 ] as const
 
 async function fetchBallotedPlayerIds(matchdayId: string): Promise<string[]> {
@@ -38,7 +41,7 @@ async function fetchPreviousPairings(beforeMatchdayId: string): Promise<Set<stri
   if (prevError) throw prevError
 
   const pairings = new Set<string>()
-  if (!previousMatchday) return pairings // no prior matchday — nothing to avoid repeating
+  if (!previousMatchday) return pairings // no prior matchday: nothing to avoid repeating
 
   const { data: previousTeams, error: teamsError } = await supabase
     .from('teams')
@@ -79,7 +82,7 @@ export interface RunDrawResult {
 /**
  * Runs the team draw for a matchday: reads the balloted players and the
  * previous week's pairings, computes the draw, and writes the result
- * (5 teams + their members) — then marks the matchday 'drawn'.
+ * (the teams + their members), then marks the matchday 'drawn'.
  *
  * Admin-only in practice: the `teams`/`team_members`/`matchdays` writes
  * this performs are all gated by admin-only RLS policies already, so a
@@ -91,23 +94,28 @@ export async function runTeamDraw(matchdayId: string): Promise<RunDrawResult> {
     fetchPreviousPairings(matchdayId),
   ])
 
-  if (playerIds.length !== 30) {
-    throw new Error(`Expected exactly 30 balloted players, found ${playerIds.length}`)
+  if (playerIds.length === 0 || playerIds.length % 6 !== 0) {
+    throw new Error(`Expected a multiple of 6 balloted players, found ${playerIds.length}`)
   }
+  const teamCount = playerIds.length / 6
+  if (teamCount > GREEK_TEAMS.length) {
+    throw new Error(`No team name defined for a ${teamCount}-team draw`)
+  }
+  const teamsForThisDraw = GREEK_TEAMS.slice(0, teamCount)
 
   const { teams, repeatPairingsCount } = drawTeams(playerIds, previousPairings)
 
   const { data: insertedTeams, error: teamsError } = await supabase
     .from('teams')
     .insert(
-      GREEK_TEAMS.map((t) => ({ matchday_id: matchdayId, greek_name: t.name, colour: t.colour })),
+      teamsForThisDraw.map((t) => ({ matchday_id: matchdayId, greek_name: t.name, colour: t.colour })),
     )
     .select('id, greek_name')
   if (teamsError) throw teamsError
 
   const teamIdByGreekName = new Map(insertedTeams.map((t) => [t.greek_name, t.id]))
 
-  const memberRows = GREEK_TEAMS.flatMap((greekTeam, index) => {
+  const memberRows = teamsForThisDraw.flatMap((greekTeam, index) => {
     const teamId = teamIdByGreekName.get(greekTeam.name)!
     return teams[index].map((playerId) => ({ team_id: teamId, player_id: playerId }))
   })

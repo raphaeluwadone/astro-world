@@ -1,3 +1,6 @@
+import { EmptyState } from '@/components/states/EmptyState'
+import { EmptyPitchIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import { useArticles } from './hooks'
 
 function blurb(body: string) {
@@ -15,9 +18,9 @@ export function ArticlesPage() {
       <p className="mb-6 text-sm text-astro-text-muted">Match reports nobody asked for.</p>
 
       {isLoading ? (
-        <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
+        <PageLoader />
       ) : articles.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">No articles published yet.</p>
+        <EmptyState icon={<EmptyPitchIcon />} title="Nothing published yet." body="Match reports land here once someone writes one." />
       ) : (
         <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))' }}>
           {articles.map((a) => (

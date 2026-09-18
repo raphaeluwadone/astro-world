@@ -1,5 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { EmptyState } from '@/components/states/EmptyState'
+import { OutOfPlayIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import { ProfilePage } from '@/features/profile/ProfilePage'
 
 export const Route = createFileRoute('/_app/profile/')({
@@ -8,7 +11,9 @@ export const Route = createFileRoute('/_app/profile/')({
 
 function OwnProfilePage() {
   const { player, isLoading } = useCurrentPlayer()
-  if (isLoading) return <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
-  if (!player) return <p className="text-sm text-astro-text-dim">No profile found.</p>
+  if (isLoading) return <PageLoader />
+  if (!player) {
+    return <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="No profile found for this account." />
+  }
   return <ProfilePage playerId={player.id} isOwnProfile />
 }

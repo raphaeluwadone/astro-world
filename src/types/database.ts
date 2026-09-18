@@ -1,6 +1,3 @@
-Connecting to db 5432
-(node:1) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added to [BoundPool]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
-(Use `node --trace-warnings ...` to show where the warning was created)
 export type Json =
   | string
   | number
@@ -331,6 +328,7 @@ export type Database = {
       }
       matchdays: {
         Row: {
+          capacity: number
           created_at: string
           id: string
           played_at: string
@@ -338,6 +336,7 @@ export type Database = {
           venue: string | null
         }
         Insert: {
+          capacity?: number
           created_at?: string
           id?: string
           played_at: string
@@ -345,6 +344,7 @@ export type Database = {
           venue?: string | null
         }
         Update: {
+          capacity?: number
           created_at?: string
           id?: string
           played_at?: string
@@ -401,6 +401,35 @@ export type Database = {
             columns: ["team_b_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_memberships: {
+        Row: {
+          claimed_at: string
+          id: string
+          month: string
+          player_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          month: string
+          player_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          month?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_memberships_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]
@@ -548,6 +577,7 @@ export type Database = {
           is_admin: boolean
           joined_at: string
           nickname: string
+          onboarded_at: string | null
           photo_url: string | null
           positions: Database["public"]["Enums"]["position_type"][]
           preferred_foot: Database["public"]["Enums"]["foot_type"] | null
@@ -566,6 +596,7 @@ export type Database = {
           is_admin?: boolean
           joined_at?: string
           nickname: string
+          onboarded_at?: string | null
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null
@@ -584,6 +615,7 @@ export type Database = {
           is_admin?: boolean
           joined_at?: string
           nickname?: string
+          onboarded_at?: string | null
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null

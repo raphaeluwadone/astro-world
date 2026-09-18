@@ -12,6 +12,14 @@ export const Route = createFileRoute('/_app')({
     if (!data.session) {
       throw redirect({ to: '/login', search: { redirect: location.href } })
     }
+    const { data: player } = await supabase
+      .from('players')
+      .select('onboarded_at')
+      .eq('user_id', data.session.user.id)
+      .maybeSingle()
+    if (player && player.onboarded_at === null) {
+      throw redirect({ to: '/onboarding' })
+    }
   },
   component: () => (
     <AppShell>

@@ -1,4 +1,7 @@
 import { Link } from '@tanstack/react-router'
+import { EmptyState } from '@/components/states/EmptyState'
+import { OutOfPlayIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import { GoalTimeline } from './components/GoalTimeline'
 import { Lineups } from './components/Lineups'
 import { MotmCard } from './components/MotmCard'
@@ -6,8 +9,8 @@ import { RatingsPanel } from './components/RatingsPanel'
 import { ScoreBanner } from './components/ScoreBanner'
 import { useGoals, useLineups, useMatch, useMotmWinner, useRatingsIntegrity } from './hooks'
 
-/** Ratings close the Saturday after the match, 23:59 Europe/London — an
- * approximation for display copy only; the real cutoff is enforced server-side. */
+/** Ratings close the Saturday after the match, 23:59 Europe/London: an
+ * approximation for display copy only, the real cutoff is enforced server-side. */
 function ratingsStillOpen(matchPlayedAt: string) {
   const daysSince = (Date.now() - new Date(matchPlayedAt).getTime()) / (1000 * 60 * 60 * 24)
   return daysSince < 6
@@ -20,8 +23,16 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const { data: integrity } = useRatingsIntegrity(matchId)
   const { data: motm } = useMotmWinner(match?.matchday_id)
 
-  if (isLoading) return <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
-  if (!match) return <p className="text-sm text-astro-text-dim">Match not found.</p>
+  if (isLoading) return <PageLoader />
+  if (!match) {
+    return (
+      <EmptyState
+        icon={<OutOfPlayIcon />}
+        title="Nobody fits that."
+        body="This match doesn't exist, or the link's wrong."
+      />
+    )
+  }
 
   return (
     <div className="space-y-5">

@@ -1,5 +1,8 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Database } from '@/types/database'
+import { EmptyState } from '@/components/states/EmptyState'
+import { OutOfPlayIcon } from '@/components/states/icons'
+import { PageLoader } from '@/components/states/PageLoader'
 import type { RankingRow } from './api'
 import { useRankings } from './hooks'
 
@@ -110,7 +113,7 @@ export function RankingsPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-astro-text-dim">Loading&hellip;</p>
+        <PageLoader />
       ) : (
         <>
           <div className="astro-card overflow-hidden">
@@ -128,7 +131,7 @@ export function RankingsPage() {
               <div className="text-right">Rating</div>
             </div>
             {pageItems.length === 0 ? (
-              <div className="p-6 text-sm text-astro-text-dim">Nobody qualifies yet.</div>
+              <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="Loosen a filter and we'll find someone." />
             ) : (
               pageItems.map((r: RankingRow, i) => {
                 const badge = ratingBadgeColor(r.avg_rating)
