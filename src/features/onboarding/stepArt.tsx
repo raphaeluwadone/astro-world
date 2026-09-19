@@ -1,6 +1,7 @@
 /** Simplified but on-brand art for each onboarding step. Faithful to the
  * design's motifs (orbiting ball, player card, ballot grid, rating chips,
  * No.13 vigil, goal net) without reproducing every decorative overlay. */
+import { TEAM_ID } from '@/lib/teamId'
 
 export function OrbitArt() {
   return (
@@ -52,14 +53,7 @@ export function CardArt() {
 }
 
 const LIT = new Set([2, 5, 7, 11, 14, 17, 19, 22, 25, 28, 30, 33, 36, 39, 41, 44, 47, 50, 52, 55, 58, 61, 63, 66, 69, 72, 75, 78, 81, 84])
-// Canonical TEAM_ID order (Astro App.dc.html), same fix as draw/api.ts's GREEK_TEAMS.
-const TEAMS: Array<[string, string]> = [
-  ['ALPHA', '#38bdf8'],
-  ['BETA', '#e0483f'],
-  ['GAMMA', '#a63fff'],
-  ['DELTA', '#4ade80'],
-  ['EPSILON', '#f2a93b'],
-]
+const PREVIEW_TEAMS = TEAM_ID.slice(0, 5)
 
 export function BallotArt() {
   return (
@@ -81,19 +75,19 @@ export function BallotArt() {
         })}
       </div>
       <div className="flex flex-wrap justify-center gap-[7px]">
-        {TEAMS.map(([label, colour], n) => (
+        {PREVIEW_TEAMS.map((t, n) => (
           <div
-            key={label}
+            key={t.name}
             className="rounded-[7px] border px-2 py-1.5 text-[9px] font-extrabold tracking-[0.08em]"
             style={{
-              color: colour,
+              color: t.colour,
               background: '#111a33',
-              borderColor: `${colour}55`,
+              borderColor: `${t.colour}55`,
               animation: 'ob-team 420ms cubic-bezier(.2,.8,.2,1) both',
               animationDelay: `${1250 + n * 110}ms`,
             }}
           >
-            {label}
+            {t.name.toUpperCase()}
           </div>
         ))}
       </div>

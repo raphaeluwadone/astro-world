@@ -1126,6 +1126,15 @@ export type Database = {
       }
       public_roster_size: { Args: never; Returns: number }
       ratings_open_for: { Args: { p_match_id: string }; Returns: boolean }
+      season_team_matches: {
+        Args: { p_season_start: string }
+        Returns: {
+          goals_against: number
+          goals_for: number
+          greek_name: string
+          played_at: string
+        }[]
+      }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
     }
     Enums: {

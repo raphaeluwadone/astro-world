@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react'
+import { currentSeasonStart } from '@/lib/season'
 import type { MatchRatingRow } from '../api'
-
-function currentSeasonStart() {
-  const now = new Date()
-  const year = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1 // season starts 1 Aug
-  return new Date(year, 7, 1)
-}
 
 function average(nums: number[]) {
   if (nums.length === 0) return null

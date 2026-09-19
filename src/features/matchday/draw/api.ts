@@ -1,19 +1,6 @@
+import { TEAM_ID as GREEK_TEAMS } from '@/lib/teamId'
 import { supabase } from '@/lib/supabase'
 import { drawTeams, pairKey } from './drawTeams'
-
-// Canonical TEAM_ID from the design source (Astro App.dc.html), indexed
-// rather than duplicated as a literal anywhere else: colour drifted out
-// of sync across screens once already when each one carried its own copy.
-// Almost always 5 teams (30 players); Zeta only comes into play the
-// occasional week an admin opens a 6th side (36 players, see matchdays.capacity).
-const GREEK_TEAMS = [
-  { name: 'Alpha', colour: '#38bdf8' },
-  { name: 'Beta', colour: '#e0483f' },
-  { name: 'Gamma', colour: '#a63fff' },
-  { name: 'Delta', colour: '#4ade80' },
-  { name: 'Epsilon', colour: '#f2a93b' },
-  { name: 'Zeta', colour: '#cbd5f5' },
-] as const
 
 async function fetchBallotedPlayerIds(matchdayId: string): Promise<string[]> {
   const { data, error } = await supabase
