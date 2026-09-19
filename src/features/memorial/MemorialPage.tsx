@@ -1,10 +1,10 @@
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
-import { EmptyPitchIcon } from '@/components/states/icons'
-import { PageLoader } from '@/components/states/PageLoader'
+import { TheCircleIcon } from '@/components/states/icons'
+import { VigilLoader } from '@/components/states/VigilLoader'
 import { TributeCard } from './components/TributeCard'
 import { TributeComposer } from './components/TributeComposer'
-import { useCreateTribute, useTributes } from './hooks'
+import { useCreateTribute, useDeleteTribute, useTributes } from './hooks'
 
 export function MemorialPage() {
   const { player } = useCurrentPlayer()
@@ -12,6 +12,7 @@ export function MemorialPage() {
 
   const { data: tributes = [], isLoading } = useTributes()
   const createTribute = useCreateTribute(playerId)
+  const deleteTribute = useDeleteTribute()
 
   return (
     <div>
@@ -45,15 +46,18 @@ export function MemorialPage() {
       </div>
 
       <div className="astro-card mb-4 p-6">
-        <div className="mb-1 flex flex-wrap items-end justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <h2 className="font-display text-[28px] leading-none text-astro-text">Tributes</h2>
-          <span className="text-xs text-astro-text-dim">
-            {tributes.length} &middot; open for good
-          </span>
+          <span className="text-xs text-astro-text-dim">{tributes.length} &middot; open for good</span>
         </div>
-        <p className="mb-5 max-w-[68ch] text-[13.5px] leading-[1.6] text-astro-text-muted [text-wrap:pretty]">
-          Anything you want to say about Ade. It stays on his page, no closing date.
-        </p>
+
+        <div className="mb-5 border-l-2 border-[rgba(203,213,245,0.4)] pl-[18px]">
+          <p className="font-serif text-[19px] leading-[1.5] text-[#e8ecfa] [text-wrap:pretty]">
+            Tributes stay up permanently. You can take yours down whenever you like, and nobody is told
+            when you do.
+          </p>
+        </div>
+
         <TributeComposer
           disabled={!playerId}
           isSubmitting={createTribute.isPending}
@@ -63,11 +67,19 @@ export function MemorialPage() {
 
       <div className="flex flex-col gap-3.5">
         {isLoading ? (
-          <PageLoader />
+          <VigilLoader />
         ) : tributes.length === 0 ? (
-          <EmptyState icon={<EmptyPitchIcon />} title="Nobody's written one yet." body="Be the first." />
+          <EmptyState icon={<TheCircleIcon />} title="Nobody has written yet." body="Be the first. A line is enough." />
         ) : (
-          tributes.map((tribute) => <TributeCard key={tribute.id} tribute={tribute} />)
+          tributes.map((tribute) => (
+            <TributeCard
+              key={tribute.id}
+              tribute={tribute}
+              isOwn={tribute.author.id === playerId}
+              tributeCount={tributes.length}
+              onDelete={() => deleteTribute.mutate(tribute.id)}
+            />
+          ))
         )}
       </div>
     </div>

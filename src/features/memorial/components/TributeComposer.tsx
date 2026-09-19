@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { InlineLoader } from '@/components/states/InlineLoader'
+import { MemorialModal } from '@/components/dialogs/MemorialModal'
+import { VigilLoaderSmall } from '@/components/states/VigilLoader'
 
 export function TributeComposer({
   disabled,
@@ -10,6 +11,7 @@ export function TributeComposer({
   onSubmit: (content: string) => void
   isSubmitting: boolean
 }) {
+  const [open, setOpen] = useState(false)
   const [content, setContent] = useState('')
 
   function submit() {
@@ -17,36 +19,47 @@ export function TributeComposer({
     if (!trimmed) return
     onSubmit(trimmed)
     setContent('')
+    setOpen(false)
   }
 
   return (
-    <div className="astro-card flex items-start gap-3.5 p-[18px]">
-      <div
-        className="size-10 shrink-0 rounded-[11px]"
-        style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
-      />
-      <div className="min-w-0 flex-1">
+    <>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen(true)}
+        className="rounded-xl border border-[rgba(203,213,245,0.35)] bg-[#151c30] px-[17px] py-3 text-[12.5px] font-bold text-[#cbd5f5] disabled:opacity-50"
+      >
+        Write a tribute
+      </button>
+
+      <MemorialModal
+        open={open}
+        onOpenChange={setOpen}
+        title="Say something about Ade"
+        body="It stays on his page for good, next to everyone else's. There's no length to aim for, some of the best ones are a line."
+        cancelLabel="Not now"
+        confirmLabel={
+          isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <VigilLoaderSmall size={14} />
+              Posting&hellip;
+            </span>
+          ) : (
+            'Post it'
+          )
+        }
+        onConfirm={submit}
+        confirmDisabled={isSubmitting || !content.trim()}
+      >
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          disabled={disabled}
           rows={2}
-          placeholder="Write your tribute to Salami…"
-          className="w-full resize-none bg-transparent text-sm text-astro-text placeholder:text-astro-text-dim focus:outline-none"
+          placeholder="He never once passed to me."
+          className="w-full resize-none rounded-xl border border-[rgba(203,213,245,0.25)] bg-[#151c30] px-[17px] py-[15px] font-serif text-[17px] text-[#e8ecfa] placeholder:text-[#4d5578] focus:outline-none"
         />
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2.5">
-          <span className="text-[11.5px] text-astro-text-dim">Everyone in the group can see it</span>
-          <button
-            type="button"
-            disabled={disabled || isSubmitting || !content.trim()}
-            onClick={submit}
-            className="flex items-center gap-2 rounded-[11px] bg-astro-accent px-[22px] py-3 text-[13.5px] font-extrabold text-astro-on-accent disabled:opacity-50"
-          >
-            {isSubmitting && <InlineLoader size={14} />}
-            Post tribute
-          </button>
-        </div>
-      </div>
-    </div>
+      </MemorialModal>
+    </>
   )
 }

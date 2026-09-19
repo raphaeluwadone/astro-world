@@ -1,7 +1,11 @@
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { EmptyState } from '@/components/states/EmptyState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
+import type { PendingClaimRow } from './api'
 import { useApproveClaim, usePendingClaims, useRejectClaim } from './hooks'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -11,6 +15,7 @@ export function AdminClaimsPage() {
   const { data: claims = [], isLoading } = usePendingClaims()
   const approve = useApproveClaim(player?.id)
   const reject = useRejectClaim(player?.id)
+  const [rejecting, setRejecting] = useState<PendingClaimRow | null>(null)
 
   return (
     <div>
@@ -66,7 +71,9 @@ export function AdminClaimsPage() {
                 <button
                   type="button"
                   disabled={approve.isPending || reject.isPending}
-                  onClick={() => approve.mutate(c)}
+                  onClick={() =>
+                    approve.mutate(c, { onSuccess: () => toast.success(`Approved as ${c.players.nickname}`) })
+                  }
                   className="rounded-lg bg-astro-green px-4 py-2 text-xs font-extrabold text-[#08130c] disabled:opacity-60"
                 >
                   Approve
@@ -74,7 +81,7 @@ export function AdminClaimsPage() {
                 <button
                   type="button"
                   disabled={approve.isPending || reject.isPending}
-                  onClick={() => reject.mutate(c.id)}
+                  onClick={() => setRejecting(c)}
                   className="rounded-lg border border-border bg-astro-surface-2 px-4 py-2 text-xs font-bold text-astro-text-muted disabled:opacity-60"
                 >
                   Reject
@@ -84,6 +91,22 @@ export function AdminClaimsPage() {
           ))}
         </div>
       )}
+
+      <AdminConfirmDialog
+        open={rejecting !== null}
+        onOpenChange={(open) => !open && setRejecting(null)}
+        eyebrow="Pending claims"
+        title={`Reject the claim on ${rejecting?.players.nickname}`}
+        body="They keep their account and can start fresh as a new player, but they lose the claim on this record."
+        cancelLabel="Keep reviewing"
+        confirmLabel="Reject claim"
+        isPending={reject.isPending}
+        onConfirm={() => {
+          if (!rejecting) return
+          reject.mutate(rejecting.id, { onSuccess: () => toast.success('Claim rejected') })
+          setRejecting(null)
+        }}
+      />
     </div>
   )
 }

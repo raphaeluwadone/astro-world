@@ -1,7 +1,8 @@
 import { Link } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
+import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { DrumLoader } from '@/components/states/DrumLoader'
 import { EmptyState } from '@/components/states/EmptyState'
 import { EmptyPitchIcon } from '@/components/states/icons'
@@ -39,6 +40,7 @@ function formatMatchdayDate(playedAt: string) {
 
 export function MatchdayPage() {
   const { player } = useCurrentPlayer()
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
   const { data: matchday, isLoading: matchdayLoading } = useNextMatchday()
   const { data: lastComplete } = useLastCompleteMatchday()
 
@@ -101,17 +103,28 @@ export function MatchdayPage() {
           <button
             type="button"
             disabled={cancelMatchday.isPending}
-            onClick={() => {
-              if (window.confirm("Cancel this matchday? Availability and the ballot stay recorded, but it won't be played.")) {
-                cancelMatchday.mutate()
-              }
-            }}
+            onClick={() => setConfirmingCancel(true)}
             className="text-[12.5px] font-bold text-astro-text-dim hover:text-astro-red disabled:opacity-60"
           >
             Cancel matchday
           </button>
         )}
       </div>
+
+      <AdminConfirmDialog
+        open={confirmingCancel}
+        onOpenChange={setConfirmingCancel}
+        eyebrow="Matchday control"
+        title="Cancel this matchday"
+        body="Availability and the ballot stay recorded, but it won't be played. Anyone who already marked themselves in stays on record either way."
+        cancelLabel="Keep it on"
+        confirmLabel="Cancel matchday"
+        isPending={cancelMatchday.isPending}
+        onConfirm={() => {
+          cancelMatchday.mutate()
+          setConfirmingCancel(false)
+        }}
+      />
 
       <AvailabilityCard
         matchdayId={matchday.id}

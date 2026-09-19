@@ -25,3 +25,8 @@ export async function createTribute(authorId: string, content: string) {
   const { error } = await supabase.from('tributes').insert({ author_id: authorId, content })
   if (error) throw error
 }
+
+export async function deleteTribute(tributeId: string) {
+  const { error } = await supabase.from('tributes').delete().eq('id', tributeId)
+  if (error) throw error
+}

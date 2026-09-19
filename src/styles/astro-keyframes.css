@@ -133,6 +133,12 @@
 
 @keyframes jn-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
 
+@keyframes md-admin { from { opacity: 0.001; transform: translateY(-4px) } to { opacity: 1; transform: none } }
+
+@keyframes md-quiet { from { opacity: 0.001 } to { opacity: 1 } }
+
+@keyframes md-backdrop { from { opacity: 0 } to { opacity: 1 } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important }
 }

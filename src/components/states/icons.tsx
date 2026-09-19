@@ -69,6 +69,35 @@ export function InTheNetIcon() {
   )
 }
 
+/** "The Circle": eleven standing round a still ball, with a gap. Memorial-page-only empty state. */
+export function TheCircleIcon() {
+  const dots: [number, number, number][] = [
+    [110.0, 28.0, 0.0],
+    [147.0, 33.1, 0.42],
+    [174.1, 47.0, 0.84],
+    [184.0, 66.0, 1.26],
+    [174.1, 85.0, 1.68],
+    [147.0, 98.9, 2.1],
+    [110.0, 104.0, 2.52],
+    [73.0, 98.9, 2.94],
+    [45.9, 85.0, 3.36],
+    [36.0, 66.0, 3.78],
+    [45.9, 47.0, 4.2],
+  ]
+  return (
+    <svg width={180} height={118} viewBox="0 0 220 132" aria-hidden="true">
+      <ellipse cx="110" cy="66" rx="74" ry="38" fill="none" stroke="#2c3c74" strokeWidth="1.6" strokeDasharray="2 10" opacity="0.6" />
+      {dots.map(([cx, cy, delay]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="5.4" fill="#2c3c74" style={{ animation: `st-standing 7s ease-in-out infinite ${delay}s` }} />
+      ))}
+      <ellipse cx="110" cy="92" rx="22" ry="4" fill="#000" fillOpacity="0.32" />
+      <g transform="translate(88.75 50.75) scale(0.425)">
+        <use href="#astro-ball" />
+      </g>
+    </svg>
+  )
+}
+
 export function FlatBallIcon() {
   return (
     <svg width={156} height={118} viewBox="0 0 190 140" aria-hidden="true">
