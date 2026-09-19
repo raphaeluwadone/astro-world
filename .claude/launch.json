@@ -4,7 +4,7 @@
     {
       "name": "astro-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["--prefix", "/Users/donatello/Documents/projects/astro", "run", "dev"],
       "port": 5173
     }
   ]

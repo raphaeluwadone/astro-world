@@ -1,19 +1,31 @@
 /** Simplified but on-brand art for each onboarding step. Faithful to the
  * design's motifs (orbiting ball, player card, ballot grid, rating chips,
  * No.13 vigil, goal net) without reproducing every decorative overlay. */
+import { useEffect, useState } from 'react'
 import { TEAM_ID } from '@/lib/teamId'
 
 export function OrbitArt() {
   return (
-    <svg width={150} height={150} viewBox="0 0 120 120" aria-hidden="true">
-      <g style={{ animation: 'ob-orbit 3.4s linear infinite', transformOrigin: '60px 60px' }}>
-        <circle cx="60" cy="60" r="48" fill="none" stroke="#a63fff" strokeOpacity="0.18" strokeWidth="4" strokeLinecap="round" strokeDasharray="120 400" transform="rotate(-142 60 60)" />
-        <circle cx="60" cy="60" r="48" fill="none" stroke="#a63fff" strokeOpacity="0.6" strokeWidth="4" strokeLinecap="round" strokeDasharray="26 400" transform="rotate(-31 60 60)" />
-        <g transform="translate(90 42) scale(0.18)">
+    <div className="relative flex flex-col items-center gap-[22px]">
+      <svg width={150} height={150} viewBox="0 0 120 120" aria-hidden="true">
+        <g style={{ animation: 'ob-orbit 3.4s linear infinite', transformOrigin: '60px 60px' }}>
+          <circle cx="60" cy="60" r="48" fill="none" stroke="#a63fff" strokeOpacity="0.18" strokeWidth="4" strokeLinecap="round" strokeDasharray="120 400" transform="rotate(-142 60 60)" />
+          <circle cx="60" cy="60" r="48" fill="none" stroke="#a63fff" strokeOpacity="0.6" strokeWidth="4" strokeLinecap="round" strokeDasharray="26 400" transform="rotate(-31 60 60)" />
+          <circle cx="108" cy="60" r="5" fill="#c589ff" />
+        </g>
+        <g transform="translate(30 30) scale(0.6)">
           <use href="#astro-ball" />
         </g>
-      </g>
-    </svg>
+      </svg>
+      <div
+        className="font-display text-center text-[40px] leading-[0.92] text-astro-text"
+        style={{ animation: 'ob-rise 700ms cubic-bezier(.2,.8,.2,1) both' }}
+      >
+        EVERY SUNDAY,
+        <br />
+        SOMEONE NEW
+      </div>
+    </div>
   )
 }
 
@@ -55,9 +67,18 @@ export function CardArt() {
 const LIT = new Set([2, 5, 7, 11, 14, 17, 19, 22, 25, 28, 30, 33, 36, 39, 41, 44, 47, 50, 52, 55, 58, 61, 63, 66, 69, 72, 75, 78, 81, 84])
 const PREVIEW_TEAMS = TEAM_ID.slice(0, 5)
 
+const BALLOT_REPLAY_INTERVAL_MS = 6000
+
 export function BallotArt() {
+  const [cycle, setCycle] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => setCycle((c) => c + 1), BALLOT_REPLAY_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [])
+
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div key={cycle} className="flex flex-col items-center gap-5">
       <div className="grid grid-cols-12 gap-[7px]" style={{ width: 270 }}>
         {Array.from({ length: 96 }, (_, n) => {
           const on = LIT.has(n)

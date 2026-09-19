@@ -56,7 +56,7 @@ export const STEPS: OnboardingStep[] = [
   },
   {
     label: 'Step five of five',
-    title: 'WE PLAY FOR ADE.',
+    title: 'WE PLAY FOR SALAMI.',
     body: 'Ade Salami played with us for years. He started the group chat and bought the first set of bibs. We lost him, and four times a year the Salami Cup is played in his name.',
     points: [
       'His page is always in the sidebar. Tributes are open for good.',
