@@ -53,6 +53,24 @@ export function Sidebar() {
           </Link>
         )}
 
+        <Link
+          to="/memorial"
+          className="flex items-center gap-2.5 rounded-[11px] px-2 py-2.5 no-underline hover:bg-[rgba(166,63,255,0.07)]"
+        >
+          <div
+            className="flex size-7 shrink-0 items-center justify-center rounded-[8px] border border-[rgba(166,63,255,0.4)] bg-astro-surface-2 font-display text-[15px] text-astro-accent-soft"
+            style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
+          >
+            13
+          </div>
+          <div className="min-w-0">
+            <div className="text-[9.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
+              In memory
+            </div>
+            <div className="text-[12.5px] font-extrabold text-astro-text-muted">Salami</div>
+          </div>
+        </Link>
+
         {/* TODO: ballot-status copy ("Ballot night / Wed 20:00") needs revisiting:
             the draw is admin-triggered near/on matchday, not a fixed Wed 20:00 cutoff.
             Left as design-accurate placeholder until the ballot feature is built. */}
