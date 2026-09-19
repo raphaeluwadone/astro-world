@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Database } from '@/types/database'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { PlayerCard } from './components/PlayerCard'
@@ -19,7 +20,7 @@ const FILTERS: Array<{ label: string; value: PositionType | 'ALL' }> = [
 const PER_PAGE = 8
 
 export function PlayersPage() {
-  const { data: players = [], isLoading } = usePlayerCards()
+  const { data: players = [], isLoading, isError, refetch } = usePlayerCards()
   const [filter, setFilter] = useState<PositionType | 'ALL'>('ALL')
   const [page, setPage] = useState(0)
 
@@ -68,6 +69,8 @@ export function PlayersPage() {
 
       {isLoading ? (
         <PageLoader />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
       ) : filtered.length === 0 ? (
         <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="Loosen a filter and we'll find someone." />
       ) : (

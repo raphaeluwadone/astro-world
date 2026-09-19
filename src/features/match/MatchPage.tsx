@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { GoalTimeline } from './components/GoalTimeline'
@@ -17,13 +18,14 @@ function ratingsStillOpen(matchPlayedAt: string) {
 }
 
 export function MatchPage({ matchId }: { matchId: string }) {
-  const { data: match, isLoading } = useMatch(matchId)
+  const { data: match, isLoading, isError, refetch } = useMatch(matchId)
   const { data: lineups = [] } = useLineups(matchId)
   const { data: goals = [] } = useGoals(matchId)
   const { data: integrity } = useRatingsIntegrity(matchId)
   const { data: motm } = useMotmWinner(match?.matchday_id)
 
   if (isLoading) return <PageLoader />
+  if (isError) return <ErrorState onRetry={() => refetch()} />
   if (!match) {
     return (
       <EmptyState

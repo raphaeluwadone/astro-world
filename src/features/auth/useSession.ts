@@ -62,5 +62,7 @@ export function useCurrentPlayer() {
   return {
     player: query.data ?? null,
     isLoading: sessionLoading || (!!userId && query.isLoading),
+    isError: query.isError,
+    refetch: query.refetch,
   }
 }

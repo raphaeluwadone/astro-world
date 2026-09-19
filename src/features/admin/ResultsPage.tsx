@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useDrawnTeams, useNextMatchday } from '@/features/matchday/hooks'
@@ -37,14 +38,16 @@ function membersOf(teams: TeamWithMembers[], teamId: string): PlayerSummary[] {
 }
 
 export function ResultsPage() {
-  const { data: matchday, isLoading: matchdayLoading } = useNextMatchday()
-  const { data: teams = [], isLoading: teamsLoading } = useDrawnTeams(matchday?.id)
+  const { data: matchday, isLoading: matchdayLoading, isError: matchdayError, refetch: refetchMatchday } = useNextMatchday()
+  const { data: teams = [], isLoading: teamsLoading, isError: teamsError, refetch: refetchTeams } = useDrawnTeams(matchday?.id)
   const fileResults = useFileMatchdayResults(matchday?.id)
 
   const [fixtures, setFixtures] = useState<FixtureDraft[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   if (matchdayLoading || teamsLoading) return <PageLoader />
+  if (matchdayError) return <ErrorState onRetry={() => refetchMatchday()} />
+  if (teamsError) return <ErrorState onRetry={() => refetchTeams()} />
 
   // Checked before the "nothing to file" guard below: filing results
   // invalidates the matchday query, so by the time this re-renders,

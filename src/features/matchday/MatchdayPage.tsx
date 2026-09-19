@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { DrumLoader } from '@/components/states/DrumLoader'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useCancelMatchday } from '@/features/admin/hooks'
@@ -41,7 +42,7 @@ function formatMatchdayDate(playedAt: string) {
 export function MatchdayPage() {
   const { player } = useCurrentPlayer()
   const [confirmingCancel, setConfirmingCancel] = useState(false)
-  const { data: matchday, isLoading: matchdayLoading } = useNextMatchday()
+  const { data: matchday, isLoading: matchdayLoading, isError: matchdayError, refetch: refetchMatchday } = useNextMatchday()
   const { data: lastComplete } = useLastCompleteMatchday()
 
   const { data: players = [] } = useActivePlayers()
@@ -59,6 +60,10 @@ export function MatchdayPage() {
 
   if (matchdayLoading) {
     return <PageLoader />
+  }
+
+  if (matchdayError) {
+    return <ErrorState onRetry={() => refetchMatchday()} />
   }
 
   if (!matchday) {

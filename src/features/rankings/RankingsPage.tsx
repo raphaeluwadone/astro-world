@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Database } from '@/types/database'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import type { RankingRow } from './api'
@@ -59,7 +60,7 @@ function FilterPill({
 }
 
 function PlayerRankings() {
-  const { data: rankings = [], isLoading } = useRankings()
+  const { data: rankings = [], isLoading, isError, refetch } = useRankings()
   const [position, setPosition] = useState<PositionType | 'ALL'>('ALL')
   const [sort, setSort] = useState<SortKey>('avg_rating')
   const [page, setPage] = useState(0)
@@ -79,6 +80,7 @@ function PlayerRankings() {
   }
 
   if (isLoading) return <PageLoader />
+  if (isError) return <ErrorState onRetry={() => refetch()} />
 
   return (
     <>
@@ -203,8 +205,9 @@ function PlayerRankings() {
 }
 
 function TeamStandings() {
-  const { data: standings = [], isLoading } = useSeasonTeamStandings()
+  const { data: standings = [], isLoading, isError, refetch } = useSeasonTeamStandings()
   if (isLoading) return <PageLoader />
+  if (isError) return <ErrorState onRetry={() => refetch()} />
   return <TeamStandingsTable standings={standings} />
 }
 

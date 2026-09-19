@@ -1,4 +1,5 @@
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useArticles } from './hooks'
@@ -8,7 +9,7 @@ function blurb(body: string) {
 }
 
 export function ArticlesPage() {
-  const { data: articles = [], isLoading } = useArticles()
+  const { data: articles = [], isLoading, isError, refetch } = useArticles()
 
   return (
     <div>
@@ -19,6 +20,8 @@ export function ArticlesPage() {
 
       {isLoading ? (
         <PageLoader />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
       ) : articles.length === 0 ? (
         <EmptyState icon={<EmptyPitchIcon />} title="Nothing published yet." body="Match reports land here once someone writes one." />
       ) : (

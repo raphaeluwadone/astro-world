@@ -1,5 +1,6 @@
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { MostMentioned } from './components/MostMentioned'
@@ -12,7 +13,7 @@ export function CommunityPage() {
   const { player } = useCurrentPlayer()
   const playerId = player?.id ?? null
 
-  const { data: feed = [], isLoading: feedLoading } = useFeed(playerId)
+  const { data: feed = [], isLoading: feedLoading, isError: feedError, refetch: refetchFeed } = useFeed(playerId)
   const { data: mentioned = [] } = useMostMentioned()
   const { data: tags = [] } = useTagPool()
   const createPost = useCreatePost(playerId)
@@ -35,6 +36,8 @@ export function CommunityPage() {
 
           {feedLoading ? (
             <PageLoader />
+          ) : feedError ? (
+            <ErrorState onRetry={() => refetchFeed()} />
           ) : feed.length === 0 ? (
             <EmptyState icon={<EmptyPitchIcon />} title="Nobody's said anything yet." body="Be the keen one." />
           ) : (

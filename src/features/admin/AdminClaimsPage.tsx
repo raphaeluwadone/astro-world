@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import type { PendingClaimRow } from './api'
@@ -12,7 +13,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 export function AdminClaimsPage() {
   const { player } = useCurrentPlayer()
-  const { data: claims = [], isLoading } = usePendingClaims()
+  const { data: claims = [], isLoading, isError, refetch } = usePendingClaims()
   const approve = useApproveClaim(player?.id)
   const reject = useRejectClaim(player?.id)
   const [rejecting, setRejecting] = useState<PendingClaimRow | null>(null)
@@ -33,6 +34,8 @@ export function AdminClaimsPage() {
 
       {isLoading ? (
         <PageLoader />
+      ) : isError ? (
+        <ErrorState onRetry={() => refetch()} />
       ) : claims.length === 0 ? (
         <EmptyState icon={<EmptyPitchIcon />} title="Nothing to review." body="New claims will show up here." />
       ) : (

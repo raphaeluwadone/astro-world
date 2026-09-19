@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { ErrorState } from '@/components/states/ErrorState'
 import { PageLoader } from '@/components/states/PageLoader'
 import { FieldHint, FieldLabel, TextField } from '@/features/edit-profile/components/FieldInput'
 import { useCreateMatchday, useNextMatchday } from '@/features/matchday/hooks'
@@ -12,7 +13,7 @@ function nextSunday(): string {
 }
 
 export function ScheduleMatchdayPage() {
-  const { data: matchday, isLoading } = useNextMatchday()
+  const { data: matchday, isLoading, isError, refetch } = useNextMatchday()
   const createMatchday = useCreateMatchday()
 
   const [date, setDate] = useState(nextSunday())
@@ -40,6 +41,10 @@ export function ScheduleMatchdayPage() {
 
   if (isLoading) {
     return <PageLoader />
+  }
+
+  if (isError) {
+    return <ErrorState onRetry={() => refetch()} />
   }
 
   return (

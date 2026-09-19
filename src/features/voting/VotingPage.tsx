@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon, InTheNetIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { RatingRow } from './components/RatingRow'
@@ -10,7 +11,7 @@ export function VotingPage() {
   const { player } = useCurrentPlayer()
   const playerId = player?.id ?? null
 
-  const { data: match, isLoading: matchLoading } = useMyMatchToRate(playerId ?? undefined)
+  const { data: match, isLoading: matchLoading, isError: matchError, refetch: refetchMatch } = useMyMatchToRate(playerId ?? undefined)
   const { data: isOpen = false } = useRatingsOpen(match?.matchId)
   const { data: roster = [] } = useRoster(match?.matchId)
   const { data: scores = new Map<string, number>() } = useMyScores(match?.matchId)
@@ -18,6 +19,10 @@ export function VotingPage() {
 
   if (matchLoading) {
     return <PageLoader />
+  }
+
+  if (matchError) {
+    return <ErrorState onRetry={() => refetchMatch()} />
   }
 
   if (!match) {

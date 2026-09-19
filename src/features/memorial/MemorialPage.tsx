@@ -10,7 +10,7 @@ export function MemorialPage() {
   const { player } = useCurrentPlayer()
   const playerId = player?.id ?? null
 
-  const { data: tributes = [], isLoading } = useTributes()
+  const { data: tributes = [], isLoading, isError, refetch } = useTributes()
   const createTribute = useCreateTribute(playerId)
   const deleteTribute = useDeleteTribute()
 
@@ -68,6 +68,15 @@ export function MemorialPage() {
       <div className="flex flex-col gap-3.5">
         {isLoading ? (
           <VigilLoader />
+        ) : isError ? (
+          // No icon and no colour here on purpose: nothing on this page
+          // raises its voice, including when something goes wrong.
+          <div className="py-12 text-center">
+            <p className="mb-3 text-sm text-astro-text-muted">Couldn&rsquo;t load his tributes.</p>
+            <button type="button" onClick={() => refetch()} className="text-sm font-semibold text-[#cbd5f5] hover:text-[#e8ecfa]">
+              Try again
+            </button>
+          </div>
         ) : tributes.length === 0 ? (
           <EmptyState icon={<TheCircleIcon />} title="Nobody has written yet." body="Be the first. A line is enough." />
         ) : (

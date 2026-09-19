@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { EmptyState } from '@/components/states/EmptyState'
+import { ErrorState } from '@/components/states/ErrorState'
 import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { Achievements } from './components/Achievements'
@@ -24,7 +25,7 @@ function average(nums: number[]) {
 }
 
 export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOwnProfile: boolean }) {
-  const { data: player, isLoading } = usePlayer(playerId)
+  const { data: player, isLoading, isError, refetch } = usePlayer(playerId)
   const { data: matchRatings = [] } = useMatchRatings(playerId)
   const { data: matchHistory = [] } = useMatchHistory(playerId)
   const { data: careerStats } = useCareerStats(playerId)
@@ -32,6 +33,7 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
   const { data: comparisons = [] } = useComparisons(playerId)
 
   if (isLoading) return <PageLoader />
+  if (isError) return <ErrorState onRetry={() => refetch()} />
   if (!player) {
     return <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="This player doesn't exist, or the link's wrong." />
   }
