@@ -23,7 +23,7 @@ export function RatingsPanel({
             Voters
           </div>
           <div className="font-display text-[32px] leading-none text-astro-text">
-            {integrity.voter_count}
+            {integrity.voter_count ?? '—'}
           </div>
         </div>
         <div className="flex-1 rounded-[11px] bg-astro-surface-2 px-[15px] py-[13px]">
@@ -44,7 +44,9 @@ export function RatingsPanel({
         </div>
       </div>
       <p className="text-[13px] text-astro-text-muted">
-        Every score is an average of the other eleven. Nobody sees who gave what.
+        {isOpen
+          ? "Numbers stay hidden while voting's still open, watching them tick up would give away who voted."
+          : 'Every score is an average of the other eleven. Nobody sees who gave what.'}
       </p>
     </div>
   )

@@ -28,7 +28,7 @@ export interface GoalRow {
 }
 
 export interface RatingsIntegrity {
-  voter_count: number
+  voter_count: number | null
   match_avg: number | null
   lowest_avg: number | null
 }
