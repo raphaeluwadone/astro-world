@@ -1142,7 +1142,13 @@ export type Database = {
       ballot_entry_status: "balloted" | "standby"
       comparison_source: "self" | "community"
       foot_type: "left" | "right" | "both"
-      matchday_status: "open" | "balloted" | "drawn" | "complete"
+      matchday_status:
+        | "open"
+        | "balloted"
+        | "drawn"
+        | "complete"
+        | "played"
+        | "cancelled"
       player_claim_status: "pending" | "approved" | "rejected"
       position_type: "GK" | "DEF" | "ATT" | "UTIL"
       tag_source: "self" | "community"
@@ -1281,7 +1287,14 @@ export const Constants = {
       ballot_entry_status: ["balloted", "standby"],
       comparison_source: ["self", "community"],
       foot_type: ["left", "right", "both"],
-      matchday_status: ["open", "balloted", "drawn", "complete"],
+      matchday_status: [
+        "open",
+        "balloted",
+        "drawn",
+        "complete",
+        "played",
+        "cancelled",
+      ],
       player_claim_status: ["pending", "approved", "rejected"],
       position_type: ["GK", "DEF", "ATT", "UTIL"],
       tag_source: ["self", "community"],

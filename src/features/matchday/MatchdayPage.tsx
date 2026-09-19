@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
@@ -5,6 +6,7 @@ import { DrumLoader } from '@/components/states/DrumLoader'
 import { EmptyState } from '@/components/states/EmptyState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
+import { useCancelMatchday } from '@/features/admin/hooks'
 import { monthOf } from './api'
 import { AvailabilityCard } from './components/AvailabilityCard'
 import { DrawnTeams } from './components/DrawnTeams'
@@ -48,6 +50,7 @@ export function MatchdayPage() {
   const runDraw = useRunTeamDraw(matchday?.id)
   const runBallot = useRunBallotSelection(matchday?.id)
   const updateCapacity = useUpdateMatchdayCapacity(matchday?.id)
+  const cancelMatchday = useCancelMatchday(matchday?.id)
   const month = matchday ? monthOf(matchday.played_at) : undefined
   const { data: monthlyMembers = [] } = useMonthlyMembers(month)
   const claimMonthlySlot = useClaimMonthlySlot(month)
@@ -84,14 +87,30 @@ export function MatchdayPage() {
 
   return (
     <div className="space-y-5">
-      <div className="mb-[26px]">
-        <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-          {formatMatchdayDate(matchday.played_at)}
-          {matchday.venue ? ` · ${matchday.venue}` : ''}
+      <div className="mb-[26px] flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
+            {formatMatchdayDate(matchday.played_at)}
+            {matchday.venue ? ` · ${matchday.venue}` : ''}
+          </div>
+          <h1 className="font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
+            The Ballot
+          </h1>
         </div>
-        <h1 className="font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
-          The Ballot
-        </h1>
+        {player?.is_admin && (
+          <button
+            type="button"
+            disabled={cancelMatchday.isPending}
+            onClick={() => {
+              if (window.confirm("Cancel this matchday? Availability and the ballot stay recorded, but it won't be played.")) {
+                cancelMatchday.mutate()
+              }
+            }}
+            className="text-[12.5px] font-bold text-astro-text-dim hover:text-astro-red disabled:opacity-60"
+          >
+            Cancel matchday
+          </button>
+        )}
       </div>
 
       <AvailabilityCard
@@ -228,6 +247,23 @@ export function MatchdayPage() {
           )}
 
           {teams.length > 0 && <DrawnTeams teams={teams} />}
+
+          {teams.length > 0 && matchday.status === 'drawn' && player?.is_admin && (
+            <div className="astro-card flex flex-wrap items-center justify-between gap-3.5 p-[22px]">
+              <div>
+                <h2 className="mb-[5px] font-display text-[26px] leading-none text-astro-text">
+                  Results
+                </h2>
+                <p className="text-[13px] text-astro-text-muted">Not filed yet. Nothing downstream moves until they are.</p>
+              </div>
+              <Link
+                to="/admin/results"
+                className="rounded-lg bg-astro-accent px-6 py-3.5 text-sm font-extrabold text-astro-on-accent no-underline"
+              >
+                File results
+              </Link>
+            </div>
+          )}
 
           {lastComplete && (
             <div className="astro-card p-[22px]">

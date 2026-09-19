@@ -41,11 +41,15 @@ export interface MatchResultRow {
 
 const PLAYER_SUMMARY_COLS = 'id, nickname, full_name, favourite_number'
 
+// 'complete' is retired going forward (see the played/cancelled migration)
+// but still excluded here in case an older row never got migrated.
+const DONE_STATUSES = ['played', 'complete', 'cancelled'] as const
+
 export async function fetchNextMatchday() {
   const { data, error } = await supabase
     .from('matchdays')
     .select('*')
-    .neq('status', 'complete')
+    .not('status', 'in', `(${DONE_STATUSES.join(',')})`)
     .order('played_at', { ascending: true })
     .limit(1)
     .maybeSingle()
@@ -73,7 +77,7 @@ export async function fetchLastCompleteMatchday() {
   const { data, error } = await supabase
     .from('matchdays')
     .select('*')
-    .eq('status', 'complete')
+    .in('status', ['played', 'complete'])
     .order('played_at', { ascending: false })
     .limit(1)
     .maybeSingle()

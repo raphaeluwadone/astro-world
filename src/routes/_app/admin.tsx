@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 const TABS = [
   { to: '/admin', label: 'Claims' },
   { to: '/admin/matchday', label: 'Matchday' },
+  { to: '/admin/results', label: 'Results' },
 ] as const
 
 // Every /admin/* route nests under here, so this single guard covers all
