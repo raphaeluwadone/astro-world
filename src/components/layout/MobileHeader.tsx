@@ -1,4 +1,5 @@
 import { BellIcon, MenuIcon } from '@/components/icons/nav-icons'
+import { Wordmark } from '@/components/icons/Wordmark'
 
 export function MobileHeader() {
   return (
@@ -6,9 +7,7 @@ export function MobileHeader() {
       <button type="button" aria-label="Menu" className="text-astro-text-muted">
         <MenuIcon className="size-5" />
       </button>
-      <div className="font-display text-[23px] leading-none tracking-[0.08em] text-astro-text">
-        ASTRO
-      </div>
+      <Wordmark size={23} dashColor="#a63fff" className="text-astro-text" />
       <button type="button" aria-label="Notifications" className="text-astro-text-muted">
         <BellIcon className="size-5" />
       </button>

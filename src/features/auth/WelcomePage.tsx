@@ -45,7 +45,7 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
         </div>
 
         <div className="mb-[30px] text-center">
-          <div className="mb-3 font-display text-[76px] leading-[0.9] tracking-[0.07em] text-astro-text">ASTRO</div>
+          <div className="mb-3 font-display text-[76px] leading-[0.9] tracking-[0.03em] text-astro-text">ALLSTARS</div>
           <p className="mx-auto max-w-[40ch] text-base leading-[1.55] text-astro-text [text-wrap:pretty]">
             Sunday football at Gbaja Boys. Thirty spots, balloted every Wednesday, and nobody knows who
             they&rsquo;re playing with until the draw.
@@ -138,7 +138,7 @@ function SignInForm({ onBack, redirectTo }: { onBack: () => void; redirectTo?: s
   }
 
   return (
-    <AuthLayout title="ASTRO" subtitle="Sign in to your account">
+    <AuthLayout title="ALLSTARS" subtitle="Sign in to your account">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>

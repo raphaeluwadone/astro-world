@@ -11,7 +11,7 @@ export const STEPS: OnboardingStep[] = [
   {
     label: 'Step one of five',
     title: 'THIRTY SPOTS. A HUNDRED OF US.',
-    body: "Astro runs one game a week. Sides are drawn fresh every Sunday, so you'll rarely play with the same eleven twice.",
+    body: "AllStars runs one game a week. Sides are drawn fresh every Sunday, so you'll rarely play with the same eleven twice.",
     points: [
       'No fixed teams and no captains picking.',
       'Sunday 09:30, Gbaja Boys Junior High School.',

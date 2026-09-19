@@ -84,10 +84,13 @@ export function BellIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+/** The adopted "1a" mark from the AllStars rebrand (rev 42): a
+ * constructed 10-point star, 46/16 outer-to-inner ratio, never redrawn
+ * by eye. Replaces the earlier diamond mark used under the Astro name. */
 export function BrandMarkIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="#fff" {...props}>
-      <path d="M12 2.2 21.8 12 12 21.8 2.2 12Z" />
+    <svg viewBox="0 0 100 100" fill="#0a0f1f" {...props}>
+      <path d="M50.00 4.00L59.40 37.06L93.75 35.79L65.22 54.94L77.04 87.21L50.00 66.00L22.96 87.21L34.78 54.94L6.25 35.79L40.60 37.06Z" />
     </svg>
   )
 }

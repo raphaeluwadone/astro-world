@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
+import { Wordmark } from '@/components/icons/Wordmark'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { SIDEBAR_NAV_ITEMS } from './nav-items'
 
@@ -15,9 +16,7 @@ export function Sidebar() {
         >
           <BrandMarkIcon className="size-[18px]" />
         </div>
-        <span className="font-display text-[27px] leading-none tracking-[0.08em] text-astro-text">
-          ASTRO
-        </span>
+        <Wordmark size={27} className="leading-none text-astro-text" />
       </div>
 
       <nav className="flex flex-col gap-[3px]">

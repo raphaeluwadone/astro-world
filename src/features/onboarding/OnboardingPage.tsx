@@ -5,6 +5,7 @@ import { useSetAvailability } from '@/features/matchday/hooks'
 import { fetchNextMatchday } from '@/features/matchday/api'
 import { useQuery } from '@tanstack/react-query'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
+import { Wordmark } from '@/components/icons/Wordmark'
 import { useMarkOnboarded } from './hooks'
 import { STEPS } from './steps'
 import { BallotArt, CardArt, MemorialArt, OrbitArt, RatingArt, ReadyArt } from './stepArt'
@@ -63,9 +64,7 @@ export function OnboardingPage() {
               >
                 <BrandMarkIcon className="size-3.5" />
               </div>
-              <span className="font-display text-[22px] leading-none tracking-[0.07em] text-astro-text">
-                ASTRO
-              </span>
+              <Wordmark size={22} className="text-astro-text" />
             </div>
             <div className="flex items-center gap-2.5">
               {STEPS.slice(0, 5).map((_, i) => (

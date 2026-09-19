@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
+import { Wordmark } from '@/components/icons/Wordmark'
 import { useSession } from '@/features/auth/useSession'
 import type { JoinDetails } from './api'
 import { useCreateNewPlayer, useSubmitClaim, useUnclaimedPlayers, useUpdatePlayerJoinDetails } from './hooks'
@@ -97,11 +98,11 @@ export function JoinPage() {
     <div className="flex min-h-screen flex-col items-center bg-astro-bg px-5 py-9 pb-[70px]">
       <div className="mb-6.5 flex w-full max-w-[560px] items-center gap-2.5">
         <div className="flex size-[30px] shrink-0 items-center justify-center rounded-[9px] bg-astro-accent">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#0a0f1f">
-            <path d="M12 2.2 21.8 12 12 21.8 2.2 12Z" />
+          <svg width="16" height="16" viewBox="0 0 100 100" fill="#0a0f1f">
+            <path d="M50.00 4.00L59.40 37.06L93.75 35.79L65.22 54.94L77.04 87.21L50.00 66.00L22.96 87.21L34.78 54.94L6.25 35.79L40.60 37.06Z" />
           </svg>
         </div>
-        <div className="font-display text-2xl leading-none tracking-[0.07em] text-astro-text">ASTRO</div>
+        <Wordmark size={24} className="text-astro-text" />
         <div className="ml-auto text-[11.5px] text-astro-text-dim">Step {idx + 1} of 5</div>
       </div>
 
