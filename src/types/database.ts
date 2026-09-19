@@ -405,6 +405,56 @@ export type Database = {
           },
         ]
       }
+      monthly_awards: {
+        Row: {
+          award_key: string
+          award_name: string
+          confirmed: boolean
+          created_at: string
+          id: string
+          metric: string
+          month: number
+          player_id: string | null
+          stat: string
+          winner_nickname: string
+          year: number
+        }
+        Insert: {
+          award_key: string
+          award_name: string
+          confirmed?: boolean
+          created_at?: string
+          id?: string
+          metric: string
+          month: number
+          player_id?: string | null
+          stat: string
+          winner_nickname: string
+          year: number
+        }
+        Update: {
+          award_key?: string
+          award_name?: string
+          confirmed?: boolean
+          created_at?: string
+          id?: string
+          metric?: string
+          month?: number
+          player_id?: string | null
+          stat?: string
+          winner_nickname?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_awards_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_memberships: {
         Row: {
           claimed_at: string
@@ -635,7 +685,10 @@ export type Database = {
           joined_at: string
           legacy_appearances: number
           legacy_assists: number
+          legacy_clean_sheets: number
           legacy_goals: number
+          legacy_red_cards: number
+          legacy_yellow_cards: number
           nickname: string
           onboarded_at: string | null
           photo_url: string | null
@@ -660,7 +713,10 @@ export type Database = {
           joined_at?: string
           legacy_appearances?: number
           legacy_assists?: number
+          legacy_clean_sheets?: number
           legacy_goals?: number
+          legacy_red_cards?: number
+          legacy_yellow_cards?: number
           nickname: string
           onboarded_at?: string | null
           photo_url?: string | null
@@ -685,7 +741,10 @@ export type Database = {
           joined_at?: string
           legacy_appearances?: number
           legacy_assists?: number
+          legacy_clean_sheets?: number
           legacy_goals?: number
+          legacy_red_cards?: number
+          legacy_yellow_cards?: number
           nickname?: string
           onboarded_at?: string | null
           photo_url?: string | null

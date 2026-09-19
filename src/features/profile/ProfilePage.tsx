@@ -38,6 +38,18 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
 
   const careerAvg = average(matchRatings.map((r) => r.avg_rating))
 
+  // Same "legacy baseline + real in-app total" combination player_career_stats()
+  // already does for Rankings/Players: without it, career here would silently
+  // disagree with those screens for every one of the 70 imported players, the
+  // exact "two different totals for the same career" bug the real almanac
+  // this data came from was caught making.
+  const combinedCareerStats = careerStats && {
+    appearances: careerStats.appearances + player.legacy_appearances,
+    goals: careerStats.goals + player.legacy_goals,
+    assists: careerStats.assists + player.legacy_assists,
+    motm: careerStats.motm,
+  }
+
   return (
     <div className="space-y-5">
       <div className="mb-1 flex flex-wrap items-end justify-between gap-4">
@@ -68,11 +80,11 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
         <InfoPanel player={player} />
       </div>
 
-      {careerStats && <StatsSection matchRatings={matchRatings} careerStats={careerStats} />}
+      {combinedCareerStats && <StatsSection matchRatings={matchRatings} careerStats={combinedCareerStats} />}
 
       <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}>
         <RecentForm matchRatings={matchRatings} />
-        {careerStats && <Achievements stats={careerStats} />}
+        {combinedCareerStats && <Achievements playerId={playerId} stats={combinedCareerStats} />}
       </div>
 
       <MatchHistoryList history={matchHistory} />

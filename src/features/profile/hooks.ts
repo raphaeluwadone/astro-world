@@ -7,6 +7,7 @@ import {
   fetchMatchRatings,
   fetchMotmCount,
   fetchPlayer,
+  fetchPlayerAwards,
   fetchPlayerTags,
 } from './api'
 
@@ -53,6 +54,14 @@ export function usePlayerTags(playerId: string | undefined) {
   return useQuery({
     queryKey: ['player-tags', playerId],
     queryFn: () => fetchPlayerTags(playerId!),
+    enabled: !!playerId,
+  })
+}
+
+export function usePlayerAwards(playerId: string | undefined) {
+  return useQuery({
+    queryKey: ['player-awards', playerId],
+    queryFn: () => fetchPlayerAwards(playerId!),
     enabled: !!playerId,
   })
 }

@@ -22,6 +22,14 @@ export interface PlayerTagRow {
   label: string
 }
 
+export interface PlayerAwardRow {
+  id: string
+  award_name: string
+  year: number
+  month: number
+  stat: string
+}
+
 export interface ComparisonRow {
   id: string
   source: Database['public']['Enums']['comparison_source']
@@ -77,6 +85,19 @@ export async function fetchMotmCount(playerId: string): Promise<number> {
     }
   }
   return [...byMatchday.values()].filter((w) => w.nominee_id === playerId).length
+}
+
+/** Real award history, not the computed badges in Achievements: these are
+ * facts scraped from the group's own almanac, never re-derived. */
+export async function fetchPlayerAwards(playerId: string): Promise<PlayerAwardRow[]> {
+  const { data, error } = await supabase
+    .from('monthly_awards')
+    .select('id, award_name, year, month, stat')
+    .eq('player_id', playerId)
+    .order('year', { ascending: false })
+    .order('month', { ascending: false })
+  if (error) throw error
+  return data ?? []
 }
 
 export async function fetchMatchHistory(playerId: string): Promise<MatchHistoryRow[]> {
