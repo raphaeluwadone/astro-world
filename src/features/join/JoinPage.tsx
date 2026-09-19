@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
+import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
 import { Wordmark } from '@/components/icons/Wordmark'
 import { useSession } from '@/features/auth/useSession'
 import type { JoinDetails } from './api'
@@ -95,8 +96,9 @@ export function JoinPage() {
       : `You'll be in the ${MONTH_LONG[month - 1]} party with everyone else born that month.`
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-astro-bg px-5 py-9 pb-[70px]">
-      <div className="mb-6.5 flex w-full max-w-[560px] items-center gap-2.5">
+    <div className="relative flex min-h-screen flex-col items-center bg-astro-bg px-5 py-9 pb-[70px]">
+      <JoinBackdrop />
+      <div className="relative z-[1] mb-6.5 flex w-full max-w-[560px] items-center gap-2.5">
         <div className="flex size-[30px] shrink-0 items-center justify-center rounded-[9px] bg-astro-accent">
           <svg width="16" height="16" viewBox="0 0 100 100" fill="#0a0f1f">
             <path d="M50.00 4.00L59.40 37.06L93.75 35.79L65.22 54.94L77.04 87.21L50.00 66.00L22.96 87.21L34.78 54.94L6.25 35.79L40.60 37.06Z" />
@@ -106,7 +108,7 @@ export function JoinPage() {
         <div className="ml-auto text-[11.5px] text-astro-text-dim">Step {idx + 1} of 5</div>
       </div>
 
-      <div className="mb-7 flex w-full max-w-[560px] gap-[5px]">
+      <div className="relative z-[1] mb-7 flex w-full max-w-[560px] gap-[5px]">
         {STEPS.slice(0, 5).map((_, i) => (
           <div
             key={i}
@@ -117,7 +119,10 @@ export function JoinPage() {
       </div>
 
       {step === 'name' && (
-        <div className="w-full max-w-[560px]">
+        <div
+          className="relative z-[1] w-full max-w-[560px]"
+          style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}
+        >
           <h1 className="mb-2.5 font-display text-[46px] leading-[0.95] text-astro-text">
             WHAT DO THEY CALL YOU?
           </h1>
@@ -176,7 +181,10 @@ export function JoinPage() {
       )}
 
       {step === 'matches' && (
-        <div className="w-full max-w-[560px]">
+        <div
+          className="relative z-[1] w-full max-w-[560px]"
+          style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}
+        >
           <button
             type="button"
             onClick={() => setStep('name')}
@@ -250,7 +258,17 @@ export function JoinPage() {
       )}
 
       {step === 'claim' && claimed && (
-        <div className="w-full max-w-[560px]">
+        <div
+          className="relative z-[1] w-full max-w-[560px]"
+          style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}
+        >
+          <div
+            className="pointer-events-none absolute left-1/2 top-[40%] size-[240px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background: 'radial-gradient(circle,rgba(166,63,255,0.22) 0%,transparent 70%)',
+              animation: 'jn-glow 4.4s ease-in-out infinite',
+            }}
+          />
           <button
             type="button"
             onClick={() => setStep('matches')}
@@ -344,7 +362,10 @@ export function JoinPage() {
       )}
 
       {step === 'details' && (
-        <div className="w-full max-w-[560px]">
+        <div
+          className="relative z-[1] w-full max-w-[560px]"
+          style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}
+        >
           <h1 className="mb-2.5 font-display text-[46px] leading-[0.95] text-astro-text">TWO LAST THINGS</h1>
           <p className="mb-6 text-[14.5px] leading-[1.6] text-astro-text-muted [text-wrap:pretty]">
             Both of these exist for one reason each. Skip either and nothing breaks: you&rsquo;ll just
@@ -449,7 +470,17 @@ export function JoinPage() {
       )}
 
       {step === 'done' && (
-        <div className="w-full max-w-[560px]">
+        <div
+          className="relative z-[1] w-full max-w-[560px]"
+          style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}
+        >
+          <div
+            className="pointer-events-none absolute left-1/2 top-[44%] size-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background: 'radial-gradient(circle,rgba(166,63,255,0.28) 0%,transparent 70%)',
+              animation: 'jn-glow 4s ease-in-out infinite',
+            }}
+          />
           <div className="mb-6 pb-2 pt-5 text-center">
             <div className="font-display mb-3 text-[56px] leading-[0.92] text-astro-text">
               {isNew ? "YOU'RE IN" : 'SENT TO THE ADMINS'}

@@ -46,7 +46,7 @@ function SignupPage() {
 
   if (confirmationRequired) {
     return (
-      <AuthLayout title="ALLSTARS" subtitle="Almost there">
+      <AuthLayout subtitle="Almost there">
         <p className="text-sm text-astro-text-muted">
           Check your email to confirm your account, then{' '}
           <Link to="/login" search={{ view: 'signin' }} className="font-semibold text-astro-accent">
@@ -59,7 +59,7 @@ function SignupPage() {
   }
 
   return (
-    <AuthLayout title="ALLSTARS" subtitle="Create your account">
+    <AuthLayout subtitle="Create your account">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>

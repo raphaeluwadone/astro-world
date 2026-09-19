@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
 import { useSession } from '@/features/auth/useSession'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useMyLatestClaim } from './hooks'
@@ -11,8 +12,12 @@ export function PendingApprovalPage() {
 
   if (isError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-astro-bg px-6">
-        <div className="astro-card max-w-[440px] p-8 text-center">
+      <div className="relative flex min-h-screen items-center justify-center bg-astro-bg px-6">
+        <JoinBackdrop />
+        <div
+          className="astro-card relative z-[1] max-w-[440px] p-8 text-center"
+          style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}
+        >
           <h1 className="font-display mb-2.5 text-4xl leading-none text-astro-text">
             Couldn&rsquo;t load your claim
           </h1>
@@ -25,8 +30,12 @@ export function PendingApprovalPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-astro-bg px-6">
-      <div className="astro-card max-w-[440px] p-8 text-center">
+    <div className="relative flex min-h-screen items-center justify-center bg-astro-bg px-6">
+      <JoinBackdrop />
+      <div
+        className="astro-card relative z-[1] max-w-[440px] p-8 text-center"
+        style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}
+      >
         {!claim || claim.status === 'pending' ? (
           <>
             <h1 className="font-display mb-2.5 text-4xl leading-none text-astro-text">

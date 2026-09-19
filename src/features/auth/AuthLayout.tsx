@@ -1,18 +1,19 @@
 import type { ReactNode } from 'react'
+import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
+import { Wordmark } from '@/components/icons/Wordmark'
 
 export function AuthLayout({
-  title,
   subtitle,
   children,
 }: {
-  title: string
   subtitle: string
   children: ReactNode
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-astro-bg px-4">
-      <div className="w-full max-w-sm">
+    <div className="relative flex min-h-screen items-center justify-center bg-astro-bg px-4">
+      <JoinBackdrop />
+      <div className="relative z-[1] w-full max-w-sm" style={{ animation: 'jn-in 500ms cubic-bezier(.2,.8,.2,1) both' }}>
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <div
             className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-astro-accent to-astro-accent-strong"
@@ -21,7 +22,7 @@ export function AuthLayout({
             <BrandMarkIcon className="size-5" />
           </div>
           <div>
-            <h1 className="font-display text-2xl tracking-[0.08em] text-astro-text">{title}</h1>
+            <Wordmark size={24} className="justify-center text-astro-text" />
             <p className="mt-1 text-sm text-astro-text-muted">{subtitle}</p>
           </div>
         </div>

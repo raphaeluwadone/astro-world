@@ -7,7 +7,7 @@ export function MobileHeader() {
       <button type="button" aria-label="Menu" className="text-astro-text-muted">
         <MenuIcon className="size-5" />
       </button>
-      <Wordmark size={23} dashColor="#a63fff" className="text-astro-text" />
+      <Wordmark size={23} className="text-astro-text" />
       <button type="button" aria-label="Notifications" className="text-astro-text-muted">
         <BellIcon className="size-5" />
       </button>

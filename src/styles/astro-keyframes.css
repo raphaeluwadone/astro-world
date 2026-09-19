@@ -123,6 +123,16 @@
 
 @keyframes ob-vigil { 0% { stroke-dashoffset: 277; opacity: 0 } 14% { opacity: 0.8 } 66% { stroke-dashoffset: 0; opacity: 0.8 } 100% { stroke-dashoffset: 0; opacity: 0 } }
 
+@keyframes jn-in { from { opacity: 0.001; transform: translateY(9px) } to { opacity: 1; transform: none } }
+
+@keyframes jn-glow { 0%, 100% { opacity: 0.3; transform: translate(-50%,-50%) scale(1) } 50% { opacity: 0.55; transform: translate(-50%,-50%) scale(1.07) } }
+
+@keyframes jn-bloom { 0%, 100% { transform: translate(0,0) scale(1) } 33% { transform: translate(4%,-3%) scale(1.13) } 66% { transform: translate(-3%,4%) scale(0.94) } }
+
+@keyframes jn-sheen { 0% { transform: translateX(-120%) } 100% { transform: translateX(120%) } }
+
+@keyframes jn-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important }
 }
