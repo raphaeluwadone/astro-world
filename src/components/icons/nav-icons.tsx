@@ -49,6 +49,47 @@ export function RankingsIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function SalamiCupIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path fillRule="evenodd" d="M7.2 2.8h9.6v5.4a4.8 4.8 0 1 1-9.6 0ZM10.6 14h2.8v3.2h3.2V21H7.4v-3.8h3.2Z" />
+    </svg>
+  )
+}
+
+export function PredictionsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path
+        fillRule="evenodd"
+        d="M3.4 3.6h17.2v13.2H3.4ZM5.6 5.8v8.8h5.3V5.8Zm7.5 0v8.8h5.3V5.8ZM7.2 18.8h9.6v1.9H7.2Z"
+      />
+    </svg>
+  )
+}
+
+export function KittyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path
+        fillRule="evenodd"
+        d="M2.6 6.4h18.8v12.2H2.6Zm2.2 2.2v7.8h14.4V8.6Zm7.2 1a2.9 2.9 0 1 1 0 5.8 2.9 2.9 0 0 1 0-5.8ZM5.6 3.2h12.8v2.1H5.6Z"
+      />
+    </svg>
+  )
+}
+
+export function RulesIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path
+        fillRule="evenodd"
+        d="M12 2.2 3.4 5.5v6.4c0 5 3.6 8.3 8.6 10.1 5-1.8 8.6-5.1 8.6-10.1V5.5ZM10.8 16.4 6.8 12.3l1.9-1.9 2.1 2.1 4.4-4.4 1.9 1.9Z"
+      />
+    </svg>
+  )
+}
+
 export function ArticlesIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>

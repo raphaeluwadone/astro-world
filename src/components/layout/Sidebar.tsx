@@ -2,10 +2,18 @@ import { Link } from '@tanstack/react-router'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { useAvailability, useNextMatchday } from '@/features/matchday/hooks'
 import { SIDEBAR_NAV_ITEMS } from './nav-items'
 
 export function Sidebar() {
   const { player } = useCurrentPlayer()
+  const { data: matchday } = useNextMatchday()
+  const { data: availability = [] } = useAvailability(matchday?.id)
+
+  const daysUntil = matchday
+    ? Math.round((new Date(matchday.played_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null
+  const inCount = availability.filter((a) => a.status === 'in').length
 
   return (
     <aside className="fixed left-0 top-0 hidden h-screen w-60 shrink-0 flex-col gap-[22px] overflow-y-auto border-r border-border bg-astro-surface px-4 pt-[26px] pb-[30px] md:flex">
@@ -20,18 +28,38 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-[3px]">
-        {SIDEBAR_NAV_ITEMS.map(({ label, to, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            activeOptions={{ exact: to === '/' }}
-            className="astro-nav__item no-underline"
-            activeProps={{ className: 'astro-nav__item--active' }}
-          >
-            <Icon className="size-[19px] shrink-0" />
-            <span>{label}</span>
-          </Link>
-        ))}
+        {SIDEBAR_NAV_ITEMS.map(({ label, to, icon: Icon, disabled }) => {
+          const badge =
+            label === 'Matchday' && daysUntil !== null && daysUntil >= 0 ? (
+              <span className="astro-marker">{daysUntil === 0 ? 'Today' : daysUntil}</span>
+            ) : null
+
+          if (disabled) {
+            return (
+              <div key={to} className="astro-nav__item cursor-default opacity-40">
+                <Icon className="size-[19px] shrink-0" />
+                <span>{label}</span>
+                <span className="ml-auto text-[10px] font-bold uppercase tracking-[0.08em] text-astro-text-dim">
+                  Soon
+                </span>
+              </div>
+            )
+          }
+
+          return (
+            <Link
+              key={to}
+              to={to}
+              activeOptions={{ exact: to === '/' }}
+              className="astro-nav__item no-underline"
+              activeProps={{ className: 'astro-nav__item--active' }}
+            >
+              <Icon className="size-[19px] shrink-0" />
+              <span>{label}</span>
+              {badge}
+            </Link>
+          )
+        })}
       </nav>
 
       <div className="mt-auto flex flex-col gap-[22px]">
@@ -48,7 +76,7 @@ export function Sidebar() {
             </svg>
             <div className="min-w-0">
               <div className="text-[12.5px] font-extrabold text-astro-cyan">Admin portal</div>
-              <div className="text-[10px] text-astro-text-dim">Not built yet</div>
+              <div className="text-[10px] text-astro-text-dim">Claims &amp; matchday are live</div>
             </div>
           </Link>
         )}
@@ -71,16 +99,21 @@ export function Sidebar() {
           </div>
         </Link>
 
-        {/* TODO: ballot-status copy ("Ballot night / Wed 20:00") needs revisiting:
-            the draw is admin-triggered near/on matchday, not a fixed Wed 20:00 cutoff.
-            Left as design-accurate placeholder until the ballot feature is built. */}
-        <div className="rounded-[14px] border border-[rgba(166,63,255,0.22)] bg-astro-surface-2 p-3.5">
-          <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-astro-text-dim">
-            Ballot night
+        {matchday && (
+          <div className="rounded-[14px] border border-[rgba(166,63,255,0.22)] bg-astro-surface-2 p-3.5">
+            <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-astro-text-dim">
+              Next matchday
+            </div>
+            <div className="font-display text-[28px] leading-none text-astro-accent">
+              {new Date(matchday.played_at)
+                .toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+                .toUpperCase()}
+            </div>
+            <div className="mt-1.5 text-xs text-astro-text-muted">
+              {inCount} of {matchday.capacity} already in
+            </div>
           </div>
-          <div className="font-display text-[28px] leading-none text-astro-accent">WED 20:00</div>
-          <div className="mt-1.5 text-xs text-astro-text-muted">18 of 30 already in</div>
-        </div>
+        )}
       </div>
     </aside>
   )

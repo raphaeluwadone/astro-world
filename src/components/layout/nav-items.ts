@@ -2,10 +2,14 @@ import {
   ArticlesIcon,
   CommunityIcon,
   HomeIcon,
+  KittyIcon,
   MatchdayIcon,
   PlayersIcon,
+  PredictionsIcon,
   ProfileIcon,
   RankingsIcon,
+  RulesIcon,
+  SalamiCupIcon,
 } from '@/components/icons/nav-icons'
 import type { ComponentType, SVGProps } from 'react'
 
@@ -13,22 +17,34 @@ export interface NavItem {
   label: string
   to: string
   icon: ComponentType<SVGProps<SVGSVGElement>>
+  /** Section is real in the design but has no route yet: shown, not clickable. */
+  disabled?: boolean
 }
 
-/** Desktop sidebar: all 7 sections, in spec order. */
+/**
+ * Desktop sidebar, full spec order (Astro App.dc.html's SECTIONS list).
+ * Four sections have no feature behind them yet (Salami Cup,
+ * Predictions, Kitty, Rules): shown disabled rather than omitted, same
+ * treatment the Admin portal link had before claims existed, so the
+ * real shape of the app is visible and each lights up as it ships.
+ */
 export const SIDEBAR_NAV_ITEMS: NavItem[] = [
   { label: 'Home', to: '/', icon: HomeIcon },
   { label: 'Matchday', to: '/matchday', icon: MatchdayIcon },
+  { label: 'Salami Cup', to: '/salami-cup', icon: SalamiCupIcon, disabled: true },
   { label: 'Community', to: '/community', icon: CommunityIcon },
   { label: 'Players', to: '/players', icon: PlayersIcon },
   { label: 'Rankings', to: '/rankings', icon: RankingsIcon },
+  { label: 'Predictions', to: '/predictions', icon: PredictionsIcon, disabled: true },
   { label: 'Articles', to: '/articles', icon: ArticlesIcon },
+  { label: 'Kitty', to: '/kitty', icon: KittyIcon, disabled: true },
+  { label: 'Rules', to: '/rules', icon: RulesIcon, disabled: true },
   { label: 'Profile', to: '/profile', icon: ProfileIcon },
 ]
 
 /**
- * Mobile bottom nav: only 5 of 7, for thumb reach.
- * Players and Articles are reached from cards on Home instead.
+ * Mobile bottom nav: only 5, for thumb reach. Disabled sections don't
+ * belong here at all, not even greyed out, there's no room.
  */
 export const BOTTOM_NAV_ITEMS: NavItem[] = [
   { label: 'Home', to: '/', icon: HomeIcon },
