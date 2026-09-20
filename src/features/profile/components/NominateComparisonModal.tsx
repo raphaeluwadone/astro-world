@@ -1,8 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MemberModal } from '@/components/dialogs/MemberModal'
 import { InlineLoader } from '@/components/states/InlineLoader'
 import type { ComparisonRow } from '../api'
-import { useCreateComparison, useRemoveComparison, useSearchProPlayers } from '../hooks'
+import {
+  useCreateComparison,
+  useRefreshProPlayerStats,
+  useRemoveComparison,
+  useSearchProPlayers,
+} from '../hooks'
+
+// The account's API-Football plan allows 100 requests/day: a search per
+// keystroke would burn through that in seconds, so this waits for a
+// pause in typing before it counts as a real search.
+function useDebounced<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delayMs)
+    return () => clearTimeout(id)
+  }, [value, delayMs])
+  return debounced
+}
 
 const COPY = {
   self: {
@@ -33,18 +50,25 @@ export function NominateComparisonModal({
   ownSelfClaims: ComparisonRow[]
 }) {
   const [query, setQuery] = useState('')
-  const { data: results = [], isFetching } = useSearchProPlayers(query)
+  const debouncedQuery = useDebounced(query, 400)
+  const { data: results = [], isFetching } = useSearchProPlayers(debouncedQuery)
+  const refreshStats = useRefreshProPlayerStats()
   const createComparison = useCreateComparison(playerId)
   const removeComparison = useRemoveComparison(playerId)
 
   const atCap = source === 'self' && ownSelfClaims.length >= 3
   const copy = COPY[source]
+  const picking = refreshStats.isPending || createComparison.isPending
 
   function pick(proPlayerId: string) {
-    createComparison.mutate(
-      { proPlayerId, source, createdBy },
-      { onSuccess: () => onOpenChange(false) },
-    )
+    // Real stats land before the comparison exists, not after: fetch
+    // them first so the card never shows blank apps/goals/assists for a
+    // player the search already found.
+    refreshStats.mutate(proPlayerId, {
+      onSettled: () => {
+        createComparison.mutate({ proPlayerId, source, createdBy }, { onSuccess: () => onOpenChange(false) })
+      },
+    })
   }
 
   return (
@@ -87,7 +111,7 @@ export function NominateComparisonModal({
               <InlineLoader size={18} className="text-astro-accent" />
             </div>
           )}
-          {!isFetching && query.trim().length >= 2 && results.length === 0 && (
+          {!isFetching && debouncedQuery.trim().length >= 2 && results.length === 0 && (
             <p className="px-1 py-2 text-sm text-astro-text-dim">Nobody by that name yet.</p>
           )}
           <div className="flex flex-col gap-2">
@@ -95,7 +119,7 @@ export function NominateComparisonModal({
               <button
                 key={p.id}
                 type="button"
-                disabled={createComparison.isPending}
+                disabled={picking}
                 onClick={() => pick(p.id)}
                 className="flex items-center justify-between gap-3 rounded-xl bg-astro-surface-2 px-4 py-3 text-left hover:bg-astro-accent/10 disabled:opacity-50"
               >
@@ -103,9 +127,15 @@ export function NominateComparisonModal({
                   <div className="truncate text-sm font-bold text-astro-text">{p.name}</div>
                   <div className="text-xs text-astro-text-dim">{p.nationality ?? '—'} &middot; {p.role ?? '—'}</div>
                 </div>
+                {picking && <InlineLoader size={14} className="shrink-0 text-astro-accent" />}
               </button>
             ))}
           </div>
+          {results.length > 0 && (
+            <p className="mt-3 px-1 text-[11px] text-astro-text-dim">
+              Stats are Premier League, 2024 season, as current as the free plan goes.
+            </p>
+          )}
         </>
       )}
     </MemberModal>

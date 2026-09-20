@@ -12,6 +12,7 @@ import {
   fetchPlayer,
   fetchPlayerAwards,
   fetchPlayerTags,
+  refreshProPlayerStats,
   removeComparison,
   searchProPlayers,
 } from './api'
@@ -84,6 +85,12 @@ export function useSearchProPlayers(query: string) {
     queryKey: ['pro-players-search', query],
     queryFn: () => searchProPlayers(query),
     enabled: query.trim().length >= 2,
+  })
+}
+
+export function useRefreshProPlayerStats() {
+  return useMutation({
+    mutationFn: (proPlayerId: string) => refreshProPlayerStats(proPlayerId),
   })
 }
 

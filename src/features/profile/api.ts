@@ -178,17 +178,28 @@ export async function fetchComparisons(playerId: string, viewerId?: string): Pro
   }))
 }
 
+// Goes through an Edge Function, not a direct table query: the
+// API-Football key can't live in the browser, and this is also what
+// caches real search hits into pro_players (keyed by external_id) so
+// the same name doesn't cost another request next time.
 export async function searchProPlayers(query: string): Promise<ProPlayerRow[]> {
   const trimmed = query.trim()
   if (trimmed.length < 2) return []
-  const { data, error } = await supabase
-    .from('pro_players')
-    .select('id, name, nationality, role, apps, goals, assists')
-    .ilike('name', `%${trimmed}%`)
-    .order('name')
-    .limit(10)
+  const { data, error } = await supabase.functions.invoke<{ results: ProPlayerRow[] }>('pro-players-search', {
+    body: { query: trimmed },
+  })
   if (error) throw error
-  return data ?? []
+  return data?.results ?? []
+}
+
+// Premier League stats only, and only for the 2022-2024 seasons the
+// account's Free API-Football plan actually has access to. Called once,
+// right before a comparison is created, not on every search keystroke.
+export async function refreshProPlayerStats(proPlayerId: string) {
+  const { error } = await supabase.functions.invoke('pro-players-refresh-stats', {
+    body: { proPlayerId },
+  })
+  if (error) throw error
 }
 
 export async function createComparison(params: {
