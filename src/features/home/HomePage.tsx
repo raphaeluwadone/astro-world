@@ -10,6 +10,7 @@ import {
 import { useMatchRatings } from '@/features/profile/hooks'
 import { RecentForm } from '@/features/profile/components/RecentForm'
 import { useRankings } from '@/features/rankings/hooks'
+import { Link } from '@tanstack/react-router'
 import { ArticlesPreview } from './components/ArticlesPreview'
 import { GroupChatPreview } from './components/GroupChatPreview'
 import { NextMatchdayCard } from './components/NextMatchdayCard'
@@ -63,6 +64,27 @@ export function HomePage() {
           <span className="text-xs text-astro-text-dim">likes</span>
         </div>
       </div>
+
+      {/* Desktop reaches the memorial page from the sidebar's own "In
+          memory" widget; mobile has no sidebar and the hamburger menu
+          isn't wired to anything yet, so this is its only way in. */}
+      <Link
+        to="/memorial"
+        className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-[rgba(166,63,255,0.22)] bg-astro-surface-2 px-3.5 py-3 no-underline md:hidden"
+      >
+        <div
+          className="flex size-7 shrink-0 items-center justify-center rounded-[8px] border border-[rgba(166,63,255,0.4)] bg-astro-surface font-display text-[15px] text-astro-accent-soft"
+          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
+        >
+          13
+        </div>
+        <div className="min-w-0">
+          <div className="text-[9.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
+            In memory
+          </div>
+          <div className="text-[12.5px] font-extrabold text-astro-text-muted">Salami</div>
+        </div>
+      </Link>
 
       {!!pendingRatings && pendingRatings.pending > 0 && (
         <div className="mb-5">

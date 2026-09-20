@@ -24,7 +24,7 @@ export function OfflineBanner() {
   if (isOnline) return null
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[80] flex justify-center px-4 pb-4">
+    <div className="fixed inset-x-0 bottom-[76px] z-[80] flex justify-center px-4 md:bottom-0 md:pb-4">
       <div className="flex items-center gap-3 rounded-2xl border border-[rgba(242,169,59,0.45)] bg-[#1b1608] px-5 py-3.5 shadow-lg">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="#f2a93b" className="shrink-0">
           <path fillRule="evenodd" d="M12 2.4a9.6 9.6 0 1 0 0 19.2 9.6 9.6 0 0 0 0-19.2Zm1 4.4v5.8l4 2.4-1 1.7-5-3V6.8Z" />

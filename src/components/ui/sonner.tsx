@@ -12,6 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       position="bottom-center"
       duration={4000}
+      mobileOffset={{ bottom: 76 }}
       className="toaster group"
       icons={{
         success: (
