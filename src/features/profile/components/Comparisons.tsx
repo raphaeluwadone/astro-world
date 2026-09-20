@@ -188,7 +188,7 @@ export function Comparisons({
         caption="Own three"
         description="Who he reckons he plays like. The group gets a say on whether he's dreaming."
         comparisons={selfClaims}
-        ctaLabel="Swap one out"
+        ctaLabel={selfClaims.length >= 3 ? 'Swap one out' : selfClaims.length === 0 ? 'Pick one' : 'Pick another'}
         special
         onCta={isOwnProfile ? () => setNominating('self') : undefined}
         canVote={!isOwnProfile && !!currentPlayerId}
