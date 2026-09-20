@@ -33,12 +33,12 @@ export const STEPS: OnboardingStep[] = [
   {
     label: 'Step three of five',
     title: 'MARK YOURSELF IN BY WEDNESDAY EIGHT.',
-    body: 'More of us want a game than there are spots, so the thirty who play are drawn at random on Wednesday night.',
+    body: 'More of us want a game than there are spots, so the thirty who play are whoever said yes first. No lottery.',
     points: [
       "Say you're available any time before Wednesday 20:00.",
-      "If more than thirty are in, it's a ballot, not first come, first served.",
-      'Miss out and you go on standby. Standby order favours whoever missed out most recently.',
-      'The thirty are then split into five sides of six: Alpha through Epsilon.',
+      "It's first come, first served by when you replied, not a ballot.",
+      'Miss out and you go on standby, in that same order. No favours for anyone.',
+      'The thirty are then split into five sides of six: Alpha through Epsilon. That part actually is random.',
     ],
     next: 'Next: your rating',
   },
