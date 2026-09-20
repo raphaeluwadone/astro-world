@@ -19,6 +19,10 @@ src/routeTree.gen.ts
 supabase/.temp
 supabase/.branches
 
+# Local secrets for Edge Functions (API-Football key, etc.) - never commit
+supabase/functions/.env
+supabase/functions/*/.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
