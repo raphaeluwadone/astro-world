@@ -99,7 +99,7 @@ values
   ('Tobs',   'Tobi Adeyemi',      array['UTIL']::position_type[],        'right', 176.0, 71.0, 7,  'Manchester United', 'Set-piece taker, still hasn''t scored one in the group.', true, 9, 26, 104, 3, 0, 0, null),
   ('Uchie',  'Uche Obi',          array['ATT','UTIL']::position_type[],  'right', 173.0, 68.0, 17, 'Liverpool',      'Nutmegged three people last month, still talking about it.', true, 34, 21, 91, 2, 0, 0, null),
   ('Kels',   'Kelechi Nnamdi',    array['DEF']::position_type[],        'right', 185.0, 81.0, 6,  'Chelsea',        'Wins every header. Every single one.', true, 2, 3, 113, 5, 0, 24, null),
-  ('Dami',   'Damilola Fashola',  array['UTIL']::position_type[],       'both',  177.0, 73.0, 22, 'Arsenal',        'Plays wherever he''s needed and never complains.', true, 15, 15, 107, 1, 0, 0, null),
+  ('Milz',   'Damilola Fashola',  array['UTIL']::position_type[],       'both',  177.0, 73.0, 22, 'Arsenal',        'Plays wherever he''s needed and never complains.', true, 15, 15, 107, 1, 0, 0, null),
   ('Big Em', 'Emeka Uduak',       array['DEF','GK']::position_type[],   'right', 190.0, 88.0, 2,  'Real Madrid',    'Fills in at keeper when Bal is late. Bal is often late.', true, 1, 2, 84, 3, 0, 9, null),
   ('Roti',   'Rotimi Bello',      array['UTIL']::position_type[],        'left',  171.0, 66.0, 14, 'Barcelona',      'Left foot, short passes, never loses the ball.', true, 7, 24, 96, 2, 0, 0, null),
   ('Mara',   'Amara Chukwuma',    array['ATT']::position_type[],        'right', 168.0, 60.0, 19, 'Manchester City','Pace that the group still hasn''t figured out how to defend.', true, 47, 11, 87, 1, 0, 0, null),
@@ -278,7 +278,7 @@ insert into matchday_motm_votes (matchday_id, voter_id, nominee_id)
 values
   ('b0000000-0000-0000-0000-00000000d003', (select player_id from seed_players where nickname = 'Chino'), (select player_id from seed_players where nickname = 'Segsy')),
   ('b0000000-0000-0000-0000-00000000d003', (select player_id from seed_players where nickname = 'Yem'),   (select player_id from seed_players where nickname = 'Segsy')),
-  ('b0000000-0000-0000-0000-00000000d003', (select player_id from seed_players where nickname = 'Dami'), (select player_id from seed_players where nickname = 'Deza')),
+  ('b0000000-0000-0000-0000-00000000d003', (select player_id from seed_players where nickname = 'Milz'), (select player_id from seed_players where nickname = 'Deza')),
   ('b0000000-0000-0000-0000-00000000d003', (select player_id from seed_players where nickname = 'Tobs'), (select player_id from seed_players where nickname = 'Segsy')),
   ('b0000000-0000-0000-0000-00000000d003', (select player_id from seed_players where nickname = 'Bal'),  (select player_id from seed_players where nickname = 'Femzy'));
 
