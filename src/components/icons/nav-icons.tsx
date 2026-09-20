@@ -49,10 +49,13 @@ export function RankingsIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+/** Unlike every sibling here, this one is always amber in the design
+ * (`fill="#f2a93b"` hardcoded in the source), not currentColor: the
+ * cup keeps its gold identity regardless of the nav row's active state. */
 export function SalamiCupIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path fillRule="evenodd" d="M7.2 2.8h9.6v5.4a4.8 4.8 0 1 1-9.6 0ZM10.6 14h2.8v3.2h3.2V21H7.4v-3.8h3.2Z" />
+    <svg viewBox="0 0 24 24" fill="#f2a93b" {...props}>
+      <path d="M7.2 2.8h9.6v5.4a4.8 4.8 0 1 1-9.6 0ZM10.6 14h2.8v3.2h3.2V21H7.4v-3.8h3.2Z" />
     </svg>
   )
 }
