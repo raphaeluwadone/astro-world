@@ -27,13 +27,18 @@ export function RecentForm({
       {recent.length === 0 ? (
         <p className="text-sm text-astro-text-dim">No rated matches yet.</p>
       ) : (
-        <div className="flex gap-2.5">
+        // A fixed 5-column grid, not flex-1: with just one or two rated
+        // matches, a flex-1 tile stretches (and aspect-square then
+        // inflates its height) to fill the whole row. Grid columns stay
+        // a fifth of the width regardless of how many tiles exist, so a
+        // single tile renders at normal size with empty space after it.
+        <div className="grid gap-2.5" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
           {recent.map((r) => {
             const c = tileColors(r.avg_rating)
             return (
               <div
                 key={r.match_id}
-                className="font-display aspect-square min-w-0 flex-1 rounded-[11px] border text-[30px] leading-none"
+                className="font-display aspect-square min-w-0 rounded-[11px] border text-[30px] leading-none"
                 style={{ background: c.background, color: c.color, borderColor: c.border }}
               >
                 <div className="flex size-full items-center justify-center">{r.avg_rating}</div>

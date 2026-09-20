@@ -22,19 +22,35 @@ const PER_PAGE = 8
 export function PlayersPage() {
   const { data: players = [], isLoading, isError, refetch } = usePlayerCards()
   const [filter, setFilter] = useState<PositionType | 'ALL'>('ALL')
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
 
   const filtered = useMemo(() => {
-    if (filter === 'ALL') return players
-    return players.filter((p) => p.positions.includes(filter))
-  }, [players, filter])
+    const q = search.trim().toLowerCase()
+    return players.filter((p) => {
+      if (filter !== 'ALL' && !p.positions.includes(filter)) return false
+      if (q && !p.nickname.toLowerCase().includes(q) && !p.full_name.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [players, filter, search])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
   const clampedPage = Math.min(page, pageCount - 1)
   const pageItems = filtered.slice(clampedPage * PER_PAGE, clampedPage * PER_PAGE + PER_PAGE)
+  const hasSearch = search.trim().length > 0
 
   function selectFilter(value: PositionType | 'ALL') {
     setFilter(value)
+    setPage(0)
+  }
+
+  function updateSearch(value: string) {
+    setSearch(value)
+    setPage(0)
+  }
+
+  function clearSearch() {
+    setSearch('')
     setPage(0)
   }
 
@@ -46,6 +62,30 @@ export function PlayersPage() {
       <p className="mb-4.5 text-sm text-astro-text-muted">
         {players.length} in the group. Thirty spots every Sunday.
       </p>
+
+      <div className="mb-3.5 flex min-w-0 items-center gap-2.5 rounded-[11px] border border-white/[0.09] bg-astro-surface px-3.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#6d7496" className="shrink-0">
+          <path
+            fillRule="evenodd"
+            d="M10.4 2.4a8 8 0 1 0 4.9 14.3l4.5 4.5 1.7-1.7-4.5-4.5A8 8 0 0 0 10.4 2.4Zm0 2.2a5.8 5.8 0 1 1 0 11.6 5.8 5.8 0 0 1 0-11.6Z"
+          />
+        </svg>
+        <input
+          value={search}
+          onChange={(e) => updateSearch(e.target.value)}
+          placeholder='Nickname or real name, try "ade"'
+          className="min-w-0 flex-1 bg-transparent py-3.5 text-sm font-semibold text-astro-text placeholder:text-astro-text-dim focus:outline-none"
+        />
+        {hasSearch && (
+          <button
+            type="button"
+            onClick={clearSearch}
+            className="shrink-0 text-[10.5px] font-extrabold uppercase tracking-[0.09em] text-astro-text-muted hover:text-astro-text"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       <div className="mb-4.5 flex flex-wrap items-center gap-[7px]">
         <div className="mr-1 text-[10px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
@@ -72,7 +112,22 @@ export function PlayersPage() {
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="Loosen a filter and we'll find someone." />
+        <EmptyState
+          icon={<OutOfPlayIcon />}
+          title={hasSearch ? 'Nobody by that name.' : 'Nobody fits that.'}
+          body={hasSearch ? `Nobody matches “${search.trim()}”.` : "Loosen a filter and we'll find someone."}
+          action={
+            hasSearch || filter !== 'ALL'
+              ? {
+                  label: 'Show everyone',
+                  onClick: () => {
+                    clearSearch()
+                    setFilter('ALL')
+                  },
+                }
+              : undefined
+          }
+        />
       ) : (
         <>
           <div
