@@ -1,7 +1,13 @@
 import { useState } from 'react'
-import { useCastVote } from '../hooks'
+import { useCastVote, useLastDropped } from '../hooks'
 import type { ComparisonRow } from '../api'
-import { NominateComparisonModal } from './NominateComparisonModal'
+import { ComparisonPickerPanel } from './ComparisonPickerPanel'
+
+const DROP_THRESHOLD = 15
+// Warn once a card is more than half way to the drop threshold, not
+// only in the last vote or two: the point is to see it coming.
+const RISK_THRESHOLD = 8
+const ORDINALS = ['FIRST', 'SECOND', 'THIRD']
 
 function ComparisonCard({
   c,
@@ -16,6 +22,7 @@ function ComparisonCard({
 }) {
   const net = c.upvotes - c.downvotes
   const castVote = useCastVote(playerId)
+  const atRisk = net <= -RISK_THRESHOLD
 
   function vote(direction: 'up' | 'down') {
     if (!voterId) return
@@ -95,6 +102,46 @@ function ComparisonCard({
           {net}
         </span>
       </div>
+
+      {atRisk && (
+        <div className="mt-3.5 border-t border-[rgba(242,169,59,0.3)] pt-3">
+          <div className="mb-2 flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f2a93b" className="shrink-0">
+              <path fillRule="evenodd" d="M12 2.4 22.4 20.8H1.6Zm-1 5.6h2v7h-2Zm0 9h2v2h-2Z" />
+            </svg>
+            <span className="text-[11.5px] font-extrabold text-[#f2a93b]">
+              {Math.abs(net)} of {DROP_THRESHOLD} votes underwater
+            </span>
+          </div>
+          <div className="h-1 overflow-hidden rounded-full bg-astro-bg">
+            <div
+              className="h-full rounded-full bg-[#f2a93b]"
+              style={{ width: `${Math.min(100, (Math.abs(net) / DROP_THRESHOLD) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EmptySlot({ ordinal, lastDropped }: { ordinal: string; lastDropped?: { name: string; droppedAt: string } | null }) {
+  const droppedNote = lastDropped
+    ? `${lastDropped.name} got voted off on ${new Date(lastDropped.droppedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. Pick someone else.`
+    : 'Pick someone to fill it.'
+  return (
+    <div className="flex min-h-[190px] flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-[rgba(166,63,255,0.4)] bg-[#0d1428] p-4 text-center">
+      <div className="flex size-[42px] items-center justify-center rounded-xl border border-[rgba(166,63,255,0.4)] bg-[rgba(166,63,255,0.14)]">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#c589ff">
+          <path d="M10.5 3.2h3v7.3h7.3v3h-7.3v7.3h-3v-7.3H3.2v-3h7.3Z" />
+        </svg>
+      </div>
+      <div>
+        <div className="mb-1 font-display text-[22px] leading-none text-astro-accent-soft">{ordinal} SLOT FREE</div>
+        <p className="mx-auto max-w-[26ch] text-[11.5px] leading-[1.45] text-astro-text-dim [text-wrap:pretty]">
+          {droppedNote}
+        </p>
+      </div>
     </div>
   )
 }
@@ -105,7 +152,9 @@ function ComparisonSection({
   caption,
   description,
   comparisons,
+  emptySlots,
   ctaLabel,
+  ctaColor,
   special,
   onCta,
   canVote,
@@ -117,8 +166,10 @@ function ComparisonSection({
   caption: string
   description: string
   comparisons: ComparisonRow[]
+  emptySlots: { ordinal: string; lastDropped?: { name: string; droppedAt: string } | null }[]
   ctaLabel: string
-  special: boolean
+  ctaColor?: string
+  special?: boolean
   onCta?: () => void
   canVote: boolean
   voterId: string | undefined
@@ -143,12 +194,15 @@ function ComparisonSection({
       </div>
       <p className="mb-[18px] text-[13px] text-astro-text-muted">{description}</p>
 
-      {comparisons.length === 0 ? (
+      {comparisons.length === 0 && emptySlots.length === 0 ? (
         <p className="mb-4 text-sm text-astro-text-dim">Nothing here yet.</p>
       ) : (
         <div className="mb-4 grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))' }}>
           {comparisons.map((c) => (
             <ComparisonCard key={c.id} c={c} canVote={canVote} voterId={voterId} playerId={playerId} />
+          ))}
+          {emptySlots.map((slot) => (
+            <EmptySlot key={slot.ordinal} ordinal={slot.ordinal} lastDropped={slot.lastDropped} />
           ))}
         </div>
       )}
@@ -157,7 +211,11 @@ function ComparisonSection({
         <button
           type="button"
           onClick={onCta}
-          className="inline-flex items-center gap-2 rounded-[11px] border border-dashed border-[rgba(166,63,255,0.4)] bg-astro-surface-2 px-4 py-[11px] text-[13px] font-bold text-astro-accent-soft hover:border-solid"
+          className="inline-flex items-center gap-2 rounded-[11px] border border-dashed px-4 py-[11px] text-[13px] font-bold hover:border-solid"
+          style={{
+            borderColor: ctaColor ? `${ctaColor}66` : 'rgba(166,63,255,0.4)',
+            color: ctaColor ?? '#c589ff',
+          }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <path d="M10.5 3.2h3v7.3h7.3v3h-7.3v7.3h-3v-7.3H3.2v-3h7.3Z" />
@@ -172,11 +230,13 @@ function ComparisonSection({
 export function Comparisons({
   comparisons,
   playerId,
+  subjectNickname,
   isOwnProfile,
   currentPlayerId,
 }: {
   comparisons: ComparisonRow[]
   playerId: string
+  subjectNickname: string
   isOwnProfile: boolean
   currentPlayerId: string | undefined
 }) {
@@ -189,6 +249,13 @@ export function Comparisons({
     .sort((a, b) => b.upvotes - b.downvotes - (a.upvotes - a.downvotes))
     .slice(0, 3)
 
+  const { data: lastDroppedSelf } = useLastDropped(playerId, 'self')
+
+  const selfEmptySlots = ORDINALS.slice(selfClaims.length).map((ordinal, i) => ({
+    ordinal,
+    lastDropped: i === 0 ? lastDroppedSelf : null,
+  }))
+
   return (
     <div className="space-y-5">
       <ComparisonSection
@@ -197,6 +264,7 @@ export function Comparisons({
         caption="Own three"
         description="Who he reckons he plays like. The group gets a say on whether he's dreaming."
         comparisons={selfClaims}
+        emptySlots={isOwnProfile ? selfEmptySlots : []}
         ctaLabel={selfClaims.length >= 3 ? 'Swap one out' : selfClaims.length === 0 ? 'Pick one' : 'Pick another'}
         special
         onCta={isOwnProfile ? () => setNominating('self') : undefined}
@@ -210,8 +278,9 @@ export function Comparisons({
         caption="Group's three"
         description="Who the group actually thinks he plays like. Top three by net votes."
         comparisons={communityPicks}
+        emptySlots={[]}
         ctaLabel="Nominate someone else"
-        special={false}
+        ctaColor="#38bdf8"
         onCta={!isOwnProfile ? () => setNominating('community') : undefined}
         canVote={!isOwnProfile && !!currentPlayerId}
         voterId={currentPlayerId}
@@ -219,13 +288,13 @@ export function Comparisons({
       />
 
       {nominating && currentPlayerId && (
-        <NominateComparisonModal
-          open
-          onOpenChange={(open) => !open && setNominating(null)}
+        <ComparisonPickerPanel
           source={nominating}
           playerId={playerId}
           createdBy={currentPlayerId}
+          subjectNickname={subjectNickname}
           ownSelfClaims={selfClaims}
+          onClose={() => setNominating(null)}
         />
       )}
     </div>

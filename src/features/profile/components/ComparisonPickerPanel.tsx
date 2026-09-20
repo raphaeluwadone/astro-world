@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { MemberModal } from '@/components/dialogs/MemberModal'
 import { InlineLoader } from '@/components/states/InlineLoader'
 import { useDebounced } from '@/lib/useDebounced'
 import type { ComparisonRow } from '../api'
@@ -10,33 +9,32 @@ import {
   useSearchProPlayers,
 } from '../hooks'
 
-const COPY = {
-  self: {
-    title: 'WHO DO YOU PLAY LIKE?',
-    body: "Pick a pro. The group gets a say on whether you're dreaming.",
-    capBody: "You've already got three. Drop one before you pick another.",
-  },
-  community: {
-    title: 'WHO DOES HE PLAY LIKE?',
-    body: 'Your pick, not his. Everyone else votes on whether you got it right.',
-    capBody: '',
-  },
+const REGISTER = {
+  self: { border: 'rgba(166,63,255,0.45)', title: '#eef0f9', loaderClass: 'text-astro-accent' },
+  community: { border: 'rgba(56,189,248,0.5)', title: '#38bdf8', loaderClass: 'text-astro-cyan' },
 } as const
 
-export function NominateComparisonModal({
-  open,
-  onOpenChange,
+/**
+ * The real design (Astro App.dc.html) renders this inline, expanding in
+ * the page below the cards it belongs to, not as a modal overlay: no
+ * backdrop, no dialog semantics, just conditional content. Self picks
+ * are purple, community nominations are cyan, matching "claim in
+ * purple, nominate in cyan" from the design status doc.
+ */
+export function ComparisonPickerPanel({
   source,
   playerId,
   createdBy,
+  subjectNickname,
   ownSelfClaims,
+  onClose,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
   source: 'self' | 'community'
   playerId: string
   createdBy: string
+  subjectNickname: string
   ownSelfClaims: ComparisonRow[]
+  onClose: () => void
 }) {
   const [query, setQuery] = useState('')
   // The account's API-Football plan allows 100 requests/day: a search
@@ -48,8 +46,15 @@ export function NominateComparisonModal({
   const removeComparison = useRemoveComparison(playerId)
 
   const atCap = source === 'self' && ownSelfClaims.length >= 3
-  const copy = COPY[source]
+  const register = REGISTER[source]
   const picking = refreshStats.isPending || createComparison.isPending
+  const title = source === 'self' ? 'WHO DO YOU PLAY LIKE?' : `NOMINATE FOR ${subjectNickname.toUpperCase()}`
+  const body =
+    source === 'self'
+      ? atCap
+        ? "You've already got three. Drop one before you pick another."
+        : "Pick a pro. The group gets a say on whether you're dreaming."
+      : 'Your pick, not his. Everyone else votes on whether you got it right.'
 
   function pick(proPlayerId: string) {
     // Real stats land before the comparison exists, not after: fetch
@@ -57,21 +62,26 @@ export function NominateComparisonModal({
     // player the search already found.
     refreshStats.mutate(proPlayerId, {
       onSettled: () => {
-        createComparison.mutate({ proPlayerId, source, createdBy }, { onSuccess: () => onOpenChange(false) })
+        createComparison.mutate({ proPlayerId, source, createdBy }, { onSuccess: onClose })
       },
     })
   }
 
   return (
-    <MemberModal
-      open={open}
-      onOpenChange={(next) => {
-        onOpenChange(next)
-        if (!next) setQuery('')
-      }}
-      title={copy.title}
-      body={atCap ? copy.capBody : copy.body}
+    <div
+      className="mt-4 rounded-2xl p-6"
+      style={{ background: '#111a33', border: `1.5px solid ${register.border}` }}
     >
+      <div className="mb-1 flex flex-wrap items-end justify-between gap-3">
+        <h3 className="font-display text-[28px] leading-none" style={{ color: register.title }}>
+          {title}
+        </h3>
+        <button type="button" onClick={onClose} className="text-xs font-bold text-astro-text-dim hover:text-astro-text">
+          Close
+        </button>
+      </div>
+      <p className="mb-5 text-sm text-astro-text-muted">{body}</p>
+
       {atCap ? (
         <div className="flex flex-col gap-2">
           {ownSelfClaims.map((c) => (
@@ -99,7 +109,7 @@ export function NominateComparisonModal({
           />
           {isFetching && (
             <div className="flex justify-center py-3">
-              <InlineLoader size={18} className="text-astro-accent" />
+              <InlineLoader size={18} className={register.loaderClass} />
             </div>
           )}
           {!isFetching && debouncedQuery.trim().length >= 2 && results.length === 0 && (
@@ -112,7 +122,7 @@ export function NominateComparisonModal({
                 type="button"
                 disabled={picking}
                 onClick={() => pick(p.id)}
-                className="flex items-center gap-3 rounded-xl bg-astro-surface-2 px-4 py-3 text-left hover:bg-astro-accent/10 disabled:opacity-50"
+                className="flex items-center gap-3 rounded-xl bg-astro-surface-2 px-4 py-3 text-left hover:bg-white/[0.04] disabled:opacity-50"
               >
                 {p.photo_url ? (
                   <img
@@ -131,7 +141,7 @@ export function NominateComparisonModal({
                   <div className="truncate text-sm font-bold text-astro-text">{p.name}</div>
                   <div className="text-xs text-astro-text-dim">{p.nationality ?? '—'} &middot; {p.role ?? '—'}</div>
                 </div>
-                {picking && <InlineLoader size={14} className="shrink-0 text-astro-accent" />}
+                {picking && <InlineLoader size={14} className={register.loaderClass} />}
               </button>
             ))}
           </div>
@@ -142,6 +152,6 @@ export function NominateComparisonModal({
           )}
         </>
       )}
-    </MemberModal>
+    </div>
   )
 }

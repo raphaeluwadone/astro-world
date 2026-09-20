@@ -160,11 +160,17 @@ export async function fetchPlayerTags(playerId: string): Promise<PlayerTagRow[]>
   }))
 }
 
+export interface LastDroppedRow {
+  name: string
+  droppedAt: string
+}
+
 export async function fetchComparisons(playerId: string, viewerId?: string): Promise<ComparisonRow[]> {
   const { data: comparisons, error } = await supabase
     .from('player_comparisons')
     .select('id, source, pro_players (name, nationality, role, photo_url, apps, goals, assists)')
     .eq('player_id', playerId)
+    .is('dropped_at', null)
   if (error) throw error
   if (!comparisons || comparisons.length === 0) return []
 
@@ -185,6 +191,27 @@ export async function fetchComparisons(playerId: string, viewerId?: string): Pro
     downvotes: (votes ?? []).filter((v) => v.comparison_id === c.id && v.direction === 'down').length,
     myVote: (votes ?? []).find((v) => v.comparison_id === c.id && v.voter_id === viewerId)?.direction ?? null,
   }))
+}
+
+// Powers the empty-slot copy ("Bruno got voted off on 14 Sep") rather
+// than a generic "nothing here": the trigger soft-deletes via
+// dropped_at specifically so this history survives.
+export async function fetchLastDropped(
+  playerId: string,
+  source: Database['public']['Enums']['comparison_source'],
+): Promise<LastDroppedRow | null> {
+  const { data, error } = await supabase
+    .from('player_comparisons')
+    .select('dropped_at, pro_players (name)')
+    .eq('player_id', playerId)
+    .eq('source', source)
+    .not('dropped_at', 'is', null)
+    .order('dropped_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  return { name: (data.pro_players as unknown as { name: string }).name, droppedAt: data.dropped_at! }
 }
 
 // Goes through an Edge Function, not a direct table query: the

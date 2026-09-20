@@ -96,6 +96,7 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
       <Comparisons
         comparisons={comparisons}
         playerId={playerId}
+        subjectNickname={player.nickname}
         isOwnProfile={isOwnProfile}
         currentPlayerId={currentPlayer?.id}
       />

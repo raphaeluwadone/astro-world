@@ -6,6 +6,7 @@ import {
   fetchAppearanceCount,
   fetchComparisons,
   fetchGoalsAndAssists,
+  fetchLastDropped,
   fetchMatchHistory,
   fetchMatchRatings,
   fetchMotmCount,
@@ -80,6 +81,14 @@ export function useComparisons(playerId: string | undefined, viewerId: string | 
   })
 }
 
+export function useLastDropped(playerId: string | undefined, source: Database['public']['Enums']['comparison_source']) {
+  return useQuery({
+    queryKey: ['comparison-last-dropped', playerId, source],
+    queryFn: () => fetchLastDropped(playerId!, source),
+    enabled: !!playerId,
+  })
+}
+
 export function useSearchProPlayers(query: string) {
   return useQuery({
     queryKey: ['pro-players-search', query],
@@ -119,6 +128,11 @@ export function useCastVote(playerId: string | undefined) {
   return useMutation({
     mutationFn: (params: { comparisonId: string; voterId: string; direction: 'up' | 'down' | null }) =>
       castVote(params),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['player-comparisons', playerId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['player-comparisons', playerId] })
+      // A vote can be the one that trips the -15 drop trigger, so the
+      // empty slot's "who got voted off" copy needs a refetch too.
+      queryClient.invalidateQueries({ queryKey: ['comparison-last-dropped', playerId] })
+    },
   })
 }
