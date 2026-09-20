@@ -121,9 +121,22 @@ export function NominateComparisonModal({
                 type="button"
                 disabled={picking}
                 onClick={() => pick(p.id)}
-                className="flex items-center justify-between gap-3 rounded-xl bg-astro-surface-2 px-4 py-3 text-left hover:bg-astro-accent/10 disabled:opacity-50"
+                className="flex items-center gap-3 rounded-xl bg-astro-surface-2 px-4 py-3 text-left hover:bg-astro-accent/10 disabled:opacity-50"
               >
-                <div className="min-w-0">
+                {p.photo_url ? (
+                  <img
+                    src={p.photo_url}
+                    alt=""
+                    className="size-9 shrink-0 rounded-[9px] object-cover"
+                    style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
+                  />
+                ) : (
+                  <div
+                    className="size-9 shrink-0 rounded-[9px]"
+                    style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold text-astro-text">{p.name}</div>
                   <div className="text-xs text-astro-text-dim">{p.nationality ?? '—'} &middot; {p.role ?? '—'}</div>
                 </div>
@@ -133,7 +146,7 @@ export function NominateComparisonModal({
           </div>
           {results.length > 0 && (
             <p className="mt-3 px-1 text-[11px] text-astro-text-dim">
-              Stats are Premier League, 2024 season, as current as the free plan goes.
+              Stats are Premier League, 2022–2024 combined, as current as the free plan goes.
             </p>
           )}
         </>

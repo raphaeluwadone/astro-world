@@ -33,7 +33,15 @@ export interface PlayerAwardRow {
 export interface ComparisonRow {
   id: string
   source: Database['public']['Enums']['comparison_source']
-  pro: { name: string; nationality: string | null; role: string | null; apps: number | null; goals: number | null; assists: number | null }
+  pro: {
+    name: string
+    nationality: string | null
+    role: string | null
+    photo_url: string | null
+    apps: number | null
+    goals: number | null
+    assists: number | null
+  }
   upvotes: number
   downvotes: number
   myVote: 'up' | 'down' | null
@@ -44,6 +52,7 @@ export interface ProPlayerRow {
   name: string
   nationality: string | null
   role: string | null
+  photo_url: string | null
   apps: number | null
   goals: number | null
   assists: number | null
@@ -154,7 +163,7 @@ export async function fetchPlayerTags(playerId: string): Promise<PlayerTagRow[]>
 export async function fetchComparisons(playerId: string, viewerId?: string): Promise<ComparisonRow[]> {
   const { data: comparisons, error } = await supabase
     .from('player_comparisons')
-    .select('id, source, pro_players (name, nationality, role, apps, goals, assists)')
+    .select('id, source, pro_players (name, nationality, role, photo_url, apps, goals, assists)')
     .eq('player_id', playerId)
   if (error) throw error
   if (!comparisons || comparisons.length === 0) return []

@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
 
   const { data, error } = await supabase
     .from('pro_players')
-    .select('id, name, nationality, role, apps, goals, assists')
+    .select('id, name, nationality, role, photo_url, apps, goals, assists')
     .in(
       'external_id',
       rows.map((r) => r.external_id),

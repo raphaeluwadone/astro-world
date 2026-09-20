@@ -25,10 +25,19 @@ function ComparisonCard({
   return (
     <div className="rounded-[14px] border border-border bg-astro-surface-2 p-4">
       <div className="mb-3 flex items-center gap-3">
-        <div
-          className="size-12 shrink-0 rounded-[11px]"
-          style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
-        />
+        {c.pro.photo_url ? (
+          <img
+            src={c.pro.photo_url}
+            alt=""
+            className="size-12 shrink-0 rounded-[11px] object-cover"
+            style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
+          />
+        ) : (
+          <div
+            className="size-12 shrink-0 rounded-[11px]"
+            style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
+          />
+        )}
         <div className="min-w-0">
           <div className="truncate text-[14.5px] font-extrabold text-astro-text">{c.pro.name}</div>
           <div className="text-[11.5px] text-astro-text-dim">
