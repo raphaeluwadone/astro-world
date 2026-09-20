@@ -33,3 +33,4 @@ supabase/functions/*/.env
 *.njsproj
 *.sln
 *.sw?
+.local-backups/

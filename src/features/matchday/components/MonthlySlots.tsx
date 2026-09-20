@@ -1,4 +1,4 @@
-import type { MonthlyMemberRow } from '../api'
+import type { AvailabilityRow, MonthlyMemberRow } from '../api'
 
 const MAX_MONTHLY_SLOTS = 10
 
@@ -8,15 +8,18 @@ export function MonthlySlots({
   playerId,
   onClaim,
   isClaiming,
+  availability = [],
 }: {
   members: MonthlyMemberRow[]
   monthLabel: string
   playerId: string | null
   onClaim: () => void
   isClaiming: boolean
+  availability?: AvailabilityRow[]
 }) {
   const alreadyClaimed = !!playerId && members.some((m) => m.player_id === playerId)
   const full = members.length >= MAX_MONTHLY_SLOTS
+  const outThisWeek = new Set(availability.filter((a) => a.status === 'out').map((a) => a.player_id))
 
   return (
     <div className="astro-card p-[22px]">
@@ -40,7 +43,12 @@ export function MonthlySlots({
                 className="size-7 shrink-0 rounded-lg"
                 style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
               />
-              <span className="truncate text-[13px] font-bold text-astro-text">{m.players.nickname}</span>
+              <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-astro-text">{m.players.nickname}</span>
+              {outThisWeek.has(m.player_id) && (
+                <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-[0.06em] text-astro-red">
+                  Out this week
+                </span>
+              )}
             </div>
           ))}
         </div>

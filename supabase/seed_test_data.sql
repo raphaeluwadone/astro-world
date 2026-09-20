@@ -165,16 +165,14 @@ values
   ('b0000000-0000-0000-0000-00000000d001', now() + interval '4 days' + interval '9 hours 30 minutes', 'Gbaja Boys Junior High School', 'open', 30),
   ('b0000000-0000-0000-0000-00000000d003', now() - interval '5 days' + interval '9 hours 30 minutes', 'Gbaja Boys Junior High School', 'played', 30);
 
--- Availability for the open matchday: all 30 regulars respond in, 3 of
--- the occasional players say out, the other 5 say nothing at all ("no
--- reply counts as unavailable" per the real rule, so they get no row).
-insert into availability (matchday_id, player_id, status, responded_at)
-select 'b0000000-0000-0000-0000-00000000d001', player_id, 'in', now() - (rn || ' hours')::interval
-from seed_players where is_regular;
-
-insert into availability (matchday_id, player_id, status, responded_at)
-select 'b0000000-0000-0000-0000-00000000d001', player_id, 'out', now() - interval '1 day'
-from seed_players where nickname in ('Precy', 'Mikey D', 'Ruthie');
+-- Getting one of the 30 is first-to-pay, not free availability marking
+-- (see weekly_claims / matchday_standby_entries): a dozen regulars have
+-- already claimed a weekly spot for the open matchday, leaving real
+-- room for whoever tests the app to claim one themselves rather than
+-- pre-filling all 30.
+insert into weekly_claims (matchday_id, player_id, claimed_at)
+select 'b0000000-0000-0000-0000-00000000d001', player_id, now() - (rn || ' hours')::interval
+from seed_players where is_regular and rn <= 12;
 
 -- Played matchday: identical shape (5 sides of 6), plus real fixtures,
 -- goals, ratings and MOTM votes so history/rankings/profiles have real
@@ -193,13 +191,9 @@ select
   player_id
 from seed_players where is_regular;
 
-insert into availability (matchday_id, player_id, status, responded_at)
-select 'b0000000-0000-0000-0000-00000000d003', player_id, 'in', now() - interval '8 days'
-from seed_players where is_regular;
-
-insert into matchday_ballot_entries (matchday_id, player_id, status)
-select 'b0000000-0000-0000-0000-00000000d003', player_id, 'balloted'
-from seed_players where is_regular;
+-- No weekly_claims/availability rows needed for a historical matchday:
+-- it's already played, so only the teams/matches/goals/ratings that
+-- actually happened matter for anything that reads it.
 
 insert into matches (id, matchday_id, team_a_id, team_b_id, score_a, score_b, played_at)
 values

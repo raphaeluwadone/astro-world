@@ -17,10 +17,15 @@ export interface AvailabilityRow {
   players: PlayerSummary
 }
 
-export interface BallotEntryRow {
+export interface WeeklyClaimRow {
   player_id: string
-  status: Database['public']['Enums']['ballot_entry_status']
-  standby_position: number | null
+  claimed_at: string
+  players: PlayerSummary
+}
+
+export interface StandbyEntryRow {
+  player_id: string
+  created_at: string
   players: PlayerSummary
 }
 
@@ -104,14 +109,58 @@ export async function fetchAvailability(matchdayId: string): Promise<Availabilit
   return (data ?? []) as unknown as AvailabilityRow[]
 }
 
-export async function fetchBallotEntries(matchdayId: string): Promise<BallotEntryRow[]> {
+export async function fetchWeeklyClaims(matchdayId: string): Promise<WeeklyClaimRow[]> {
   const { data, error } = await supabase
-    .from('matchday_ballot_entries')
-    .select(`player_id, status, standby_position, players (${PLAYER_SUMMARY_COLS})`)
+    .from('weekly_claims')
+    .select(`player_id, claimed_at, players (${PLAYER_SUMMARY_COLS})`)
     .eq('matchday_id', matchdayId)
-    .order('standby_position', { ascending: true, nullsFirst: false })
+    .order('claimed_at', { ascending: true })
   if (error) throw error
-  return (data ?? []) as unknown as BallotEntryRow[]
+  return (data ?? []) as unknown as WeeklyClaimRow[]
+}
+
+export async function claimWeeklySpot(matchdayId: string, playerId: string) {
+  const { error } = await supabase.from('weekly_claims').insert({ matchday_id: matchdayId, player_id: playerId })
+  if (error) throw error
+}
+
+export async function withdrawWeeklyClaim(matchdayId: string, playerId: string) {
+  const { error } = await supabase
+    .from('weekly_claims')
+    .delete()
+    .eq('matchday_id', matchdayId)
+    .eq('player_id', playerId)
+  if (error) throw error
+}
+
+export async function fetchStandbyEntries(matchdayId: string): Promise<StandbyEntryRow[]> {
+  const { data, error } = await supabase
+    .from('matchday_standby_entries')
+    .select(`player_id, created_at, players (${PLAYER_SUMMARY_COLS})`)
+    .eq('matchday_id', matchdayId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as unknown as StandbyEntryRow[]
+}
+
+export async function joinStandby(matchdayId: string, playerId: string) {
+  const { error } = await supabase.from('matchday_standby_entries').insert({ matchday_id: matchdayId, player_id: playerId })
+  if (error) throw error
+}
+
+export async function leaveStandby(matchdayId: string, playerId: string) {
+  const { error } = await supabase
+    .from('matchday_standby_entries')
+    .delete()
+    .eq('matchday_id', matchdayId)
+    .eq('player_id', playerId)
+  if (error) throw error
+}
+
+export async function fetchWeeklySpotsRemaining(matchdayId: string): Promise<number> {
+  const { data, error } = await supabase.rpc('weekly_spots_remaining', { p_matchday_id: matchdayId })
+  if (error) throw error
+  return data
 }
 
 export async function fetchDrawnTeams(matchdayId: string): Promise<TeamWithMembers[]> {
@@ -192,81 +241,3 @@ export async function updateMatchdayCapacity(matchdayId: string, capacity: 30 | 
   if (error) throw error
 }
 
-export interface RunBallotResult {
-  balloted: number
-  standby: number
-  monthlyIn: number
-}
-
-/**
- * Selects who's actually playing: the first-come-first-served weekly
- * queue (availability.responded_at), plus this month's ten monthly-slot
- * holders auto-included unless they've explicitly marked themselves out
- * for this specific Sunday. Strictly FCFS, never random: randomization
- * only happens later, splitting the selected pool into teams (runTeamDraw).
- */
-export async function runBallotSelection(matchdayId: string): Promise<RunBallotResult> {
-  const { data: matchday, error: matchdayError } = await supabase
-    .from('matchdays')
-    .select('played_at, capacity')
-    .eq('id', matchdayId)
-    .single()
-  if (matchdayError) throw matchdayError
-
-  const month = monthOf(matchday.played_at)
-
-  const [{ data: monthlyMembers, error: monthlyError }, { data: availability, error: availError }] =
-    await Promise.all([
-      supabase.from('monthly_memberships').select('player_id').eq('month', month),
-      supabase.from('availability').select('player_id, status, responded_at').eq('matchday_id', matchdayId),
-    ])
-  if (monthlyError) throw monthlyError
-  if (availError) throw availError
-
-  const optedOut = new Set((availability ?? []).filter((a) => a.status === 'out').map((a) => a.player_id))
-  const monthlyIn = (monthlyMembers ?? []).map((m) => m.player_id).filter((id) => !optedOut.has(id))
-  const monthlyInSet = new Set(monthlyIn)
-
-  const weeklyCandidates = (availability ?? [])
-    .filter((a) => a.status === 'in' && !monthlyInSet.has(a.player_id))
-    .sort((a, b) => new Date(a.responded_at).getTime() - new Date(b.responded_at).getTime())
-    .map((a) => a.player_id)
-
-  const remainingCapacity = Math.max(0, matchday.capacity - monthlyIn.length)
-  const weeklyIn = weeklyCandidates.slice(0, remainingCapacity)
-  const standby = weeklyCandidates.slice(remainingCapacity)
-
-  const rows = [
-    ...monthlyIn.map((player_id) => ({
-      matchday_id: matchdayId,
-      player_id,
-      status: 'balloted' as const,
-      standby_position: null,
-    })),
-    ...weeklyIn.map((player_id) => ({
-      matchday_id: matchdayId,
-      player_id,
-      status: 'balloted' as const,
-      standby_position: null,
-    })),
-    ...standby.map((player_id, i) => ({
-      matchday_id: matchdayId,
-      player_id,
-      status: 'standby' as const,
-      standby_position: i + 1,
-    })),
-  ]
-
-  if (rows.length > 0) {
-    const { error: insertError } = await supabase.from('matchday_ballot_entries').insert(rows)
-    if (insertError) throw insertError
-  }
-
-  const { error: statusError } = await supabase
-    .from('matchdays')
-    .update({ status: 'balloted' })
-    .eq('id', matchdayId)
-  if (statusError) throw statusError
-
-  return { balloted: monthlyIn.length + weeklyIn.length, standby: standby.length, monthlyIn: monthlyIn.length }
-}

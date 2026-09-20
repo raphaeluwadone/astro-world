@@ -421,48 +421,6 @@ export type Database = {
           },
         ]
       }
-      matchday_ballot_entries: {
-        Row: {
-          created_at: string
-          matchday_id: string
-          player_id: string
-          standby_position: number | null
-          status: Database["public"]["Enums"]["ballot_entry_status"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          matchday_id: string
-          player_id: string
-          standby_position?: number | null
-          status: Database["public"]["Enums"]["ballot_entry_status"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          matchday_id?: string
-          player_id?: string
-          standby_position?: number | null
-          status?: Database["public"]["Enums"]["ballot_entry_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "matchday_ballot_entries_matchday_id_fkey"
-            columns: ["matchday_id"]
-            isOneToOne: false
-            referencedRelation: "matchdays"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matchday_ballot_entries_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       matchday_motm_votes: {
         Row: {
           created_at: string
@@ -503,6 +461,39 @@ export type Database = {
           {
             foreignKeyName: "matchday_motm_votes_voter_id_fkey"
             columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matchday_standby_entries: {
+        Row: {
+          created_at: string
+          matchday_id: string
+          player_id: string
+        }
+        Insert: {
+          created_at?: string
+          matchday_id: string
+          player_id: string
+        }
+        Update: {
+          created_at?: string
+          matchday_id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matchday_standby_entries_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matchday_standby_entries_player_id_fkey"
+            columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
@@ -1308,6 +1299,42 @@ export type Database = {
           },
         ]
       }
+      weekly_claims: {
+        Row: {
+          claimed_at: string
+          id: string
+          matchday_id: string
+          player_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          matchday_id: string
+          player_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          matchday_id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_claims_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_claims_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1362,6 +1389,10 @@ export type Database = {
           player_id: string
         }[]
       }
+      player_is_monthly_member_for: {
+        Args: { p_matchday_id: string; p_player_id: string }
+        Returns: boolean
+      }
       player_match_ratings: {
         Args: { p_player_id: string }
         Returns: {
@@ -1382,10 +1413,13 @@ export type Database = {
         }[]
       }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
+      weekly_spots_remaining: {
+        Args: { p_matchday_id: string }
+        Returns: number
+      }
     }
     Enums: {
       availability_status: "in" | "out"
-      ballot_entry_status: "balloted" | "standby"
       comparison_source: "self" | "community"
       cup_status: "open" | "drawn" | "live" | "played" | "cancelled"
       foot_type: "left" | "right" | "both"
@@ -1531,7 +1565,6 @@ export const Constants = {
   public: {
     Enums: {
       availability_status: ["in", "out"],
-      ballot_entry_status: ["balloted", "standby"],
       comparison_source: ["self", "community"],
       cup_status: ["open", "drawn", "live", "played", "cancelled"],
       foot_type: ["left", "right", "both"],

@@ -1,27 +1,27 @@
 import { Link } from '@tanstack/react-router'
-import type { AvailabilityRow, BallotEntryRow } from '@/features/matchday/api'
+import type { StandbyEntryRow, WeeklyClaimRow } from '@/features/matchday/api'
 import type { Database } from '@/types/database'
 
 type Matchday = Database['public']['Tables']['matchdays']['Row']
 
-const CAPACITY = 30
-
 export function NextMatchdayCard({
   matchday,
-  availability,
-  ballotEntries,
+  weeklyClaims,
+  standby,
+  monthlyCount,
   playerId,
+  hasWeeklyClaim,
+  isOnStandby,
 }: {
   matchday: Matchday
-  availability: AvailabilityRow[]
-  ballotEntries: BallotEntryRow[]
+  weeklyClaims: WeeklyClaimRow[]
+  standby: StandbyEntryRow[]
+  monthlyCount: number
   playerId: string | null
+  hasWeeklyClaim: boolean
+  isOnStandby: boolean
 }) {
-  const inCount = availability.filter((a) => a.status === 'in').length
-  const balloted = ballotEntries.filter((e) => e.status === 'balloted').length
-  const standby = ballotEntries.filter((e) => e.status === 'standby').length
-  const filled = ballotEntries.length > 0 ? balloted : inCount
-  const myStatus = availability.find((a) => a.player_id === playerId)?.status ?? null
+  const filled = monthlyCount + weeklyClaims.length
 
   const kickoff = new Date(matchday.played_at).toLocaleDateString('en-GB', {
     weekday: 'short',
@@ -50,34 +50,34 @@ export function NextMatchdayCard({
             <div
               className="h-full"
               style={{
-                width: `${Math.min(100, (filled / CAPACITY) * 100)}%`,
+                width: `${Math.min(100, (filled / matchday.capacity) * 100)}%`,
                 background: 'linear-gradient(90deg, #7c22e0, #a63fff)',
               }}
             />
           </div>
           <div className="font-display text-2xl leading-none text-astro-text">
             {filled}
-            <span className="text-astro-text-dim">/{CAPACITY}</span>
+            <span className="text-astro-text-dim">/{matchday.capacity}</span>
           </div>
         </div>
         <div className="text-[12.5px] text-astro-text-muted">
-          {inCount} marked in &middot; {standby} on standby
+          {monthlyCount} held monthly &middot; {standby.length} on standby
         </div>
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="text-[13px] text-astro-text-muted">
-          {myStatus ? (
+          {!playerId ? (
+            'Sign in to claim a spot'
+          ) : hasWeeklyClaim ? (
             <>
-              You&rsquo;re marked{' '}
-              <span
-                className="font-extrabold"
-                style={{ color: myStatus === 'in' ? '#4ade80' : '#e0483f' }}
-              >
-                {myStatus === 'in' ? 'AVAILABLE' : 'OUT'}
-              </span>
+              You&rsquo;re <span className="font-extrabold text-[#4ade80]">IN</span>
+            </>
+          ) : isOnStandby ? (
+            <>
+              You&rsquo;re on <span className="font-extrabold text-astro-text">STANDBY</span>
             </>
           ) : (
-            'You haven’t responded yet'
+            "You haven't claimed a spot yet"
           )}
         </div>
         <Link to="/matchday" className="text-[13px] font-extrabold text-astro-accent">

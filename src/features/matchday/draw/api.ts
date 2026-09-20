@@ -1,15 +1,40 @@
 import { TEAM_ID as GREEK_TEAMS } from '@/lib/teamId'
 import { supabase } from '@/lib/supabase'
+import { monthOf } from '../api'
 import { drawTeams, pairKey } from './drawTeams'
 
-async function fetchBallotedPlayerIds(matchdayId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('matchday_ballot_entries')
-    .select('player_id')
-    .eq('matchday_id', matchdayId)
-    .eq('status', 'balloted')
-  if (error) throw error
-  return (data ?? []).map((row) => row.player_id)
+/**
+ * Who's actually confirmed for this Sunday: this month's monthly
+ * members (minus anyone who's opted out of this specific matchday) plus
+ * everyone who paid for one of the weekly spots. No lottery involved,
+ * both routes in are strictly first-to-pay; the only randomisation is
+ * the team split below.
+ */
+async function fetchConfirmedPlayerIds(matchdayId: string): Promise<string[]> {
+  const { data: matchday, error: matchdayError } = await supabase
+    .from('matchdays')
+    .select('played_at')
+    .eq('id', matchdayId)
+    .single()
+  if (matchdayError) throw matchdayError
+
+  const month = monthOf(matchday.played_at)
+
+  const [{ data: monthlyMembers, error: monthlyError }, { data: optedOut, error: optedOutError }, { data: weeklyClaims, error: weeklyError }] =
+    await Promise.all([
+      supabase.from('monthly_memberships').select('player_id').eq('month', month),
+      supabase.from('availability').select('player_id').eq('matchday_id', matchdayId).eq('status', 'out'),
+      supabase.from('weekly_claims').select('player_id').eq('matchday_id', matchdayId),
+    ])
+  if (monthlyError) throw monthlyError
+  if (optedOutError) throw optedOutError
+  if (weeklyError) throw weeklyError
+
+  const optedOutSet = new Set((optedOut ?? []).map((a) => a.player_id))
+  const monthlyIds = (monthlyMembers ?? []).map((m) => m.player_id).filter((id) => !optedOutSet.has(id))
+  const weeklyIds = (weeklyClaims ?? []).map((w) => w.player_id)
+
+  return [...monthlyIds, ...weeklyIds]
 }
 
 /** Pairings from the most recent PRIOR matchday that actually has drawn teams. */
@@ -70,9 +95,12 @@ export interface RunDrawResult {
 }
 
 /**
- * Runs the team draw for a matchday: reads the balloted players and the
- * previous week's pairings, computes the draw, and writes the result
- * (the teams + their members), then marks the matchday 'drawn'.
+ * Runs the ballot for a matchday: reads the confirmed players (monthly
+ * + weekly claims) and the previous week's pairings, computes the
+ * random team split, and writes the result (the teams + their members),
+ * then marks the matchday 'drawn'. This is the only random step in the
+ * whole process, both routes into the confirmed 30 are strictly
+ * first-to-pay.
  *
  * Admin-only in practice: the `teams`/`team_members`/`matchdays` writes
  * this performs are all gated by admin-only RLS policies already, so a
@@ -80,12 +108,12 @@ export interface RunDrawResult {
  */
 export async function runTeamDraw(matchdayId: string): Promise<RunDrawResult> {
   const [playerIds, previousPairings] = await Promise.all([
-    fetchBallotedPlayerIds(matchdayId),
+    fetchConfirmedPlayerIds(matchdayId),
     fetchPreviousPairings(matchdayId),
   ])
 
   if (playerIds.length === 0 || playerIds.length % 6 !== 0) {
-    throw new Error(`Expected a multiple of 6 balloted players, found ${playerIds.length}`)
+    throw new Error(`Expected a multiple of 6 confirmed players, found ${playerIds.length}`)
   }
   const teamCount = playerIds.length / 6
   if (teamCount > GREEK_TEAMS.length) {

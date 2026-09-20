@@ -2,18 +2,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Database } from '@/types/database'
 import {
   claimMonthlySlot,
+  claimWeeklySpot,
   createMatchday,
   fetchActivePlayers,
   fetchAvailability,
-  fetchBallotEntries,
   fetchDrawnTeams,
   fetchLastCompleteMatchday,
   fetchMatchResults,
   fetchMonthlyMembers,
   fetchNextMatchday,
-  runBallotSelection,
+  fetchStandbyEntries,
+  fetchWeeklyClaims,
+  fetchWeeklySpotsRemaining,
+  joinStandby,
+  leaveStandby,
   setAvailability,
   updateMatchdayCapacity,
+  withdrawWeeklyClaim,
 } from './api'
 
 type AvailabilityStatus = Database['public']['Enums']['availability_status']
@@ -34,14 +39,6 @@ export function useAvailability(matchdayId: string | undefined) {
   return useQuery({
     queryKey: ['availability', matchdayId],
     queryFn: () => fetchAvailability(matchdayId!),
-    enabled: !!matchdayId,
-  })
-}
-
-export function useBallotEntries(matchdayId: string | undefined) {
-  return useQuery({
-    queryKey: ['ballot-entries', matchdayId],
-    queryFn: () => fetchBallotEntries(matchdayId!),
     enabled: !!matchdayId,
   })
 }
@@ -69,6 +66,7 @@ export function useSetAvailability(matchdayId: string | undefined) {
       setAvailability(matchdayId!, playerId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability', matchdayId] })
+      queryClient.invalidateQueries({ queryKey: ['weekly-spots-remaining', matchdayId] })
     },
   })
 }
@@ -85,7 +83,10 @@ export function useClaimMonthlySlot(month: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (playerId: string) => claimMonthlySlot(playerId, month!),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['monthly-members', month] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['monthly-members', month] })
+      queryClient.invalidateQueries({ queryKey: ['weekly-spots-remaining'] })
+    },
   })
 }
 
@@ -101,17 +102,74 @@ export function useUpdateMatchdayCapacity(matchdayId: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (capacity: 30 | 36) => updateMatchdayCapacity(matchdayId!, capacity),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] })
+      queryClient.invalidateQueries({ queryKey: ['weekly-spots-remaining', matchdayId] })
+    },
   })
 }
 
-export function useRunBallotSelection(matchdayId: string | undefined) {
+export function useWeeklyClaims(matchdayId: string | undefined) {
+  return useQuery({
+    queryKey: ['weekly-claims', matchdayId],
+    queryFn: () => fetchWeeklyClaims(matchdayId!),
+    enabled: !!matchdayId,
+  })
+}
+
+export function useWeeklySpotsRemaining(matchdayId: string | undefined) {
+  return useQuery({
+    queryKey: ['weekly-spots-remaining', matchdayId],
+    queryFn: () => fetchWeeklySpotsRemaining(matchdayId!),
+    enabled: !!matchdayId,
+  })
+}
+
+function useInvalidateWeeklySignup(matchdayId: string | undefined) {
   const queryClient = useQueryClient()
+  return () => {
+    queryClient.invalidateQueries({ queryKey: ['weekly-claims', matchdayId] })
+    queryClient.invalidateQueries({ queryKey: ['standby-entries', matchdayId] })
+    queryClient.invalidateQueries({ queryKey: ['weekly-spots-remaining', matchdayId] })
+  }
+}
+
+export function useClaimWeeklySpot(matchdayId: string | undefined) {
+  const invalidate = useInvalidateWeeklySignup(matchdayId)
   return useMutation({
-    mutationFn: () => runBallotSelection(matchdayId!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] })
-      queryClient.invalidateQueries({ queryKey: ['ballot-entries', matchdayId] })
-    },
+    mutationFn: (playerId: string) => claimWeeklySpot(matchdayId!, playerId),
+    onSuccess: invalidate,
+  })
+}
+
+export function useWithdrawWeeklyClaim(matchdayId: string | undefined) {
+  const invalidate = useInvalidateWeeklySignup(matchdayId)
+  return useMutation({
+    mutationFn: (playerId: string) => withdrawWeeklyClaim(matchdayId!, playerId),
+    onSuccess: invalidate,
+  })
+}
+
+export function useStandbyEntries(matchdayId: string | undefined) {
+  return useQuery({
+    queryKey: ['standby-entries', matchdayId],
+    queryFn: () => fetchStandbyEntries(matchdayId!),
+    enabled: !!matchdayId,
+  })
+}
+
+export function useJoinStandby(matchdayId: string | undefined) {
+  const invalidate = useInvalidateWeeklySignup(matchdayId)
+  return useMutation({
+    mutationFn: (playerId: string) => joinStandby(matchdayId!, playerId),
+    onSuccess: invalidate,
+  })
+}
+
+export function useLeaveStandby(matchdayId: string | undefined) {
+  const invalidate = useInvalidateWeeklySignup(matchdayId)
+  return useMutation({
+    mutationFn: (playerId: string) => leaveStandby(matchdayId!, playerId),
+    onSuccess: invalidate,
   })
 }

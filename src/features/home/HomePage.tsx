@@ -2,11 +2,13 @@ import { useArticles } from '@/features/articles/hooks'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { useFeed } from '@/features/community/hooks'
 import {
-  useAvailability,
-  useBallotEntries,
   useLastCompleteMatchday,
+  useMonthlyMembers,
   useNextMatchday,
+  useStandbyEntries,
+  useWeeklyClaims,
 } from '@/features/matchday/hooks'
+import { monthOf } from '@/features/matchday/api'
 import { useMatchRatings } from '@/features/profile/hooks'
 import { RecentForm } from '@/features/profile/components/RecentForm'
 import { useRankings } from '@/features/rankings/hooks'
@@ -24,8 +26,9 @@ export function HomePage() {
 
   const { data: matchday, isLoading: matchdayLoading } = useNextMatchday()
   const { data: lastComplete } = useLastCompleteMatchday()
-  const { data: availability = [] } = useAvailability(matchday?.id)
-  const { data: ballotEntries = [] } = useBallotEntries(matchday?.id)
+  const { data: weeklyClaims = [] } = useWeeklyClaims(matchday?.id)
+  const { data: standby = [] } = useStandbyEntries(matchday?.id)
+  const { data: monthlyMembers = [] } = useMonthlyMembers(matchday ? monthOf(matchday.played_at) : undefined)
   const { data: matchRatings = [] } = useMatchRatings(playerId ?? undefined)
   const { data: rankings = [] } = useRankings()
   const { data: feed = [] } = useFeed(playerId)
@@ -99,9 +102,12 @@ export function HomePage() {
         {!matchdayLoading && matchday && (
           <NextMatchdayCard
             matchday={matchday}
-            availability={availability}
-            ballotEntries={ballotEntries}
+            weeklyClaims={weeklyClaims}
+            standby={standby}
+            monthlyCount={monthlyMembers.length}
             playerId={playerId}
+            hasWeeklyClaim={weeklyClaims.some((w) => w.player_id === playerId)}
+            isOnStandby={standby.some((s) => s.player_id === playerId)}
           />
         )}
         <RecentForm matchRatings={matchRatings} title="Your Recent Form" titleSize={26} />

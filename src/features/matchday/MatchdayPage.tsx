@@ -15,20 +15,23 @@ import { DrawnTeams } from './components/DrawnTeams'
 import { LastResults } from './components/LastResults'
 import { MonthlySlots } from './components/MonthlySlots'
 import { StandbyQueue } from './components/StandbyQueue'
-import { WhoRepliedList } from './components/WhoRepliedList'
 import { useRunTeamDraw } from './draw/hooks'
 import {
-  useActivePlayers,
   useAvailability,
-  useBallotEntries,
   useClaimMonthlySlot,
+  useClaimWeeklySpot,
   useDrawnTeams,
+  useJoinStandby,
   useLastCompleteMatchday,
+  useLeaveStandby,
   useMatchResults,
   useMonthlyMembers,
   useNextMatchday,
-  useRunBallotSelection,
+  useStandbyEntries,
   useUpdateMatchdayCapacity,
+  useWeeklyClaims,
+  useWeeklySpotsRemaining,
+  useWithdrawWeeklyClaim,
 } from './hooks'
 
 function formatMatchdayDate(playedAt: string) {
@@ -45,18 +48,22 @@ export function MatchdayPage() {
   const { data: matchday, isLoading: matchdayLoading, isError: matchdayError, refetch: refetchMatchday } = useNextMatchday()
   const { data: lastComplete } = useLastCompleteMatchday()
 
-  const { data: players = [] } = useActivePlayers()
   const { data: availability = [] } = useAvailability(matchday?.id)
-  const { data: ballotEntries = [] } = useBallotEntries(matchday?.id)
   const { data: teams = [] } = useDrawnTeams(matchday?.id)
   const { data: results = [] } = useMatchResults(lastComplete?.id)
+  const { data: weeklyClaims = [] } = useWeeklyClaims(matchday?.id)
+  const { data: standbyEntries = [] } = useStandbyEntries(matchday?.id)
+  const { data: spotsRemaining = 0 } = useWeeklySpotsRemaining(matchday?.id)
   const runDraw = useRunTeamDraw(matchday?.id)
-  const runBallot = useRunBallotSelection(matchday?.id)
   const updateCapacity = useUpdateMatchdayCapacity(matchday?.id)
   const cancelMatchday = useCancelMatchday(matchday?.id)
   const month = matchday ? monthOf(matchday.played_at) : undefined
   const { data: monthlyMembers = [] } = useMonthlyMembers(month)
   const claimMonthlySlot = useClaimMonthlySlot(month)
+  const claimWeeklySpot = useClaimWeeklySpot(matchday?.id)
+  const withdrawWeeklyClaim = useWithdrawWeeklyClaim(matchday?.id)
+  const joinStandby = useJoinStandby(matchday?.id)
+  const leaveStandby = useLeaveStandby(matchday?.id)
 
   if (matchdayLoading) {
     return <PageLoader />
@@ -84,13 +91,17 @@ export function MatchdayPage() {
     )
   }
 
-  const myStatus = availability.find((a) => a.player_id === player?.id)?.status ?? null
   const daysUntil = Math.round(
     (new Date(matchday.played_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   )
-  const balloted = ballotEntries.filter((e) => e.status === 'balloted')
-  const standby = ballotEntries.filter((e) => e.status === 'standby')
-  const inCount = availability.filter((a) => a.status === 'in').length
+  const isMonthlyMember = !!player && monthlyMembers.some((m) => m.player_id === player.id)
+  const monthlyOptStatus = availability.find((a) => a.player_id === player?.id)?.status ?? null
+  const hasWeeklyClaim = !!player && weeklyClaims.some((w) => w.player_id === player.id)
+  const standbyIndex = player ? standbyEntries.findIndex((s) => s.player_id === player.id) : -1
+  const isOnStandby = standbyIndex >= 0
+  const optedOutIds = new Set(availability.filter((a) => a.status === 'out').map((a) => a.player_id))
+  const monthlyInCount = monthlyMembers.filter((m) => !optedOutIds.has(m.player_id)).length
+  const confirmedCount = weeklyClaims.length + monthlyInCount
 
   return (
     <div className="space-y-5">
@@ -121,7 +132,7 @@ export function MatchdayPage() {
         onOpenChange={setConfirmingCancel}
         eyebrow="Matchday control"
         title="Cancel this matchday"
-        body="Availability and the ballot stay recorded, but it won't be played. Anyone who already marked themselves in stays on record either way."
+        body="Claims and standby stay recorded, but it won't be played. Anyone who already claimed a spot stays on record either way."
         cancelLabel="Keep it on"
         confirmLabel="Cancel matchday"
         isPending={cancelMatchday.isPending}
@@ -134,16 +145,25 @@ export function MatchdayPage() {
       <AvailabilityCard
         matchdayId={matchday.id}
         playerId={player?.id ?? null}
-        currentStatus={myStatus}
         isOpen={matchday.status === 'open'}
         daysUntil={daysUntil}
+        isMonthlyMember={isMonthlyMember}
+        monthlyOptStatus={monthlyOptStatus}
+        hasWeeklyClaim={hasWeeklyClaim}
+        isOnStandby={isOnStandby}
+        standbyPosition={isOnStandby ? standbyIndex + 1 : null}
+        spotsRemaining={spotsRemaining}
+        onClaim={() => player?.id && claimWeeklySpot.mutate(player.id)}
+        onWithdrawClaim={() => player?.id && withdrawWeeklyClaim.mutate(player.id)}
+        onJoinStandby={() => player?.id && joinStandby.mutate(player.id)}
+        onLeaveStandby={() => player?.id && leaveStandby.mutate(player.id)}
+        isClaiming={claimWeeklySpot.isPending}
+        isWithdrawing={withdrawWeeklyClaim.isPending}
+        isJoiningStandby={joinStandby.isPending}
+        isLeavingStandby={leaveStandby.isPending}
       />
 
       <div className="grid items-start gap-5 lg:grid-cols-[1fr_1.15fr]">
-        <div className="astro-card min-w-0 p-[22px]">
-          <WhoRepliedList players={players} availability={availability} />
-        </div>
-
         <div className="flex min-w-0 flex-col gap-5">
           {month && (
             <MonthlySlots
@@ -152,117 +172,97 @@ export function MatchdayPage() {
               playerId={player?.id ?? null}
               onClaim={() => player?.id && claimMonthlySlot.mutate(player.id)}
               isClaiming={claimMonthlySlot.isPending}
+              availability={availability}
             />
           )}
 
           {matchday.status === 'open' && (
             <div className="astro-card p-[22px]">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3.5">
-                <div>
-                  <h2 className="mb-[5px] font-display text-[26px] leading-none text-astro-text">
-                    The Ballot
-                  </h2>
-                  <p className="text-[13px] text-astro-text-muted">
-                    First come, first served: {matchday.capacity} spots, {monthlyMembers.length} held monthly.
-                  </p>
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="font-display text-[26px] leading-none text-astro-text">Spots</h2>
+                <div className="font-display text-2xl leading-none text-astro-accent">
+                  {matchday.capacity - spotsRemaining}
+                  <span className="text-astro-text-dim">/{matchday.capacity}</span>
                 </div>
-                {player?.is_admin && !runBallot.isPending && (
-                  <Button onClick={() => runBallot.mutate()} disabled={runBallot.isPending}>
-                    Run the Ballot
-                  </Button>
-                )}
               </div>
-
-              {player?.is_admin && (
-                <div className="mb-3.5 flex items-center gap-2.5">
-                  <span className="astro-eyebrow">Sides this week</span>
-                  {([30, 36] as const).map((cap) => (
-                    <button
-                      key={cap}
-                      type="button"
-                      disabled={updateCapacity.isPending}
-                      onClick={() => updateCapacity.mutate(cap)}
-                      className={
-                        matchday.capacity === cap
-                          ? 'rounded-lg bg-astro-accent px-3 py-1.5 text-xs font-extrabold text-astro-on-accent'
-                          : 'rounded-lg border border-border bg-astro-surface-2 px-3 py-1.5 text-xs font-bold text-astro-text-muted'
-                      }
-                    >
-                      {cap / 6} teams &middot; {cap}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {runBallot.isSuccess ? (
-                <p className="text-xs text-astro-text-muted">
-                  Balloted: {runBallot.data.balloted} in ({runBallot.data.monthlyIn} monthly),{' '}
-                  {runBallot.data.standby} on standby.
-                </p>
-              ) : (
-                <p className="text-xs text-astro-text-dim">
-                  {inCount} marked in this week so far. Randomizing into teams happens after the ballot,
-                  on game day.
-                </p>
-              )}
-              {runBallot.isError && (
-                <p className="mt-3 text-xs text-astro-red">
-                  {runBallot.error instanceof Error ? runBallot.error.message : 'Something went wrong.'}
-                </p>
-              )}
+              <p className="text-xs text-astro-text-dim">
+                {monthlyMembers.length} held monthly, the rest first-to-pay. Randomising into
+                teams happens after entries close, on game day.
+              </p>
             </div>
           )}
 
-          {matchday.status !== 'open' && (
-            <div className="astro-card p-[22px]">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3.5">
-                <div>
-                  <h2 className="mb-[5px] font-display text-[26px] leading-none text-astro-text">
-                    The Draw
-                  </h2>
-                  <p className="text-[13px] text-astro-text-muted">
-                    {teams.length > 0
-                      ? `${teams.length} teams of 6, drawn.`
-                      : `${balloted.length} balloted, ${standby.length} on standby.`}
-                  </p>
-                </div>
-                {player?.is_admin && (matchday.status === 'balloted' || runDraw.isSuccess) && teams.length === 0 && !runDraw.isPending && (
-                  <Button onClick={() => runDraw.mutate()} disabled={runDraw.isPending}>
-                    Run the Draw
-                  </Button>
-                )}
-              </div>
-
-              {runDraw.isPending ? (
-                <DrumLoader label="Drawing the sides…" />
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  <InfoPill color="#4ade80" icon="check">No repeat pairings from last Sunday</InfoPill>
-                  <InfoPill color="#4ade80" icon="check">
-                    Teams of 6 &middot; {matchday.capacity / 6} sides
-                  </InfoPill>
-                  <InfoPill color="#38bdf8" icon="info">
-                    {balloted.length} balloted, {standby.length} on standby
-                  </InfoPill>
-                  <InfoPill color="#38bdf8" icon="info">Rating is not used to balance sides</InfoPill>
-                </div>
-              )}
-
-              {runDraw.isSuccess && (
-                <p className="mt-3 text-xs text-astro-text-muted">
-                  Drawn: {runDraw.data.repeatPairingsCount} repeat pairing
-                  {runDraw.data.repeatPairingsCount === 1 ? '' : 's'} from last week.
-                </p>
-              )}
-              {runDraw.isError && (
-                <p className="mt-3 text-xs text-astro-red">
-                  {runDraw.error instanceof Error ? runDraw.error.message : 'Something went wrong.'}
-                </p>
-              )}
-
-              {teams.length === 0 && !runDraw.isPending && <StandbyQueue entries={ballotEntries} />}
-            </div>
+          {matchday.status !== 'open' && teams.length === 0 && (
+            <StandbyQueue weeklyClaims={weeklyClaims} standby={standbyEntries} />
           )}
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-5">
+          <div className="astro-card p-[22px]">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3.5">
+              <div>
+                <h2 className="mb-[5px] font-display text-[26px] leading-none text-astro-text">
+                  The Draw
+                </h2>
+                <p className="text-[13px] text-astro-text-muted">
+                  {teams.length > 0
+                    ? `${teams.length} teams of 6, drawn.`
+                    : `${confirmedCount} confirmed, ${standbyEntries.length} on standby.`}
+                </p>
+              </div>
+              {player?.is_admin && matchday.status === 'open' && teams.length === 0 && !runDraw.isPending && (
+                <Button onClick={() => runDraw.mutate()} disabled={runDraw.isPending}>
+                  Run the Draw
+                </Button>
+              )}
+            </div>
+
+            {player?.is_admin && matchday.status === 'open' && (
+              <div className="mb-3.5 flex items-center gap-2.5">
+                <span className="astro-eyebrow">Sides this week</span>
+                {([30, 36] as const).map((cap) => (
+                  <button
+                    key={cap}
+                    type="button"
+                    disabled={updateCapacity.isPending}
+                    onClick={() => updateCapacity.mutate(cap)}
+                    className={
+                      matchday.capacity === cap
+                        ? 'rounded-lg bg-astro-accent px-3 py-1.5 text-xs font-extrabold text-astro-on-accent'
+                        : 'rounded-lg border border-border bg-astro-surface-2 px-3 py-1.5 text-xs font-bold text-astro-text-muted'
+                    }
+                  >
+                    {cap / 6} teams &middot; {cap}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {runDraw.isPending ? (
+              <DrumLoader label="Drawing the sides…" />
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <InfoPill color="#4ade80" icon="check">No repeat pairings from last Sunday</InfoPill>
+                <InfoPill color="#4ade80" icon="check">
+                  Teams of 6 &middot; {matchday.capacity / 6} sides
+                </InfoPill>
+                <InfoPill color="#38bdf8" icon="info">First to pay, never a lottery</InfoPill>
+                <InfoPill color="#38bdf8" icon="info">Rating is not used to balance sides</InfoPill>
+              </div>
+            )}
+
+            {runDraw.isSuccess && (
+              <p className="mt-3 text-xs text-astro-text-muted">
+                Drawn: {runDraw.data.repeatPairingsCount} repeat pairing
+                {runDraw.data.repeatPairingsCount === 1 ? '' : 's'} from last week.
+              </p>
+            )}
+            {runDraw.isError && (
+              <p className="mt-3 text-xs text-astro-red">
+                {runDraw.error instanceof Error ? runDraw.error.message : 'Something went wrong.'}
+              </p>
+            )}
+          </div>
 
           {teams.length > 0 && <DrawnTeams teams={teams} />}
 
