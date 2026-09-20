@@ -426,6 +426,35 @@ insert into cup_entrants (cup_quarter_id, player_id)
 select '20000000-0000-0000-0000-000000006002', player_id
 from seed_players where is_regular and rn between 1 and 12;
 
+-- -----------------------------------------------------------------------
+-- 9. Kitty: a real dues quarter with a few players marked paid (admin
+-- attestation, no real payment system behind it, matching the design's
+-- own "PPPO" status-string data), one open cause with a real
+-- contribution, one still-suggested cause (tests the admin promote
+-- flow), one already met.
+-- -----------------------------------------------------------------------
+
+insert into dues_quarters (id, year, quarter, amount, due_date)
+values ('30000000-0000-0000-0000-000000008001', 2026, 3, 12000, '2026-07-01');
+
+insert into dues_payments (dues_quarter_id, player_id, marked_by)
+select '30000000-0000-0000-0000-000000008001', player_id, (select player_id from seed_players where nickname = 'Segsy')
+from seed_players where is_regular and rn <= 15;
+
+insert into causes (id, title, description, target_amount, deadline, status, suggested_by)
+values
+  ('30000000-0000-0000-0000-000000009001', 'New changing room', 'Ours leaks when it rains and there''s nowhere to leave boots dry.', 500000, '2026-12-31', 'open', (select player_id from seed_players where nickname = 'Deza')),
+  ('30000000-0000-0000-0000-000000009002', 'Better bibs', 'Half of them are see-through at this point.', null, null, 'suggested', (select player_id from seed_players where nickname = 'Chino')),
+  ('30000000-0000-0000-0000-000000009003', 'Boots for the school side', 'One-off collection, done and delivered.', 300000, '2026-06-01', 'met', (select player_id from seed_players where nickname = 'Segsy'));
+
+insert into cause_contributions (cause_id, player_id, amount, marked_by)
+select '30000000-0000-0000-0000-000000009001', player_id, 25000, (select player_id from seed_players where nickname = 'Segsy')
+from seed_players where nickname in ('Deza', 'Chino', 'Bal');
+
+insert into cause_contributions (cause_id, player_id, amount, marked_by)
+select '30000000-0000-0000-0000-000000009003', player_id, 60000, (select player_id from seed_players where nickname = 'Segsy')
+from seed_players where is_regular and rn <= 5;
+
 commit;
 
 -- =============================================================================

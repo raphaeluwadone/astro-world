@@ -6,6 +6,7 @@ const TABS = [
   { to: '/admin/matchday', label: 'Matchday' },
   { to: '/admin/results', label: 'Results' },
   { to: '/admin/cup', label: 'Salami Cup' },
+  { to: '/admin/kitty', label: 'Kitty' },
 ] as const
 
 // Every /admin/* route nests under here, so this single guard covers all

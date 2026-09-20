@@ -100,6 +100,96 @@ export type Database = {
           },
         ]
       }
+      cause_contributions: {
+        Row: {
+          amount: number
+          cause_id: string
+          created_at: string
+          id: string
+          marked_by: string
+          player_id: string
+        }
+        Insert: {
+          amount: number
+          cause_id: string
+          created_at?: string
+          id?: string
+          marked_by: string
+          player_id: string
+        }
+        Update: {
+          amount?: number
+          cause_id?: string
+          created_at?: string
+          id?: string
+          marked_by?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cause_contributions_cause_id_fkey"
+            columns: ["cause_id"]
+            isOneToOne: false
+            referencedRelation: "causes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cause_contributions_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cause_contributions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      causes: {
+        Row: {
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          status: Database["public"]["Enums"]["cause_status"]
+          suggested_by: string | null
+          target_amount: number | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          deadline?: string | null
+          description: string
+          id?: string
+          status?: Database["public"]["Enums"]["cause_status"]
+          suggested_by?: string | null
+          target_amount?: number | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          status?: Database["public"]["Enums"]["cause_status"]
+          suggested_by?: string | null
+          target_amount?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "causes_suggested_by_fkey"
+            columns: ["suggested_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comparison_votes: {
         Row: {
           comparison_id: string
@@ -321,6 +411,79 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dues_payments: {
+        Row: {
+          dues_quarter_id: string
+          id: string
+          marked_by: string
+          paid_at: string
+          player_id: string
+        }
+        Insert: {
+          dues_quarter_id: string
+          id?: string
+          marked_by: string
+          paid_at?: string
+          player_id: string
+        }
+        Update: {
+          dues_quarter_id?: string
+          id?: string
+          marked_by?: string
+          paid_at?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dues_payments_dues_quarter_id_fkey"
+            columns: ["dues_quarter_id"]
+            isOneToOne: false
+            referencedRelation: "dues_quarters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dues_payments_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dues_payments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dues_quarters: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          quarter: number
+          year: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date: string
+          id?: string
+          quarter: number
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          quarter?: number
+          year?: number
+        }
+        Relationships: []
       }
       goals: {
         Row: {
@@ -1340,7 +1503,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cause_contributors: {
+        Args: { p_cause_id: string }
+        Returns: {
+          nickname: string
+          player_id: string
+        }[]
+      }
+      cause_raised_amount: { Args: { p_cause_id: string }; Returns: number }
       cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
+      dues_paid_count: { Args: { p_dues_quarter_id: string }; Returns: number }
       is_own_player: { Args: { p_player_id: string }; Returns: boolean }
       is_requesting_admin: { Args: never; Returns: boolean }
       match_ratings_integrity: {
@@ -1420,6 +1592,7 @@ export type Database = {
     }
     Enums: {
       availability_status: "in" | "out"
+      cause_status: "suggested" | "open" | "met" | "closed"
       comparison_source: "self" | "community"
       cup_status: "open" | "drawn" | "live" | "played" | "cancelled"
       foot_type: "left" | "right" | "both"
@@ -1565,6 +1738,7 @@ export const Constants = {
   public: {
     Enums: {
       availability_status: ["in", "out"],
+      cause_status: ["suggested", "open", "met", "closed"],
       comparison_source: ["self", "community"],
       cup_status: ["open", "drawn", "live", "played", "cancelled"],
       foot_type: ["left", "right", "both"],
