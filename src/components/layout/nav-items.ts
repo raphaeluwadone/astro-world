@@ -23,15 +23,15 @@ export interface NavItem {
 
 /**
  * Desktop sidebar, full spec order (Astro App.dc.html's SECTIONS list).
- * Three sections have no feature behind them yet (Salami Cup,
- * Predictions, Kitty): shown disabled rather than omitted, same
- * treatment the Admin portal link had before claims existed, so the
- * real shape of the app is visible and each lights up as it ships.
+ * Two sections have no feature behind them yet (Predictions, Kitty):
+ * shown disabled rather than omitted, same treatment the Admin portal
+ * link had before claims existed, so the real shape of the app is
+ * visible and each lights up as it ships.
  */
 export const SIDEBAR_NAV_ITEMS: NavItem[] = [
   { label: 'Home', to: '/', icon: HomeIcon },
   { label: 'Matchday', to: '/matchday', icon: MatchdayIcon },
-  { label: 'Salami Cup', to: '/salami-cup', icon: SalamiCupIcon, disabled: true },
+  { label: 'Salami Cup', to: '/salami-cup', icon: SalamiCupIcon },
   { label: 'Community', to: '/community', icon: CommunityIcon },
   { label: 'Players', to: '/players', icon: PlayersIcon },
   { label: 'Rankings', to: '/rankings', icon: RankingsIcon },

@@ -139,6 +139,189 @@ export type Database = {
           },
         ]
       }
+      cup_entrants: {
+        Row: {
+          created_at: string
+          cup_quarter_id: string
+          id: string
+          player_id: string
+        }
+        Insert: {
+          created_at?: string
+          cup_quarter_id: string
+          id?: string
+          player_id: string
+        }
+        Update: {
+          created_at?: string
+          cup_quarter_id?: string
+          id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cup_entrants_cup_quarter_id_fkey"
+            columns: ["cup_quarter_id"]
+            isOneToOne: false
+            referencedRelation: "cup_quarters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_entrants_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cup_matches: {
+        Row: {
+          created_at: string
+          cup_quarter_id: string
+          id: string
+          played_at: string | null
+          score_a: number | null
+          score_b: number | null
+          squad_a_id: string
+          squad_b_id: string
+        }
+        Insert: {
+          created_at?: string
+          cup_quarter_id: string
+          id?: string
+          played_at?: string | null
+          score_a?: number | null
+          score_b?: number | null
+          squad_a_id: string
+          squad_b_id: string
+        }
+        Update: {
+          created_at?: string
+          cup_quarter_id?: string
+          id?: string
+          played_at?: string | null
+          score_a?: number | null
+          score_b?: number | null
+          squad_a_id?: string
+          squad_b_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cup_matches_cup_quarter_id_fkey"
+            columns: ["cup_quarter_id"]
+            isOneToOne: false
+            referencedRelation: "cup_quarters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_matches_squad_a_id_fkey"
+            columns: ["squad_a_id"]
+            isOneToOne: false
+            referencedRelation: "cup_squads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_matches_squad_b_id_fkey"
+            columns: ["squad_b_id"]
+            isOneToOne: false
+            referencedRelation: "cup_squads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cup_quarters: {
+        Row: {
+          created_at: string
+          entries_close_at: string
+          id: string
+          label: string
+          scheduled_at: string
+          status: Database["public"]["Enums"]["cup_status"]
+          venue: string | null
+          withdrawal_deadline: string
+        }
+        Insert: {
+          created_at?: string
+          entries_close_at: string
+          id?: string
+          label: string
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["cup_status"]
+          venue?: string | null
+          withdrawal_deadline: string
+        }
+        Update: {
+          created_at?: string
+          entries_close_at?: string
+          id?: string
+          label?: string
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["cup_status"]
+          venue?: string | null
+          withdrawal_deadline?: string
+        }
+        Relationships: []
+      }
+      cup_squad_players: {
+        Row: {
+          cup_squad_id: string
+          player_id: string
+        }
+        Insert: {
+          cup_squad_id: string
+          player_id: string
+        }
+        Update: {
+          cup_squad_id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cup_squad_players_cup_squad_id_fkey"
+            columns: ["cup_squad_id"]
+            isOneToOne: false
+            referencedRelation: "cup_squads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_squad_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cup_squads: {
+        Row: {
+          colour: string
+          cup_quarter_id: string
+          id: string
+          name: string
+        }
+        Insert: {
+          colour: string
+          cup_quarter_id: string
+          id?: string
+          name: string
+        }
+        Update: {
+          colour?: string
+          cup_quarter_id?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cup_squads_cup_quarter_id_fkey"
+            columns: ["cup_quarter_id"]
+            isOneToOne: false
+            referencedRelation: "cup_quarters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           assist_id: string | null
@@ -1130,6 +1313,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
       is_own_player: { Args: { p_player_id: string }; Returns: boolean }
       is_requesting_admin: { Args: never; Returns: boolean }
       match_ratings_integrity: {
@@ -1203,6 +1387,7 @@ export type Database = {
       availability_status: "in" | "out"
       ballot_entry_status: "balloted" | "standby"
       comparison_source: "self" | "community"
+      cup_status: "open" | "drawn" | "live" | "played" | "cancelled"
       foot_type: "left" | "right" | "both"
       matchday_status:
         | "open"
@@ -1348,6 +1533,7 @@ export const Constants = {
       availability_status: ["in", "out"],
       ballot_entry_status: ["balloted", "standby"],
       comparison_source: ["self", "community"],
+      cup_status: ["open", "drawn", "live", "played", "cancelled"],
       foot_type: ["left", "right", "both"],
       matchday_status: [
         "open",
