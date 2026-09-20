@@ -5,6 +5,7 @@ import {
   createComparison,
   fetchAppearanceCount,
   fetchComparisons,
+  fetchCooldowns,
   fetchGoalsAndAssists,
   fetchLastDropped,
   fetchMatchHistory,
@@ -85,6 +86,14 @@ export function useLastDropped(playerId: string | undefined, source: Database['p
   return useQuery({
     queryKey: ['comparison-last-dropped', playerId, source],
     queryFn: () => fetchLastDropped(playerId!, source),
+    enabled: !!playerId,
+  })
+}
+
+export function useCooldowns(playerId: string | undefined, source: Database['public']['Enums']['comparison_source']) {
+  return useQuery({
+    queryKey: ['comparison-cooldowns', playerId, source],
+    queryFn: () => fetchCooldowns(playerId!, source),
     enabled: !!playerId,
   })
 }

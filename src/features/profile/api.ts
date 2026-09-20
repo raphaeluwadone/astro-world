@@ -228,6 +228,36 @@ export async function searchProPlayers(query: string): Promise<ProPlayerRow[]> {
   return data?.results ?? []
 }
 
+export interface CooldownRow {
+  proPlayerId: string
+  availableAt: string
+}
+
+// Design open question 13, answered: yes, a dropped name can be
+// reclaimed, but not for a month, matching the DB's own
+// `interval '1 month'` check on insert. Fetches recent drops for this
+// subject+source so the picker can show the cooldown before the user
+// tries and gets rejected by RLS.
+export async function fetchCooldowns(
+  playerId: string,
+  source: Database['public']['Enums']['comparison_source'],
+): Promise<CooldownRow[]> {
+  const cutoff = new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase
+    .from('player_comparisons')
+    .select('pro_player_id, dropped_at')
+    .eq('player_id', playerId)
+    .eq('source', source)
+    .not('dropped_at', 'is', null)
+    .gt('dropped_at', cutoff)
+  if (error) throw error
+  return (data ?? []).map((d) => {
+    const availableAt = new Date(d.dropped_at!)
+    availableAt.setMonth(availableAt.getMonth() + 1)
+    return { proPlayerId: d.pro_player_id, availableAt: availableAt.toISOString() }
+  })
+}
+
 // Premier League stats only, and only for the 2022-2024 seasons the
 // account's Free API-Football plan actually has access to. Called once,
 // right before a comparison is created, not on every search keystroke.

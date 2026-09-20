@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "astro-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "/Users/donatello/Documents/projects/astro", "run", "dev"],
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/donatello/Documents/projects/astro && npm run dev"],
       "port": 5173
     }
   ]
