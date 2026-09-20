@@ -1,7 +1,27 @@
+import { useState } from 'react'
+import { useCastVote } from '../hooks'
 import type { ComparisonRow } from '../api'
+import { NominateComparisonModal } from './NominateComparisonModal'
 
-function ComparisonCard({ c }: { c: ComparisonRow }) {
+function ComparisonCard({
+  c,
+  canVote,
+  voterId,
+  playerId,
+}: {
+  c: ComparisonRow
+  canVote: boolean
+  voterId: string | undefined
+  playerId: string
+}) {
   const net = c.upvotes - c.downvotes
+  const castVote = useCastVote(playerId)
+
+  function vote(direction: 'up' | 'down') {
+    if (!voterId) return
+    castVote.mutate({ comparisonId: c.id, voterId, direction: c.myVote === direction ? null : direction })
+  }
+
   return (
     <div className="rounded-[14px] border border-border bg-astro-surface-2 p-4">
       <div className="mb-3 flex items-center gap-3">
@@ -31,18 +51,36 @@ function ComparisonCard({ c }: { c: ComparisonRow }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <div className="flex min-h-9 items-center gap-[7px] rounded-[9px] border border-[rgba(74,222,128,0.34)] bg-astro-bg px-[11px] py-[7px]">
+        <button
+          type="button"
+          disabled={!canVote || castVote.isPending}
+          onClick={() => vote('up')}
+          className="flex min-h-9 items-center gap-[7px] rounded-[9px] border px-[11px] py-[7px] disabled:opacity-60"
+          style={{
+            background: '#0a0f1f',
+            borderColor: c.myVote === 'up' ? '#4ade80' : 'rgba(74,222,128,0.34)',
+          }}
+        >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="#4ade80">
             <path d="M12 3.4 21 13h-5.4v7.6H8.4V13H3Z" />
           </svg>
           <span className="text-[12.5px] font-extrabold text-astro-green">{c.upvotes}</span>
-        </div>
-        <div className="flex min-h-9 items-center gap-[7px] rounded-[9px] border border-[rgba(224,72,63,0.34)] bg-astro-bg px-[11px] py-[7px]">
+        </button>
+        <button
+          type="button"
+          disabled={!canVote || castVote.isPending}
+          onClick={() => vote('down')}
+          className="flex min-h-9 items-center gap-[7px] rounded-[9px] border px-[11px] py-[7px] disabled:opacity-60"
+          style={{
+            background: '#0a0f1f',
+            borderColor: c.myVote === 'down' ? '#e0483f' : 'rgba(224,72,63,0.34)',
+          }}
+        >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="#e0483f">
             <path d="M12 20.6 3 11h5.4V3.4h7.2V11H21Z" />
           </svg>
           <span className="text-[12.5px] font-extrabold text-astro-red">{c.downvotes}</span>
-        </div>
+        </button>
         <span className={`ml-auto font-display text-lg ${net >= 0 ? 'text-astro-accent' : 'text-astro-red'}`}>
           {net >= 0 ? '+' : ''}
           {net}
@@ -60,6 +98,10 @@ function ComparisonSection({
   comparisons,
   ctaLabel,
   special,
+  onCta,
+  canVote,
+  voterId,
+  playerId,
 }: {
   title: string
   titleColor: string
@@ -68,6 +110,10 @@ function ComparisonSection({
   comparisons: ComparisonRow[]
   ctaLabel: string
   special: boolean
+  onCta?: () => void
+  canVote: boolean
+  voterId: string | undefined
+  playerId: string
 }) {
   const totalVotes = comparisons.reduce((sum, c) => sum + c.upvotes + c.downvotes, 0)
   return (
@@ -89,28 +135,50 @@ function ComparisonSection({
       <p className="mb-[18px] text-[13px] text-astro-text-muted">{description}</p>
 
       {comparisons.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">Nothing here yet.</p>
+        <p className="mb-4 text-sm text-astro-text-dim">Nothing here yet.</p>
       ) : (
-        <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))' }}>
+        <div className="mb-4 grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))' }}>
           {comparisons.map((c) => (
-            <ComparisonCard key={c.id} c={c} />
+            <ComparisonCard key={c.id} c={c} canVote={canVote} voterId={voterId} playerId={playerId} />
           ))}
         </div>
       )}
 
-      <div className="mt-4 inline-flex items-center gap-2 rounded-[11px] border border-dashed border-[rgba(166,63,255,0.4)] bg-astro-surface-2 px-4 py-[11px] text-[13px] font-bold text-astro-accent-soft">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M10.5 3.2h3v7.3h7.3v3h-7.3v7.3h-3v-7.3H3.2v-3h7.3Z" />
-        </svg>
-        {ctaLabel}
-      </div>
+      {onCta && (
+        <button
+          type="button"
+          onClick={onCta}
+          className="inline-flex items-center gap-2 rounded-[11px] border border-dashed border-[rgba(166,63,255,0.4)] bg-astro-surface-2 px-4 py-[11px] text-[13px] font-bold text-astro-accent-soft hover:border-solid"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10.5 3.2h3v7.3h7.3v3h-7.3v7.3h-3v-7.3H3.2v-3h7.3Z" />
+          </svg>
+          {ctaLabel}
+        </button>
+      )}
     </div>
   )
 }
 
-export function Comparisons({ comparisons }: { comparisons: ComparisonRow[] }) {
+export function Comparisons({
+  comparisons,
+  playerId,
+  isOwnProfile,
+  currentPlayerId,
+}: {
+  comparisons: ComparisonRow[]
+  playerId: string
+  isOwnProfile: boolean
+  currentPlayerId: string | undefined
+}) {
+  const [nominating, setNominating] = useState<'self' | 'community' | null>(null)
   const selfClaims = comparisons.filter((c) => c.source === 'self')
-  const communityPicks = comparisons.filter((c) => c.source === 'community')
+  // "Top three by net votes": community nominations aren't capped at
+  // write time (unlike self-claims), so the ranking does the limiting.
+  const communityPicks = comparisons
+    .filter((c) => c.source === 'community')
+    .sort((a, b) => b.upvotes - b.downvotes - (a.upvotes - a.downvotes))
+    .slice(0, 3)
 
   return (
     <div className="space-y-5">
@@ -122,6 +190,10 @@ export function Comparisons({ comparisons }: { comparisons: ComparisonRow[] }) {
         comparisons={selfClaims}
         ctaLabel="Swap one out"
         special
+        onCta={isOwnProfile ? () => setNominating('self') : undefined}
+        canVote={!isOwnProfile && !!currentPlayerId}
+        voterId={currentPlayerId}
+        playerId={playerId}
       />
       <ComparisonSection
         title="You Are Him"
@@ -131,7 +203,22 @@ export function Comparisons({ comparisons }: { comparisons: ComparisonRow[] }) {
         comparisons={communityPicks}
         ctaLabel="Nominate someone else"
         special={false}
+        onCta={!isOwnProfile ? () => setNominating('community') : undefined}
+        canVote={!isOwnProfile && !!currentPlayerId}
+        voterId={currentPlayerId}
+        playerId={playerId}
       />
+
+      {nominating && currentPlayerId && (
+        <NominateComparisonModal
+          open
+          onOpenChange={(open) => !open && setNominating(null)}
+          source={nominating}
+          playerId={playerId}
+          createdBy={currentPlayerId}
+          ownSelfClaims={selfClaims}
+        />
+      )}
     </div>
   )
 }

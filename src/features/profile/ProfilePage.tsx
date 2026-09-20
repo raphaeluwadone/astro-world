@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { OutOfPlayIcon } from '@/components/states/icons'
@@ -25,12 +26,13 @@ function average(nums: number[]) {
 }
 
 export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOwnProfile: boolean }) {
+  const { player: currentPlayer } = useCurrentPlayer()
   const { data: player, isLoading, isError, refetch } = usePlayer(playerId)
   const { data: matchRatings = [] } = useMatchRatings(playerId)
   const { data: matchHistory = [] } = useMatchHistory(playerId)
   const { data: careerStats } = useCareerStats(playerId)
   const { data: tags = [] } = usePlayerTags(playerId)
-  const { data: comparisons = [] } = useComparisons(playerId)
+  const { data: comparisons = [] } = useComparisons(playerId, currentPlayer?.id)
 
   if (isLoading) return <PageLoader />
   if (isError) return <ErrorState onRetry={() => refetch()} />
@@ -91,7 +93,12 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
 
       <MatchHistoryList history={matchHistory} />
 
-      <Comparisons comparisons={comparisons} />
+      <Comparisons
+        comparisons={comparisons}
+        playerId={playerId}
+        isOwnProfile={isOwnProfile}
+        currentPlayerId={currentPlayer?.id}
+      />
     </div>
   )
 }

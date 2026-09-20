@@ -36,6 +36,17 @@ export interface ComparisonRow {
   pro: { name: string; nationality: string | null; role: string | null; apps: number | null; goals: number | null; assists: number | null }
   upvotes: number
   downvotes: number
+  myVote: 'up' | 'down' | null
+}
+
+export interface ProPlayerRow {
+  id: string
+  name: string
+  nationality: string | null
+  role: string | null
+  apps: number | null
+  goals: number | null
+  assists: number | null
 }
 
 export async function fetchPlayer(playerId: string): Promise<Player | null> {
@@ -140,7 +151,7 @@ export async function fetchPlayerTags(playerId: string): Promise<PlayerTagRow[]>
   }))
 }
 
-export async function fetchComparisons(playerId: string): Promise<ComparisonRow[]> {
+export async function fetchComparisons(playerId: string, viewerId?: string): Promise<ComparisonRow[]> {
   const { data: comparisons, error } = await supabase
     .from('player_comparisons')
     .select('id, source, pro_players (name, nationality, role, apps, goals, assists)')
@@ -150,7 +161,7 @@ export async function fetchComparisons(playerId: string): Promise<ComparisonRow[
 
   const { data: votes, error: votesError } = await supabase
     .from('comparison_votes')
-    .select('comparison_id, direction')
+    .select('comparison_id, voter_id, direction')
     .in(
       'comparison_id',
       comparisons.map((c) => c.id),
@@ -163,5 +174,65 @@ export async function fetchComparisons(playerId: string): Promise<ComparisonRow[
     pro: c.pro_players as unknown as ComparisonRow['pro'],
     upvotes: (votes ?? []).filter((v) => v.comparison_id === c.id && v.direction === 'up').length,
     downvotes: (votes ?? []).filter((v) => v.comparison_id === c.id && v.direction === 'down').length,
+    myVote: (votes ?? []).find((v) => v.comparison_id === c.id && v.voter_id === viewerId)?.direction ?? null,
   }))
+}
+
+export async function searchProPlayers(query: string): Promise<ProPlayerRow[]> {
+  const trimmed = query.trim()
+  if (trimmed.length < 2) return []
+  const { data, error } = await supabase
+    .from('pro_players')
+    .select('id, name, nationality, role, apps, goals, assists')
+    .ilike('name', `%${trimmed}%`)
+    .order('name')
+    .limit(10)
+  if (error) throw error
+  return data ?? []
+}
+
+export async function createComparison(params: {
+  playerId: string
+  proPlayerId: string
+  source: Database['public']['Enums']['comparison_source']
+  createdBy: string
+}) {
+  const { error } = await supabase.from('player_comparisons').insert({
+    player_id: params.playerId,
+    pro_player_id: params.proPlayerId,
+    source: params.source,
+    created_by: params.createdBy,
+  })
+  if (error) throw error
+}
+
+export async function removeComparison(comparisonId: string) {
+  const { error } = await supabase.from('player_comparisons').delete().eq('id', comparisonId)
+  if (error) throw error
+}
+
+export async function castVote(params: {
+  comparisonId: string
+  voterId: string
+  direction: 'up' | 'down' | null
+}) {
+  if (params.direction === null) {
+    const { error } = await supabase
+      .from('comparison_votes')
+      .delete()
+      .eq('comparison_id', params.comparisonId)
+      .eq('voter_id', params.voterId)
+    if (error) throw error
+    return
+  }
+  const { error } = await supabase.from('comparison_votes').upsert(
+    {
+      comparison_id: params.comparisonId,
+      voter_id: params.voterId,
+      direction: params.direction,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'comparison_id,voter_id' },
+  )
+  if (error) throw error
 }

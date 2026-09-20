@@ -1,5 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { Database } from '@/types/database'
 import {
+  castVote,
+  createComparison,
   fetchAppearanceCount,
   fetchComparisons,
   fetchGoalsAndAssists,
@@ -9,6 +12,8 @@ import {
   fetchPlayer,
   fetchPlayerAwards,
   fetchPlayerTags,
+  removeComparison,
+  searchProPlayers,
 } from './api'
 
 export function usePlayer(playerId: string | undefined) {
@@ -66,10 +71,47 @@ export function usePlayerAwards(playerId: string | undefined) {
   })
 }
 
-export function useComparisons(playerId: string | undefined) {
+export function useComparisons(playerId: string | undefined, viewerId: string | undefined) {
   return useQuery({
-    queryKey: ['player-comparisons', playerId],
-    queryFn: () => fetchComparisons(playerId!),
+    queryKey: ['player-comparisons', playerId, viewerId],
+    queryFn: () => fetchComparisons(playerId!, viewerId),
     enabled: !!playerId,
+  })
+}
+
+export function useSearchProPlayers(query: string) {
+  return useQuery({
+    queryKey: ['pro-players-search', query],
+    queryFn: () => searchProPlayers(query),
+    enabled: query.trim().length >= 2,
+  })
+}
+
+export function useCreateComparison(playerId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (params: {
+      proPlayerId: string
+      source: Database['public']['Enums']['comparison_source']
+      createdBy: string
+    }) => createComparison({ playerId: playerId!, ...params }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['player-comparisons', playerId] }),
+  })
+}
+
+export function useRemoveComparison(playerId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (comparisonId: string) => removeComparison(comparisonId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['player-comparisons', playerId] }),
+  })
+}
+
+export function useCastVote(playerId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { comparisonId: string; voterId: string; direction: 'up' | 'down' | null }) =>
+      castVote(params),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['player-comparisons', playerId] }),
   })
 }
