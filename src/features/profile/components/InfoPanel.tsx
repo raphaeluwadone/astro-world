@@ -20,13 +20,17 @@ export function InfoPanel({ player }: { player: Player }) {
           <div className="text-[13px] text-astro-text-muted">{player.full_name}</div>
         </div>
         <div className="flex items-center gap-2.5 rounded-xl border border-border bg-astro-surface-2 px-[13px] py-2">
-          <div
-            className="h-[30px] w-[26px]"
-            style={{
-              background: 'linear-gradient(150deg, #2c3c74, #182448)',
-              clipPath: 'polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%)',
-            }}
-          />
+          {player.favourite_club_logo_url ? (
+            <img src={player.favourite_club_logo_url} alt="" className="size-[26px] shrink-0 object-contain" />
+          ) : (
+            <div
+              className="h-[30px] w-[26px]"
+              style={{
+                background: 'linear-gradient(150deg, #2c3c74, #182448)',
+                clipPath: 'polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%)',
+              }}
+            />
+          )}
           <div>
             <div className="text-[10px] font-extrabold tracking-[0.1em] text-astro-text-dim">Club</div>
             <div className="text-[12.5px] font-bold text-astro-text">

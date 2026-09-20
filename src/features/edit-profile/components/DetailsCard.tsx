@@ -1,4 +1,5 @@
 import type { Database } from '@/types/database'
+import { ClubSearchSelect } from './ClubSearchSelect'
 import { FieldHint, FieldLabel, TextField } from './FieldInput'
 
 type PositionType = Database['public']['Enums']['position_type']
@@ -11,6 +12,7 @@ export interface DraftFields {
   weight_kg: string
   favourite_number: string
   favourite_club: string
+  favourite_club_logo_url: string | null
   bio: string
   positions: PositionType[]
   preferred_foot: FootType | null
@@ -80,11 +82,14 @@ export function DetailsCard({
             onChange={(v) => onChange({ favourite_number: v })}
             hint="Not a jersey number. Doesn't have to be unique."
           />
-          <TextField
-            label="Favourite club"
-            value={draft.favourite_club}
-            onChange={(v) => onChange({ favourite_club: v })}
-          />
+          <div>
+            <FieldLabel>Favourite club</FieldLabel>
+            <ClubSearchSelect
+              value={draft.favourite_club}
+              logoUrl={draft.favourite_club_logo_url}
+              onSelect={(club) => onChange({ favourite_club: club.name, favourite_club_logo_url: club.logo_url })}
+            />
+          </div>
         </div>
 
         <div>

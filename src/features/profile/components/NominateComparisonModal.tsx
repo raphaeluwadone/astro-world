@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { MemberModal } from '@/components/dialogs/MemberModal'
 import { InlineLoader } from '@/components/states/InlineLoader'
+import { useDebounced } from '@/lib/useDebounced'
 import type { ComparisonRow } from '../api'
 import {
   useCreateComparison,
@@ -8,18 +9,6 @@ import {
   useRemoveComparison,
   useSearchProPlayers,
 } from '../hooks'
-
-// The account's API-Football plan allows 100 requests/day: a search per
-// keystroke would burn through that in seconds, so this waits for a
-// pause in typing before it counts as a real search.
-function useDebounced<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value)
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delayMs)
-    return () => clearTimeout(id)
-  }, [value, delayMs])
-  return debounced
-}
 
 const COPY = {
   self: {
@@ -50,6 +39,8 @@ export function NominateComparisonModal({
   ownSelfClaims: ComparisonRow[]
 }) {
   const [query, setQuery] = useState('')
+  // The account's API-Football plan allows 100 requests/day: a search
+  // per keystroke would burn through that in seconds.
   const debouncedQuery = useDebounced(query, 400)
   const { data: results = [], isFetching } = useSearchProPlayers(debouncedQuery)
   const refreshStats = useRefreshProPlayerStats()

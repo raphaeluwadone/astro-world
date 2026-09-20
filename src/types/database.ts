@@ -676,6 +676,7 @@ export type Database = {
           birthday_month: number | null
           created_at: string
           favourite_club: string | null
+          favourite_club_logo_url: string | null
           favourite_number: number | null
           full_name: string
           height_cm: number | null
@@ -704,6 +705,7 @@ export type Database = {
           birthday_month?: number | null
           created_at?: string
           favourite_club?: string | null
+          favourite_club_logo_url?: string | null
           favourite_number?: number | null
           full_name: string
           height_cm?: number | null
@@ -732,6 +734,7 @@ export type Database = {
           birthday_month?: number | null
           created_at?: string
           favourite_club?: string | null
+          favourite_club_logo_url?: string | null
           favourite_number?: number | null
           full_name?: string
           height_cm?: number | null
@@ -847,6 +850,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pro_clubs: {
+        Row: {
+          cached_at: string
+          country: string | null
+          external_id: string | null
+          id: string
+          logo_url: string | null
+          name: string
+        }
+        Insert: {
+          cached_at?: string
+          country?: string | null
+          external_id?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+        }
+        Update: {
+          cached_at?: string
+          country?: string | null
+          external_id?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+        }
+        Relationships: []
       }
       pro_players: {
         Row: {
@@ -1059,6 +1089,35 @@ export type Database = {
             columns: ["matchday_id"]
             isOneToOne: false
             referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tributes: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tributes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]
