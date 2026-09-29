@@ -4,8 +4,11 @@
 -- real 2025/26 season totals from before this app existed; legacy_appearances
 -- stays 0 until a fuller record with appearance counts is available.
 --
--- Known open item, not resolved yet (see chat): #19 and #45 are both
--- "Ohis" with no distinguishing detail.
+-- Resolved 2026-09-29: #19 and #45 were both "Ohis" with no
+-- distinguishing detail (the almanac's own admission: "someone who
+-- knows the group has to say which... it cannot be resolved from the
+-- data"). Raphael confirmed they're the same person, merged into the
+-- one row below (goals/assists summed: 19+4, 15+1).
 insert into players (nickname, full_name, legacy_goals, legacy_assists, legacy_appearances, bio) values
   ('Skinny N', 'Kunle', 69, 25, 0, null),
   ('Wale', 'Wale', 32, 48, 0, null),
@@ -25,7 +28,7 @@ insert into players (nickname, full_name, legacy_goals, legacy_assists, legacy_a
   ('oreos', 'Tosin Oriola', 17, 21, 0, null),
   ('Triumph', 'Triumph', 12, 24, 0, null),
   ('Black and fly', 'Moses', 11, 24, 0, null),
-  ('Ohis', 'Ohis', 19, 15, 0, 'Needs a distinguishing detail, currently indistinguishable from another roster player also called Ohis.'),
+  ('Ohis', 'Ohis', 23, 16, 0, null),
   ('Allison', 'Allison', 21, 9, 0, null),
   ('Yaya', 'Yaya', 10, 20, 0, null),
   ('Emmanuel', 'Emmanuel', 16, 10, 0, null),
@@ -51,7 +54,6 @@ insert into players (nickname, full_name, legacy_goals, legacy_assists, legacy_a
   ('Ette', 'Ette', 3, 4, 0, null),
   ('Gabriel', 'Gabriel', 2, 4, 0, null),
   ('Seyi', 'Seyi', 5, 0, 0, null),
-  ('Ohis', 'Ohis', 4, 1, 0, 'Needs a distinguishing detail, currently indistinguishable from another roster player also called Ohis.'),
   ('Leonard', 'Leonard', 3, 2, 0, null),
   ('Folarin', 'Folarin', 2, 3, 0, null),
   ('Bass', 'Bass', 1, 4, 0, null),
@@ -77,3 +79,12 @@ insert into players (nickname, full_name, legacy_goals, legacy_assists, legacy_a
   ('Topla', 'Topla', 0, 0, 0, null),
   ('CJ', 'CJ', 0, 0, 0, null),
   ('Damola', 'Damola', 0, 0, 0, null);
+
+-- The Ohis merge above means the three real monthly_awards rows for
+-- "Ohis" (20260919030000_real_almanac_data.sql deliberately left them
+-- with player_id null, since the source data resolved to two rows and
+-- couldn't say which) can finally link for real. Guarded by
+-- "player_id is null" so re-running this is harmless either way.
+update monthly_awards
+set player_id = (select id from players where nickname = 'Ohis')
+where winner_nickname = 'Ohis' and player_id is null;
