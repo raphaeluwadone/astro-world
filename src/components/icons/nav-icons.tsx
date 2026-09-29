@@ -120,6 +120,18 @@ export function MenuIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+/** No close/X icon exists in the design (the mobile hamburger is
+ * decorative there, see project memory); drawn here in the same solid-
+ * geometry style as the rest rather than a thin stroked X. */
+export function CloseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <rect x="2.5" y="10.6" width="19" height="2.7" rx="0.4" transform="rotate(45 12 12)" />
+      <rect x="2.5" y="10.6" width="19" height="2.7" rx="0.4" transform="rotate(-45 12 12)" />
+    </svg>
+  )
+}
+
 export function BellIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>

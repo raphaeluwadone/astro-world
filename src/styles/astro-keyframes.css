@@ -141,6 +141,8 @@
 
 @keyframes md-backdrop { from { opacity: 0 } to { opacity: 1 } }
 
+@keyframes md-drawer { from { transform: translateX(-100%) } to { transform: translateX(0) } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important }
 }
