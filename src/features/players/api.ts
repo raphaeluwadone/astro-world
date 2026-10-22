@@ -9,6 +9,8 @@ export interface PlayerCardRow {
   full_name: string
   positions: PositionType[]
   favourite_number: number | null
+  favourite_club: string | null
+  favourite_club_logo_url: string | null
   avg_rating: number | null
   tags: string[]
 }
@@ -18,7 +20,7 @@ export async function fetchPlayerCards(): Promise<PlayerCardRow[]> {
     await Promise.all([
       supabase
         .from('players')
-        .select('id, nickname, full_name, positions, favourite_number')
+        .select('id, nickname, full_name, positions, favourite_number, favourite_club, favourite_club_logo_url')
         .order('nickname', { ascending: true }),
       supabase.rpc('player_career_stats'),
       supabase.from('player_tags').select('player_id, tags (label)'),

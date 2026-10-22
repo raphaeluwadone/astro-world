@@ -76,7 +76,22 @@ export function ComparisonPickerPanel({
         <div className="flex flex-col gap-2">
           {ownSelfClaims.map((c) => (
             <div key={c.id} className="flex items-center justify-between gap-3 rounded-xl bg-astro-surface-2 px-4 py-3">
-              <span className="text-sm font-bold text-astro-text">{c.pro.name}</span>
+              <div className="flex min-w-0 items-center gap-3">
+                {c.pro.photo_url ? (
+                  <img
+                    src={c.pro.photo_url}
+                    alt=""
+                    className="size-9 shrink-0 rounded-[9px] object-cover"
+                    style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
+                  />
+                ) : (
+                  <div
+                    className="size-9 shrink-0 rounded-[9px]"
+                    style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
+                  />
+                )}
+                <span className="truncate text-sm font-bold text-astro-text">{c.pro.name}</span>
+              </div>
               <button
                 type="button"
                 disabled={removeComparison.isPending}

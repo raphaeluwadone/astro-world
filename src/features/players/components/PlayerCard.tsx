@@ -40,6 +40,22 @@ export function PlayerCard({ player }: { player: PlayerCardRow }) {
           {player.nickname}
         </div>
         <div className="mb-2.5 truncate text-[11.5px] text-astro-text-dim">{player.full_name}</div>
+        {player.favourite_club && (
+          <div className="mb-2.5 flex min-w-0 items-center gap-1.5">
+            {player.favourite_club_logo_url ? (
+              <img src={player.favourite_club_logo_url} alt="" className="size-3.5 shrink-0 object-contain" />
+            ) : (
+              <div
+                className="h-[15px] w-[13px] shrink-0"
+                style={{
+                  background: 'linear-gradient(150deg, #2c3c74, #182448)',
+                  clipPath: 'polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%)',
+                }}
+              />
+            )}
+            <span className="truncate text-[10.5px] font-bold text-astro-text-dim">{player.favourite_club}</span>
+          </div>
+        )}
         {player.tags.length > 0 && (
           <div className="flex flex-wrap gap-[5px]">
             {player.tags.map((t) => (
