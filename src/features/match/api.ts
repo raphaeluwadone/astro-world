@@ -33,7 +33,7 @@ export interface RatingsIntegrity {
   lowest_avg: number | null
 }
 
-const PLAYER_SUMMARY_COLS = 'id, nickname, full_name'
+const PLAYER_SUMMARY_COLS = 'id, nickname, full_name, favourite_number'
 
 export async function fetchMatch(matchId: string): Promise<MatchDetail | null> {
   // maybeSingle, not single: an unknown/mistyped matchId is a normal

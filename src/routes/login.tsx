@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { WelcomePage } from '@/features/auth/WelcomePage'
 
 export const Route = createFileRoute('/login')({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string; view?: 'signin' } => ({
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
     view: search.view === 'signin' ? ('signin' as const) : undefined,
   }),
