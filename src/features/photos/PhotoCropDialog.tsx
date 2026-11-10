@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 
@@ -6,6 +7,34 @@ const FRAME_W = 288
 const FRAME_H = 360
 const OUT_W = 800
 const OUT_H = 1000
+const ORIGINAL_MAX = 1600
+const MAX_BLUR = 8
+const MAX_TINT = 0.6
+const TINT_RGB = '18, 23, 34'
+
+const CANVAS_FILTER = typeof CanvasRenderingContext2D !== 'undefined' && 'filter' in CanvasRenderingContext2D.prototype
+
+const blurFor = (strength: number) => strength * MAX_BLUR
+const tintFor = (strength: number) => `rgba(${TINT_RGB}, ${(strength * MAX_TINT).toFixed(3)})`
+
+export interface PhotoEdit {
+  zoom: number
+  x: number
+  y: number
+  blur: boolean
+  strength: number
+}
+
+export type PhotoSource = { file: File } | { url: string; edit: PhotoEdit | null }
+
+export interface CroppedPhoto {
+  card: Blob
+  /** Only set for a fresh upload; edits keep the stored original. */
+  original: Blob | null
+  edit: PhotoEdit
+}
+
+const DEFAULT_STRENGTH = 0.4
 
 interface Size {
   w: number
@@ -27,17 +56,28 @@ async function encode(canvas: HTMLCanvasElement): Promise<Blob> {
   return jpeg
 }
 
-/** Pan and zoom a picked image into the 4:5 card frame, then export it at 800×1000. */
+function downscaled(el: HTMLImageElement, img: Size) {
+  const k = Math.min(1, ORIGINAL_MAX / Math.max(img.w, img.h))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(img.w * k)
+  canvas.height = Math.round(img.h * k)
+  const ctx = canvas.getContext('2d')!
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(el, 0, 0, canvas.width, canvas.height)
+  return encode(canvas)
+}
+
+/** Pan, zoom and blur an image into the 4:5 card frame, then export it at 800×1000. */
 export function PhotoCropDialog({
-  file,
+  source,
   saving,
   onCancel,
   onConfirm,
 }: {
-  file: File | null
+  source: PhotoSource | null
   saving: boolean
   onCancel: () => void
-  onConfirm: (blob: Blob) => void
+  onConfirm: (photo: CroppedPhoto) => void
 }) {
   const [src, setSrc] = useState<string | null>(null)
   const [img, setImg] = useState<Size | null>(null)
@@ -46,16 +86,28 @@ export function PhotoCropDialog({
   const imgEl = useRef<HTMLImageElement>(null)
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [blurOn, setBlurOn] = useState(false)
+  const [strength, setStrength] = useState(DEFAULT_STRENGTH)
+  const effect = blurOn ? strength : 0
+  const blur = blurFor(effect)
 
   useEffect(() => {
-    if (!file) return
-    const url = URL.createObjectURL(file)
-    setSrc(url)
+    if (!source) return
+    const edit = 'url' in source ? source.edit : null
     setImg(null)
-    setZoom(1)
-    setOffset({ x: 0, y: 0 })
+    setZoom(edit?.zoom ?? 1)
+    setOffset({ x: edit?.x ?? 0, y: edit?.y ?? 0 })
+    setBlurOn(edit?.blur ?? false)
+    setStrength(edit?.strength ?? DEFAULT_STRENGTH)
+    if ('url' in source) {
+      // A distinct URL so the browser refetches with CORS instead of reusing a non-CORS cached copy.
+      setSrc(`${source.url}${source.url.includes('?') ? '&' : '?'}edit=1`)
+      return
+    }
+    const url = URL.createObjectURL(source.file)
+    setSrc(url)
     return () => URL.revokeObjectURL(url)
-  }, [file])
+  }, [source])
 
   const cover = img ? Math.max(FRAME_W / img.w, FRAME_H / img.h) : 1
   const scale = cover * zoom
@@ -86,17 +138,40 @@ export function PhotoCropDialog({
     canvas.height = OUT_H
     const ctx = canvas.getContext('2d')!
     const k = OUT_W / FRAME_W
-    const w = img.w * scale * k
-    const h = img.h * scale * k
+    const bleed = blur * 2 * k
+    const w = img.w * scale * k + bleed * 2
+    const h = img.h * scale * k + bleed * 2
     ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(imgEl.current, (OUT_W - w) / 2 + offset.x * k, (OUT_H - h) / 2 + offset.y * k, w, h)
-    onConfirm(await encode(canvas))
+    const x = (OUT_W - w) / 2 + offset.x * k
+    const y = (OUT_H - h) / 2 + offset.y * k
+    if (blur > 0 && !CANVAS_FILTER) {
+      // Safari ignores ctx.filter, so blur by drawing small and scaling back up.
+      const f = Math.max(2, blur * k * 0.6)
+      const small = document.createElement('canvas')
+      small.width = Math.ceil(OUT_W / f)
+      small.height = Math.ceil(OUT_H / f)
+      small.getContext('2d')!.drawImage(imgEl.current, x / f, y / f, w / f, h / f)
+      ctx.drawImage(small, 0, 0, OUT_W, OUT_H)
+    } else {
+      if (blur > 0) ctx.filter = `blur(${blur * k}px)`
+      ctx.drawImage(imgEl.current, x, y, w, h)
+      ctx.filter = 'none'
+    }
+    if (effect > 0) {
+      ctx.fillStyle = tintFor(effect)
+      ctx.fillRect(0, 0, OUT_W, OUT_H)
+    }
+    onConfirm({
+      card: await encode(canvas),
+      original: source && 'file' in source ? await downscaled(imgEl.current, img) : null,
+      edit: { zoom, x: offset.x, y: offset.y, blur: blurOn, strength },
+    })
   }
 
   return (
-    <Dialog open={!!file} onOpenChange={(open) => !open && !saving && onCancel()}>
+    <Dialog open={!!source} onOpenChange={(open) => !open && !saving && onCancel()}>
       <DialogContent className="max-w-[360px] gap-0 border border-white/[0.08] bg-astro-surface p-5 text-astro-text sm:max-w-[360px]">
-        <DialogTitle className="font-display text-[28px] font-normal leading-none text-astro-text">Position your photo</DialogTitle>
+        <DialogTitle className="font-display text-[28px] font-normal leading-none text-astro-text">{source && 'url' in source ? 'Edit your photo' : 'Position your photo'}</DialogTitle>
         <DialogDescription className="mb-4 mt-1 text-[12.5px] text-astro-text-muted">Drag to move it, use the slider to zoom.</DialogDescription>
 
         <div
@@ -111,6 +186,7 @@ export function PhotoCropDialog({
             <img
               ref={imgEl}
               src={src}
+              crossOrigin="anonymous"
               alt=""
               draggable={false}
               onLoad={(e) => setImg({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
@@ -118,14 +194,16 @@ export function PhotoCropDialog({
               style={
                 img
                   ? {
-                      width: img.w * scale,
-                      height: img.h * scale,
+                      width: img.w * scale + blur * 4,
+                      height: img.h * scale + blur * 4,
                       transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
+                      filter: blur > 0 ? `blur(${blur}px)` : undefined,
                     }
                   : { opacity: 0 }
               }
             />
           )}
+          {effect > 0 && <div className="pointer-events-none absolute inset-0" style={{ background: tintFor(effect) }} />}
           <div className="pointer-events-none absolute inset-0 rounded-[14px] ring-1 ring-inset ring-white/20" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-[linear-gradient(transparent,rgba(10,15,31,0.6))]" />
         </div>
@@ -143,6 +221,37 @@ export function PhotoCropDialog({
             aria-label="Zoom"
           />
         </label>
+
+        <div className="mt-3 flex items-center gap-3 text-xs font-bold text-astro-text-muted">
+          <span id="photo-blur-label">Blur</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={blurOn}
+            aria-labelledby="photo-blur-label"
+            onClick={() => setBlurOn((on) => !on)}
+            className={cn(
+              'relative h-5 w-9 shrink-0 rounded-full border transition-colors',
+              blurOn ? 'border-astro-accent/60 bg-astro-accent/70' : 'border-white/15 bg-white/[0.08] hover:bg-white/[0.14]',
+            )}
+          >
+            <span
+              className={cn('absolute top-1/2 size-3.5 -translate-y-1/2 rounded-full bg-white transition-[left]', blurOn ? 'left-[18px]' : 'left-[2px]')}
+            />
+          </button>
+          {blurOn && (
+            <input
+              type="range"
+              min={0.05}
+              max={1}
+              step={0.01}
+              value={strength}
+              onChange={(e) => setStrength(Number(e.target.value))}
+              className="flex-1 accent-[#a63fff]"
+              aria-label="Blur strength"
+            />
+          )}
+        </div>
 
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={onCancel} disabled={saving}>

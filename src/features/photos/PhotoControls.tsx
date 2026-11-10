@@ -1,39 +1,46 @@
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { useRemovePlayerPhoto, useUploadPlayerPhoto, usePlayerPhoto } from './hooks'
-import { PhotoCropDialog } from './PhotoCropDialog'
+import { usePhotoState, useRemovePlayerPhoto, useSavePlayerPhoto } from './hooks'
+import { PhotoCropDialog, type PhotoSource } from './PhotoCropDialog'
 
 const MAX_BYTES = 15 * 1024 * 1024
 
-/** Choose, crop and save a player's card photo, or remove it. Used by the player and by admins. */
+/** Choose, crop, edit or remove a player's card photo. Used by the player and by admins. */
 export function PhotoControls({ playerId, size = 'default' }: { playerId: string; size?: 'default' | 'sm' }) {
-  const current = usePlayerPhoto(playerId)
-  const upload = useUploadPlayerPhoto(playerId)
+  const { data: state } = usePhotoState(playerId)
+  const current = state?.url ?? null
+  const upload = useSavePlayerPhoto(playerId)
   const remove = useRemovePlayerPhoto(playerId)
   const input = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<File | null>(null)
+  const [source, setSource] = useState<PhotoSource | null>(null)
+  const busy = upload.isPending || remove.isPending
 
   const pick = (f: File | undefined) => {
     if (!f) return
     if (!f.type.startsWith('image/')) return toast.error('That isn’t an image.')
     if (f.size > MAX_BYTES) return toast.error('That photo is over 15 MB. Try a smaller one.')
-    setFile(f)
+    setSource({ file: f })
   }
 
   return (
     <>
       <div className="flex flex-wrap gap-2">
-        <Button size={size} onClick={() => input.current?.click()} disabled={upload.isPending || remove.isPending}>
+        {current && state && (
+          <Button size={size} disabled={busy} onClick={() => setSource({ url: state.originalUrl ?? current, edit: state.edit })}>
+            Edit photo
+          </Button>
+        )}
+        <Button size={size} variant={current ? 'outline' : 'default'} onClick={() => input.current?.click()} disabled={busy}>
           {current ? 'Change photo' : 'Add a photo'}
         </Button>
-        {current && (
+        {current && state && (
           <Button
             size={size}
             variant="ghost"
-            disabled={upload.isPending || remove.isPending}
+            disabled={busy}
             onClick={() =>
-              remove.mutate(current, {
+              remove.mutate(state, {
                 onSuccess: () => toast.success('Photo removed'),
                 onError: () => toast.error('Couldn’t remove the photo. Try again.'),
               })
@@ -54,15 +61,15 @@ export function PhotoControls({ playerId, size = 'default' }: { playerId: string
         }}
       />
       <PhotoCropDialog
-        file={file}
+        source={source}
         saving={upload.isPending}
-        onCancel={() => setFile(null)}
-        onConfirm={(blob) =>
+        onCancel={() => setSource(null)}
+        onConfirm={(photo) =>
           upload.mutate(
-            { blob, previousUrl: current },
+            { photo, previous: state ?? { url: null, originalUrl: null, edit: null } },
             {
               onSuccess: () => {
-                setFile(null)
+                setSource(null)
                 toast.success('Photo saved')
               },
               onError: () => toast.error('Couldn’t save the photo. Try again.'),

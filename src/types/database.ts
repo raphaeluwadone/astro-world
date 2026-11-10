@@ -1169,6 +1169,8 @@ export type Database = {
           legacy_yellow_cards: number
           nickname: string
           onboarded_at: string | null
+          photo_edit: Json | null
+          photo_original_url: string | null
           photo_url: string | null
           positions: Database["public"]["Enums"]["position_type"][]
           preferred_foot: Database["public"]["Enums"]["foot_type"] | null
@@ -1199,6 +1201,8 @@ export type Database = {
           legacy_yellow_cards?: number
           nickname: string
           onboarded_at?: string | null
+          photo_edit?: Json | null
+          photo_original_url?: string | null
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null
@@ -1229,6 +1233,8 @@ export type Database = {
           legacy_yellow_cards?: number
           nickname?: string
           onboarded_at?: string | null
+          photo_edit?: Json | null
+          photo_original_url?: string | null
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null
@@ -1670,6 +1676,10 @@ export type Database = {
           auto_live: string
           s: Database["public"]["Enums"]["badge_status"]
         }
+        Returns: boolean
+      }
+      can_manage_player_photo: {
+        Args: { object_name: string }
         Returns: boolean
       }
       cause_contributors: {

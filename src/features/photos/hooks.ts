@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchPlayerPhotos, removePlayerPhoto, uploadPlayerPhoto } from './api'
+import { fetchPhotoState, fetchPlayerPhotos, removePlayerPhoto, savePlayerPhoto, type PhotoState } from './api'
+import type { CroppedPhoto } from './PhotoCropDialog'
 
 export function usePlayerPhotos() {
   return useQuery({ queryKey: ['player-photos'], queryFn: fetchPlayerPhotos, staleTime: 5 * 60 * 1000 })
@@ -14,10 +15,14 @@ export function usePlayerPhoto(playerId: string | null | undefined) {
 // A photo shows up in many places (profile, cards, badges), so refresh anything that reads players.
 const refresh = (qc: ReturnType<typeof useQueryClient>) => qc.invalidateQueries()
 
-export function useUploadPlayerPhoto(playerId: string) {
+export function usePhotoState(playerId: string) {
+  return useQuery({ queryKey: ['player-photo-state', playerId], queryFn: () => fetchPhotoState(playerId) })
+}
+
+export function useSavePlayerPhoto(playerId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (v: { blob: Blob; previousUrl: string | null }) => uploadPlayerPhoto(playerId, v.blob, v.previousUrl),
+    mutationFn: (v: { photo: CroppedPhoto; previous: PhotoState }) => savePlayerPhoto(playerId, v.photo, v.previous),
     onSuccess: () => refresh(qc),
   })
 }
@@ -25,7 +30,7 @@ export function useUploadPlayerPhoto(playerId: string) {
 export function useRemovePlayerPhoto(playerId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (currentUrl: string | null) => removePlayerPhoto(playerId, currentUrl),
+    mutationFn: (previous: PhotoState) => removePlayerPhoto(playerId, previous),
     onSuccess: () => refresh(qc),
   })
 }
