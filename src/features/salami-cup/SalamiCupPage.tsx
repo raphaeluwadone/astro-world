@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router'
+import { NothingHere } from '@/components/states/NothingHere'
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { useMemo } from 'react'
 import { Timeline, TimelineItem } from '@/components/timeline/Timeline'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -230,7 +231,7 @@ export function SalamiCupPage() {
           <div className="astro-card p-6">
             <div className="font-display mb-4 text-[28px] leading-none text-astro-text">HONOURS</div>
             {honours.length === 0 ? (
-              <p className="text-[13px] text-astro-text-muted">No cup has been completed yet.</p>
+              <NothingHere compact body="No cup has been completed yet." />
             ) : (
               <Timeline>
                 {honours.map((h) => (
@@ -272,9 +273,9 @@ function CupAwardsList({ cupId }: { cupId: string }) {
     <div className="flex flex-col gap-1.5">
       {awards.map((a) => (
         <div key={a.key} className="flex flex-wrap items-baseline gap-x-2 text-[12.5px]">
-          <Link to="/awards/$awardKey" params={{ awardKey: a.key }} className="font-extrabold text-[#f7c25e] hover:underline">
+          <BadgeHoverCard awardKey={a.key} triggerClassName="inline rounded font-extrabold text-[#f7c25e] cursor-pointer hover:underline">
             {a.name}
-          </Link>
+          </BadgeHoverCard>
           <span className="text-astro-text-muted">{a.names.join(', ')}</span>
         </div>
       ))}

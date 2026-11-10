@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { useMemo, useState, type ReactNode } from 'react'
@@ -31,7 +32,7 @@ function Item({ item, playerId, isAdmin, names }: { item: FeedItem; playerId: st
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <p className="rounded-2xl border border-dashed border-white/[0.1] px-5 py-8 text-center text-sm text-astro-text-dim">{children}</p>
+  return <NothingHere compact body={children} />
 }
 
 interface ViewProps {

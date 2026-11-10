@@ -4,7 +4,6 @@ export interface GoalInput {
   teamId: string
   scorerId: string
   assistId: string | null
-  minute: number
 }
 
 export interface FixtureInput {
@@ -55,7 +54,6 @@ export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureI
           team_id: g.teamId,
           scorer_id: g.scorerId,
           assist_id: g.assistId,
-          minute: g.minute,
         })),
       )
       if (goalsError) throw goalsError

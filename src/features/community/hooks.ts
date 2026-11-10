@@ -1,6 +1,18 @@
 import type { Mentionable } from './mentions/tokens'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createPost, fetchFeed, fetchMentionables, fetchPost, fetchMostMentioned, fetchTagPool, setLiked } from './api'
+import {
+  createPost,
+  createReply,
+  deleteReply,
+  fetchFeed,
+  fetchMentionables,
+  fetchPost,
+  fetchMostMentioned,
+  fetchReplies,
+  fetchTagPool,
+  setDisliked,
+  setLiked,
+} from './api'
 
 export function useFeed(currentPlayerId: string | null) {
   return useQuery({
@@ -44,6 +56,44 @@ export function useToggleLike(currentPlayerId: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community-feed'] })
       queryClient.invalidateQueries({ queryKey: ['community-post'] })
+    },
+  })
+}
+
+export function useToggleDislike(currentPlayerId: string | null) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ postId, disliked }: { postId: string; disliked: boolean }) => setDisliked(postId, currentPlayerId!, disliked),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['community-feed'] })
+      queryClient.invalidateQueries({ queryKey: ['community-post'] })
+    },
+  })
+}
+
+export function useReplies(postId: string, enabled: boolean) {
+  return useQuery({ queryKey: ['community-replies', postId], queryFn: () => fetchReplies(postId), enabled })
+}
+
+export function useCreateReply(postId: string, authorId: string | null) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (content: string) => createReply(postId, authorId!, content),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['community-replies', postId] })
+      queryClient.invalidateQueries({ queryKey: ['community-feed'] })
+      queryClient.invalidateQueries({ queryKey: ['community-post'] })
+    },
+  })
+}
+
+export function useDeleteReply(postId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (replyId: string) => deleteReply(replyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['community-replies', postId] })
+      queryClient.invalidateQueries({ queryKey: ['community-feed'] })
     },
   })
 }

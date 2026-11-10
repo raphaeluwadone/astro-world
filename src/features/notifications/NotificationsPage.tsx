@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { isToday, isYesterday } from 'date-fns'
@@ -78,9 +79,11 @@ export function NotificationsPage() {
       </div>
 
       {groups.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-white/[0.1] px-5 py-10 text-center text-sm text-astro-text-dim">
-          {onlyUnread ? "You're all caught up." : 'Nothing yet. Badges, matchday news and mentions land here.'}
-        </p>
+        <NothingHere
+          compact
+          title={onlyUnread ? 'All caught up' : 'Empty pitch'}
+          body={onlyUnread ? 'Nothing unread.' : 'Nothing yet. Badges, matchday news and mentions land here.'}
+        />
       ) : (
         groups.map((g) => (
           <section key={g.label}>

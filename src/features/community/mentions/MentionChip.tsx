@@ -106,7 +106,7 @@ export function MentionChip({ mention }: { mention: Mentionable }) {
       )
     case 'tag':
       return (
-        <span className={cn(PLAIN, KIND_TEXT.tag)}>@{mention.label}</span>
+        <span className={cn(PLAIN, KIND_TEXT.tag)}>#{mention.label}</span>
       )
   }
 }

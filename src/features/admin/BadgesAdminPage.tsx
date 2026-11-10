@@ -1,3 +1,4 @@
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { Link } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -56,7 +57,9 @@ function AwardGroup({ rows, deciderId, held }: { rows: BadgeRow[]; deciderId: st
             {TIER_LABEL[def.tier]}
             {rows.length > 1 ? ` · ${rows.length}-way tie` : ''}
           </div>
-          <div className="font-display text-2xl leading-none text-astro-text">{def.name}</div>
+          <BadgeHoverCard awardKey={first.badge_key} triggerClassName="inline-block rounded font-display text-2xl leading-none text-astro-text cursor-pointer hover:underline">
+            {def.name}
+          </BadgeHoverCard>
           <div className="mt-1 text-[13px] text-astro-text-muted">
             {rows.map((r, i) => (
               <span key={r.id}>

@@ -1,3 +1,4 @@
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { Link } from '@tanstack/react-router'
 import { TIER_COLOR } from '@/features/badges/definitions'
 import type { FeedItem } from '@/features/honours/feed'
@@ -46,7 +47,13 @@ export function LatestHonour({ item }: { item: FeedItem }) {
           Latest honour &middot; {date}
         </span>
         <span className="block truncate">
-          <span className="font-display text-[22px] leading-none text-astro-text">{headline}</span>
+          {item.type === 'badge' ? (
+            <BadgeHoverCard awardKey={item.drop.badges[0].badge_key} triggerClassName="inline rounded font-display text-[22px] leading-none text-astro-text cursor-pointer hover:underline">
+              {headline}
+            </BadgeHoverCard>
+          ) : (
+            <span className="font-display text-[22px] leading-none text-astro-text">{headline}</span>
+          )}
           <span className="ml-2 text-[13px] text-astro-text-muted">{sub}</span>
         </span>
       </span>

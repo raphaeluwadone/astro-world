@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { useState } from 'react'
 import { useCastVote, useLastDropped } from '../hooks'
 import type { ComparisonRow } from '../api'
@@ -209,7 +210,7 @@ function ComparisonSection({
       <p className="mb-[18px] text-[13px] text-astro-text-muted">{description}</p>
 
       {comparisons.length === 0 && emptySlots.length === 0 ? (
-        <p className="mb-4 text-sm text-astro-text-dim">Nothing here yet.</p>
+        <NothingHere compact body="Nothing here yet." className="mb-4" />
       ) : (
         <div className="mb-4 grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))' }}>
           {comparisons.map((c) => (

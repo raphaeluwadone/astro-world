@@ -1,4 +1,4 @@
-import { AtSign, Award, Camera, ClipboardList, DoorOpen, Hourglass, Shirt, Star, Ticket, TrendingDown, UserCheck, UserX, Wallet, type LucideIcon } from 'lucide-react'
+import { AtSign, MessageCircle, Award, Camera, ClipboardList, DoorOpen, Hourglass, Shirt, Star, Ticket, TrendingDown, UserCheck, UserX, Wallet, type LucideIcon } from 'lucide-react'
 import { BADGE_DEFS, MONTHLY_DEFS, TIER_COLOR } from '@/features/badges/definitions'
 import type { NotificationRow } from './api'
 
@@ -60,6 +60,8 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
       }
     case 'mention':
       return { title: `${actor} mentioned you`, body: d.excerpt ?? '', icon: AtSign, color: CYAN }
+    case 'reply':
+      return { title: `${actor} replied to your post`, body: d.excerpt ?? '', icon: MessageCircle, color: CYAN }
     case 'honours_reaction':
       return { title: `${actor} reacted ${EMOJI[d.emoji] ?? ''}`, body: `On “${d.title}”.`, icon: Star, color: CYAN }
     case 'claim_approved':

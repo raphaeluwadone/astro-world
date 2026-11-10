@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { BadgeSquare, periodLabel } from '@/features/badges/components/BadgePatch'
 import { useAllPlayers } from '@/features/kitty/hooks'
 import type { ClubMoment } from '../api'
@@ -31,9 +32,9 @@ export function BadgeDropRow({ drop }: { drop: BadgeDrop }) {
     <div className="flex items-center gap-3 rounded-xl border border-border bg-astro-surface-sunken px-3.5 py-2.5">
       <BadgeSquare badge={first} size={30} />
       <div className="min-w-0 flex-1 text-[13.5px] leading-snug text-astro-text-dim">
-        <Link to="/awards/$awardKey" params={{ awardKey: first.badge_key }} className="font-extrabold text-astro-text hover:underline">
+        <BadgeHoverCard awardKey={first.badge_key} triggerClassName="inline rounded font-extrabold text-astro-text cursor-pointer hover:underline">
           {first.def.name}
-        </Link>
+        </BadgeHoverCard>
         {first.tier === 'month' && <span className="font-bold text-astro-cyan"> · {periodLabel(first)}</span>} {lead} <Names drop={drop} />
         {!shared && first.stat && <span> · {first.stat}</span>}
       </div>

@@ -1,4 +1,7 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { Link } from '@tanstack/react-router'
+import { ScorerList } from '@/features/match/components/ScorerList'
+import { useGoalsByMatch } from '@/features/match/hooks'
 import type { MatchHistoryRow } from '../api'
 
 function ratingBadgeColor(rating: number) {
@@ -7,11 +10,12 @@ function ratingBadgeColor(rating: number) {
 }
 
 export function MatchHistoryList({ history }: { history: MatchHistoryRow[] }) {
+  const goals = useGoalsByMatch(history.slice(0, 6).map((h) => h.match_id))
   return (
     <div className="astro-card p-6">
       <h2 className="mb-4 font-display text-[30px] leading-none text-astro-text">Match History</h2>
       {history.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">No matches recorded yet.</p>
+        <NothingHere compact body="No matches recorded yet." />
       ) : (
         <div className="grid gap-[9px]" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))' }}>
           {history.slice(0, 6).map((h) => {
@@ -26,9 +30,19 @@ export function MatchHistoryList({ history }: { history: MatchHistoryRow[] }) {
                 <span className="w-[46px] shrink-0 text-[11.5px] text-astro-text-dim">
                   {new Date(h.played_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).replace('Sept', 'Sep')}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-astro-text">
-                  <span style={{ color: h.team_a.colour }}>{h.team_a.greek_name}</span> vs{' '}
-                  <span style={{ color: h.team_b.colour }}>{h.team_b.greek_name}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-bold text-astro-text">
+                    <span style={{ color: h.team_a.colour }}>{h.team_a.greek_name}</span> vs{' '}
+                    <span style={{ color: h.team_b.colour }}>{h.team_b.greek_name}</span>
+                  </span>
+                  {(goals.get(h.match_id)?.length ?? 0) > 0 && (
+                    <span className="mt-0.5 block text-[11.5px] leading-snug">
+                      <ScorerList goals={goals.get(h.match_id)} teamId={h.team_a.id} />
+                      {goals.get(h.match_id)!.some((g) => g.team_id === h.team_a.id) &&
+                        goals.get(h.match_id)!.some((g) => g.team_id === h.team_b.id) && <span className="text-astro-text-dim"> &middot; </span>}
+                      <ScorerList goals={goals.get(h.match_id)} teamId={h.team_b.id} />
+                    </span>
+                  )}
                 </span>
                 <span className="font-display shrink-0 text-xl leading-none text-astro-text-muted">
                   {h.score_a}&ndash;{h.score_b}

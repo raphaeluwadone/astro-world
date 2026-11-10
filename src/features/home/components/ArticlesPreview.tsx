@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { Link } from '@tanstack/react-router'
 import type { ArticleRow } from '@/features/articles/api'
 
@@ -12,7 +13,7 @@ export function ArticlesPreview({ articles }: { articles: ArticleRow[] }) {
         </Link>
       </div>
       {recent.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">No articles published yet.</p>
+        <NothingHere compact body="No articles published yet." />
       ) : (
         <div className="flex flex-col gap-3">
           {recent.map((a) => (

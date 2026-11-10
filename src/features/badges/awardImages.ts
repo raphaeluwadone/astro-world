@@ -8,7 +8,7 @@ export interface AwardImage {
 }
 
 export const AWARD_IMAGES: Record<string, AwardImage> = {
-  "ronaldo-without-the-abs": {
+  "cr7-syndrome": {
     player: "Cristiano Ronaldo",
     src: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg/960px-Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     source: "https://commons.wikimedia.org/wiki/File:Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_(cropped).jpg",

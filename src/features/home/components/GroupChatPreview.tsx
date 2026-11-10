@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { Link } from '@tanstack/react-router'
 import type { PostRow } from '@/features/community/api'
 import { plainText } from '@/features/community/mentions/tokens'
@@ -21,7 +22,7 @@ export function GroupChatPreview({ posts }: { posts: PostRow[] }) {
         </Link>
       </div>
       {recent.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">Nobody's posted anything yet.</p>
+        <NothingHere compact body="Nobody's posted anything yet." />
       ) : (
         <div className="flex flex-col gap-3">
           {recent.map((p, i) => (

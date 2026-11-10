@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { encodeMentions, parseContent, type Mentionable } from '@/features/community/mentions/tokens'
+import { encodeMentions, parseContent, sigil, type Mentionable } from '@/features/community/mentions/tokens'
 
 export const REACTIONS = [
   { key: 'trophy', emoji: '🏆', label: 'Trophy' },
@@ -81,7 +81,7 @@ export async function setReaction(postId: string, playerId: string, key: Reactio
 export function decodeForEdit(content: string) {
   const parts = parseContent(content)
   return {
-    text: parts.map((p) => (p.type === 'text' ? p.text : `@${p.mention.label}`)).join(''),
+    text: parts.map((p) => (p.type === 'text' ? p.text : `${sigil(p.mention.kind)}${p.mention.label}`)).join(''),
     picked: parts.flatMap((p) => (p.type === 'mention' ? [p.mention] : [])),
   }
 }

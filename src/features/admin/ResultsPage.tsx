@@ -15,7 +15,6 @@ interface GoalDraft {
   teamId: string
   scorerId: string
   assistId: string
-  minute: string
 }
 
 interface FixtureDraft {
@@ -31,11 +30,78 @@ function emptyFixture(teams: TeamWithMembers[]): FixtureDraft {
 }
 
 function emptyGoal(teamId: string): GoalDraft {
-  return { teamId, scorerId: '', assistId: '', minute: '' }
+  return { teamId, scorerId: '', assistId: '' }
 }
 
-function membersOf(teams: TeamWithMembers[], teamId: string): PlayerSummary[] {
-  return teams.find((t) => t.id === teamId)?.members ?? []
+function TeamGoals({
+  team,
+  goals,
+  onAdd,
+  onChange,
+  onRemove,
+}: {
+  team: TeamWithMembers | undefined
+  goals: { g: GoalDraft; gi: number }[]
+  onAdd: () => void
+  onChange: (goalIndex: number, patch: Partial<GoalDraft>) => void
+  onRemove: (goalIndex: number) => void
+}) {
+  if (!team) return null
+  const members: PlayerSummary[] = team.members
+  return (
+    <div className="rounded-xl border bg-astro-bg/50 p-3" style={{ borderColor: `color-mix(in srgb, ${team.colour} 35%, transparent)` }}>
+      <div className="mb-2.5 flex items-center gap-2">
+        <span className="size-2.5 shrink-0 rounded-full" style={{ background: team.colour }} aria-hidden />
+        <span className="truncate text-[13px] font-extrabold text-astro-text">{team.greek_name}</span>
+        <span className="ml-auto text-[11px] font-bold text-astro-text-dim">
+          {goals.length} {goals.length === 1 ? 'goal' : 'goals'}
+        </span>
+      </div>
+      <div className="flex flex-col gap-2">
+        {goals.map(({ g, gi }) => (
+          <div key={gi} className="flex items-center gap-1.5">
+            <AstroSelect
+              size="sm"
+              placeholder="Scorer"
+              aria-label={`${team.greek_name} scorer`}
+              value={g.scorerId}
+              onValueChange={(v) => onChange(gi, { scorerId: v, assistId: g.assistId === v ? '' : g.assistId })}
+              options={members.map((p) => ({ value: p.id, label: p.nickname }))}
+              className="min-w-0 flex-1"
+            />
+            <AstroSelect
+              size="sm"
+              placeholder="No assist"
+              aria-label={`${team.greek_name} assist`}
+              value={g.assistId}
+              onValueChange={(v) => onChange(gi, { assistId: v })}
+              options={[
+                { value: '', label: 'No assist' },
+                ...members.filter((p) => p.id !== g.scorerId).map((p) => ({ value: p.id, label: p.nickname })),
+              ]}
+              className="min-w-0 flex-1"
+            />
+            <button
+              type="button"
+              aria-label="Remove goal"
+              onClick={() => onRemove(gi)}
+              className="px-1 text-sm font-bold text-astro-text-dim hover:text-astro-red"
+            >
+              &times;
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="mt-2.5 text-xs font-bold hover:underline"
+        style={{ color: team.colour }}
+      >
+        + Goal for {team.greek_name}
+      </button>
+    </div>
+  )
 }
 
 export function ResultsPage() {
@@ -99,9 +165,9 @@ export function ResultsPage() {
     setFixtures(draft.filter((_, i) => i !== index))
   }
 
-  function addGoal(fixtureIndex: number) {
+  function addGoal(fixtureIndex: number, teamId: string) {
     const f = draft[fixtureIndex]
-    updateFixture(fixtureIndex, { goals: [...f.goals, emptyGoal(f.teamAId)] })
+    updateFixture(fixtureIndex, { goals: [...f.goals, emptyGoal(teamId)] })
   }
 
   function updateGoal(fixtureIndex: number, goalIndex: number, patch: Partial<GoalDraft>) {
@@ -127,9 +193,16 @@ export function ResultsPage() {
         setError('Every fixture needs a final score.')
         return
       }
+      const over = [f.teamAId, f.teamBId].some(
+        (id, side) => f.goals.filter((g) => g.teamId === id).length > Number(side === 0 ? f.scoreA : f.scoreB),
+      )
+      if (over) {
+        setError('A side has more goals listed than its score.')
+        return
+      }
       for (const g of f.goals) {
-        if (!g.scorerId || g.minute === '') {
-          setError('Every goal needs a scorer and a minute.')
+        if (!g.scorerId) {
+          setError('Every goal needs a scorer.')
           return
         }
       }
@@ -145,7 +218,6 @@ export function ResultsPage() {
           teamId: g.teamId,
           scorerId: g.scorerId,
           assistId: g.assistId || null,
-          minute: Number(g.minute),
         }),
       ),
     }))
@@ -168,9 +240,6 @@ export function ResultsPage() {
 
       <div className="flex flex-col gap-4">
         {draft.map((fixture, fi) => {
-          const teamAMembers = membersOf(teams, fixture.teamAId)
-          const teamBMembers = membersOf(teams, fixture.teamBId)
-          const allMembers = [...teamAMembers, ...teamBMembers]
           return (
             <div key={fi} className="astro-card max-w-2xl p-6">
               <div className="mb-4 flex items-center justify-between">
@@ -188,7 +257,7 @@ export function ResultsPage() {
                 <AstroSelect
                   aria-label="Home team"
                   value={fixture.teamAId}
-                  onValueChange={(v) => updateFixture(fi, { teamAId: v })}
+                  onValueChange={(v) => updateFixture(fi, { teamAId: v, goals: fixture.goals.filter((g) => g.teamId !== fixture.teamAId) })}
                   options={teams.map((t) => ({ value: t.id, label: t.greek_name }))}
                   className="flex-1"
                 />
@@ -210,60 +279,24 @@ export function ResultsPage() {
                 <AstroSelect
                   aria-label="Away team"
                   value={fixture.teamBId}
-                  onValueChange={(v) => updateFixture(fi, { teamBId: v })}
+                  onValueChange={(v) => updateFixture(fi, { teamBId: v, goals: fixture.goals.filter((g) => g.teamId !== fixture.teamBId) })}
                   options={teams.map((t) => ({ value: t.id, label: t.greek_name }))}
                   className="flex-1"
                 />
               </div>
 
-              <div className="mb-3 text-[10.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
-                Goals
-              </div>
-              <div className="mb-3 flex flex-col gap-2">
-                {fixture.goals.map((goal, gi) => (
-                  <div key={gi} className="flex flex-wrap items-center gap-2">
-                    <AstroSelect
-                      size="sm"
-                      placeholder="Scorer"
-                      value={goal.scorerId}
-                      onValueChange={(v) => updateGoal(fi, gi, { scorerId: v })}
-                      options={allMembers.map((p) => ({ value: p.id, label: p.nickname }))}
-                      className="min-w-[120px] flex-1"
-                    />
-                    <AstroSelect
-                      size="sm"
-                      placeholder="No assist"
-                      value={goal.assistId}
-                      onValueChange={(v) => updateGoal(fi, gi, { assistId: v })}
-                      options={[
-                        { value: '', label: 'No assist' },
-                        ...allMembers
-                          .filter((p) => p.id !== goal.scorerId)
-                          .map((p) => ({ value: p.id, label: p.nickname })),
-                      ]}
-                      className="min-w-[120px] flex-1"
-                    />
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="Min"
-                      value={goal.minute}
-                      onChange={(e) => updateGoal(fi, gi, { minute: e.target.value })}
-                      className="w-16 rounded-lg border border-white/10 bg-astro-surface-2 px-2 py-2 text-center text-xs font-bold text-astro-text"
-                    />
-                    <button type="button" onClick={() => removeGoal(fi, gi)} className="text-xs font-bold text-astro-text-dim hover:text-astro-red">
-                      &times;
-                    </button>
-                  </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[fixture.teamAId, fixture.teamBId].map((teamId, side) => (
+                  <TeamGoals
+                    key={side}
+                    team={teams.find((t) => t.id === teamId)}
+                    goals={fixture.goals.map((g, gi) => ({ g, gi })).filter(({ g }) => g.teamId === teamId)}
+                    onAdd={() => addGoal(fi, teamId)}
+                    onChange={(gi, patch) => updateGoal(fi, gi, patch)}
+                    onRemove={(gi) => removeGoal(fi, gi)}
+                  />
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={() => addGoal(fi)}
-                className="text-xs font-bold text-astro-accent-soft hover:text-astro-accent"
-              >
-                + Add goal
-              </button>
             </div>
           )
         })}

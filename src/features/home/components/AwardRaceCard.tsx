@@ -1,3 +1,4 @@
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { BadgeIcon } from '@/features/badges/BadgeIcon'
@@ -7,7 +8,7 @@ import type { AwardRaceRow } from '../api'
 const RATING_KEYS = new Set(['month-player-of-the-month', 'messi-ah'])
 const UNITS: Record<string, [string, string]> = {
   'month-golden-boot': ['goal', 'goals'],
-  'ronaldo-without-the-abs': ['goal', 'goals'],
+  'cr7-syndrome': ['goal', 'goals'],
   'month-playmaker': ['assist', 'assists'],
   'mesuts-apprentice': ['assist', 'assists'],
   'month-golden-glove': ['clean sheet', 'clean sheets'],
@@ -62,7 +63,9 @@ function RaceRow({ row }: { row: AwardRaceRow }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-[13.5px] font-extrabold text-astro-text group-hover:underline">{def.name}</span>
+          <BadgeHoverCard awardKey={row.badge_key} triggerClassName="truncate rounded text-[13.5px] font-extrabold text-astro-text group-hover:underline">
+            {def.name}
+          </BadgeHoverCard>
           {row.my_rank != null && <span className="shrink-0 text-[11px] font-bold text-astro-text-dim">#{row.my_rank}</span>}
         </span>
         <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-white/[0.06]">

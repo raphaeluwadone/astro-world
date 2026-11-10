@@ -1,3 +1,4 @@
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { BadgeSquare } from '@/features/badges/components/BadgePatch'
@@ -58,13 +59,12 @@ function Winners({ entry, max = 1 }: { entry: HallEntry; max?: number }) {
 function Row({ entry, gold, nameClass }: { entry: HallEntry; gold?: boolean; nameClass?: string }) {
   return (
     <div className="flex items-baseline gap-2.5 border-b border-dashed border-white/[0.08] py-2 last:border-b-0">
-      <Link
-        to="/awards/$awardKey"
-        params={{ awardKey: entry.badges[0].badge_key }}
-        className={cn('whitespace-nowrap font-display text-[19px] leading-none no-underline hover:underline', gold ? GOLD_TEXT : nameClass)}
+      <BadgeHoverCard
+        awardKey={entry.badges[0].badge_key}
+        triggerClassName={cn('inline rounded whitespace-nowrap font-display text-[19px] leading-none cursor-pointer hover:underline', gold ? GOLD_TEXT : nameClass)}
       >
         {gold ? cupTitle(entry) : entry.name}
-      </Link>
+      </BadgeHoverCard>
       <span className="min-w-4 flex-1 -translate-y-1 border-b border-dotted border-white/15" />
       <span className="text-right text-[13px] font-extrabold text-astro-text">
         <Winners entry={entry} />
@@ -132,10 +132,10 @@ export function HonoursBoard({ hall, year, onYear }: { hall: HallYear[]; year: n
             <div key={e.key} className="mb-3 flex items-center gap-3.5 rounded-xl border border-[rgba(242,169,59,0.4)] bg-[rgba(242,169,59,0.10)] px-4 py-3.5">
               <BadgeSquare badge={e.badges[0]} size={44} />
               <div className="min-w-0">
-                <div className={cn('font-display text-[28px] leading-none', GOLD_TEXT)}>
+                <BadgeHoverCard awardKey="silverware" triggerClassName={cn('inline-block rounded font-display text-[28px] leading-none cursor-pointer hover:underline', GOLD_TEXT)}>
                   Salami Cup{e.quarter ? ` ${e.quarter}` : ''}
                   {e.team ? ` · ${e.team}` : ''}
-                </div>
+                </BadgeHoverCard>
                 <div className="mt-0.5 text-[12.5px] text-astro-text-muted">
                   {e.badges.map((b) => b.nickname).join(', ')}
                   {e.badges[0].stat ? ` · ${e.badges[0].stat}` : ''}

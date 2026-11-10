@@ -9,6 +9,17 @@ export interface PostRow {
   author: { id: string; nickname: string; full_name: string }
   likeCount: number
   likedByMe: boolean
+  dislikeCount: number
+  dislikedByMe: boolean
+  replyCount: number
+}
+
+export interface ReplyRow {
+  id: string
+  post_id: string
+  content: string
+  created_at: string
+  author: { id: string; nickname: string }
 }
 
 export interface MentionedRow {
@@ -26,23 +37,30 @@ const POST_SELECT = 'id, content, created_at, players!posts_author_id_fkey (id, 
 
 type RawPost = { id: string; content: string; created_at: string; players: unknown }
 
+function groupBy(rows: { post_id: string; player_id?: string }[]) {
+  const map = new Map<string, string[]>()
+  for (const r of rows) map.set(r.post_id, [...(map.get(r.post_id) ?? []), r.player_id ?? ''])
+  return map
+}
+
 async function withLikes(posts: RawPost[], currentPlayerId: string | null): Promise<PostRow[]> {
   if (posts.length === 0) return []
-  const { data: likes, error } = await supabase
-    .from('post_likes')
-    .select('post_id, player_id')
-    .in('post_id', posts.map((p) => p.id))
-  if (error) throw error
-
-  const likesByPost = new Map<string, string[]>()
-  for (const l of likes ?? []) {
-    const list = likesByPost.get(l.post_id) ?? []
-    list.push(l.player_id)
-    likesByPost.set(l.post_id, list)
-  }
+  const ids = posts.map((p) => p.id)
+  const [likes, dislikes, replies] = await Promise.all([
+    supabase.from('post_likes').select('post_id, player_id').in('post_id', ids),
+    supabase.from('post_dislikes').select('post_id, player_id').in('post_id', ids),
+    supabase.from('post_replies').select('post_id').in('post_id', ids),
+  ])
+  if (likes.error) throw likes.error
+  if (dislikes.error) throw dislikes.error
+  if (replies.error) throw replies.error
+  const likesByPost = groupBy(likes.data ?? [])
+  const dislikesByPost = groupBy(dislikes.data ?? [])
+  const repliesByPost = groupBy(replies.data ?? [])
 
   return posts.map((p) => {
     const likers = likesByPost.get(p.id) ?? []
+    const dislikers = dislikesByPost.get(p.id) ?? []
     return {
       id: p.id,
       content: p.content,
@@ -50,6 +68,9 @@ async function withLikes(posts: RawPost[], currentPlayerId: string | null): Prom
       author: p.players as PostRow['author'],
       likeCount: likers.length,
       likedByMe: currentPlayerId ? likers.includes(currentPlayerId) : false,
+      dislikeCount: dislikers.length,
+      dislikedByMe: currentPlayerId ? dislikers.includes(currentPlayerId) : false,
+      replyCount: repliesByPost.get(p.id)?.length ?? 0,
     }
   })
 }
@@ -107,6 +128,33 @@ export async function fetchMentionables(): Promise<Mentionable[]> {
     ...(tags.data ?? []).map((t) => ({ kind: 'tag' as const, ref: t.id, label: t.label })),
     ...achievementNames.map((n) => ({ kind: 'achievement' as const, ref: n, label: n, sub: badges.get(n) })),
   ]
+}
+
+export async function setDisliked(postId: string, playerId: string, disliked: boolean) {
+  const { error } = disliked
+    ? await supabase.from('post_dislikes').insert({ post_id: postId, player_id: playerId })
+    : await supabase.from('post_dislikes').delete().eq('post_id', postId).eq('player_id', playerId)
+  if (error) throw error
+}
+
+export async function fetchReplies(postId: string): Promise<ReplyRow[]> {
+  const { data, error } = await supabase
+    .from('post_replies')
+    .select('id, post_id, content, created_at, author:players!post_replies_author_id_fkey (id, nickname)')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as unknown as ReplyRow[]
+}
+
+export async function createReply(postId: string, authorId: string, content: string) {
+  const { error } = await supabase.from('post_replies').insert({ post_id: postId, author_id: authorId, content: content.trim() })
+  if (error) throw error
+}
+
+export async function deleteReply(replyId: string) {
+  const { error } = await supabase.from('post_replies').delete().eq('id', replyId)
+  if (error) throw error
 }
 
 export async function setLiked(postId: string, playerId: string, liked: boolean) {

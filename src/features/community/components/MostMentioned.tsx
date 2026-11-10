@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import type { MentionedRow } from '../api'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
@@ -7,7 +8,7 @@ export function MostMentioned({ mentioned }: { mentioned: MentionedRow[] }) {
     <div className="astro-card p-[22px]">
       <h2 className="mb-3.5 font-display text-[26px] leading-none text-astro-text">Most Mentioned</h2>
       {mentioned.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">Nobody's been called out yet.</p>
+        <NothingHere compact body="Nobody's been called out yet." />
       ) : (
         <div className="flex flex-col gap-[9px]">
           {mentioned.map((m) => (

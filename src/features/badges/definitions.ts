@@ -61,7 +61,7 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   'week-motm': { name: 'Man of the Match', tier: 'week', icon: 'star', for: 'Voted best player on the day' },
   'week-clean-sheet': { name: 'Clean Sheet', tier: 'week', icon: 'shield', for: 'Kept a clean sheet' },
 
-  'ronaldo-without-the-abs': { name: 'CR7 Syndrome', tier: 'year', icon: 'target', for: 'Top scorer of the year' },
+  'cr7-syndrome': { name: 'CR7 Syndrome', tier: 'year', icon: 'target', for: 'Top scorer of the year' },
   'bag-of-three': { name: 'Bag of Three', tier: 'year', icon: 'three', for: 'Scored a hat-trick in one match' },
   'mesuts-apprentice': { name: "Özil's Apprentice", tier: 'year', icon: 'assist', for: 'Most assists of the year' },
   centurion: { name: 'Centurion', tier: 'year', icon: 'hundred', for: 'Passed 100 career goals' },

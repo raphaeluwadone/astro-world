@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { cn } from 'cn'
 import type { ReactNode } from 'react'
 import type { MatchRatingRow } from '../api'
@@ -46,7 +47,7 @@ export function RecentForm({
         {title}
       </h2>
       {recent.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">No rated matches yet.</p>
+        <NothingHere compact body="No rated matches yet." />
       ) : (
         // Always five slots, so a short run doesn't leave the row lopsided.
         <div className="flex flex-wrap items-center gap-x-10 gap-y-5">

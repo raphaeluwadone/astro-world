@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { useState } from 'react'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -291,7 +292,7 @@ export function CausesAdminPage() {
       <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Causes</h1>
 
       <div className="flex flex-col gap-4">
-        {causes.length === 0 && <p className="text-sm text-astro-text-dim">Nobody has suggested one yet.</p>}
+        {causes.length === 0 && <NothingHere compact body="Nobody has suggested one yet." />}
         {causes.map((c) => (
           <CauseAdminRow key={c.id} cause={c} markedBy={player.id} />
         ))}

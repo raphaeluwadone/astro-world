@@ -545,7 +545,7 @@ export type Database = {
           created_at: string
           id: string
           match_id: string
-          minute: number
+          minute: number | null
           scorer_id: string
           team_id: string
         }
@@ -554,7 +554,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_id: string
-          minute: number
+          minute?: number | null
           scorer_id: string
           team_id: string
         }
@@ -563,7 +563,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_id?: string
-          minute?: number
+          minute?: number | null
           scorer_id?: string
           team_id?: string
         }
@@ -1367,6 +1367,39 @@ export type Database = {
         }
         Relationships: []
       }
+      post_dislikes: {
+        Row: {
+          created_at: string
+          player_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          player_id: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          player_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_dislikes_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_dislikes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_likes: {
         Row: {
           created_at: string
@@ -1423,6 +1456,45 @@ export type Database = {
           },
           {
             foreignKeyName: "post_mentions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_replies: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_replies_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_replies_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"

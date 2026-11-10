@@ -13,6 +13,9 @@ export type ContentPart = { type: 'text'; text: string } | { type: 'mention'; me
 // Stored in posts.content as @[Label](kind:ref), so plain text stays readable anywhere it leaks.
 const TOKEN = /@\[([^\]\n]+)\]\((player|tag|achievement|memorial|cup):([^)\n]*)\)/g
 
+/** Tags read as hashtags once picked; everything else keeps the @. */
+export const sigil = (kind: MentionKind) => (kind === 'tag' ? '#' : '@')
+
 export function toToken(m: Mentionable) {
   return `@[${m.label.replace(/[[\]]/g, '')}](${m.kind}:${m.ref.replace(/[()]/g, '')})`
 }
@@ -30,7 +33,7 @@ export function parseContent(content: string): ContentPart[] {
 }
 
 export function plainText(content: string) {
-  return content.replace(TOKEN, '@$1')
+  return content.replace(TOKEN, (_, label: string, kind: MentionKind) => `${sigil(kind)}${label}`)
 }
 
 /** Splits typed text into plain runs and picked "@Label"s; longest label wins, so "@Salami Cup" beats "@Salami". */
@@ -40,7 +43,7 @@ export function splitTyped(text: string, picked: Mentionable[]): ContentPart[] {
   let plain = ''
   let i = 0
   while (i < text.length) {
-    const hit = text[i] === '@' ? remaining.findIndex((m) => text.startsWith(`@${m.label}`, i)) : -1
+    const hit = text[i] === '@' || text[i] === '#' ? remaining.findIndex((m) => text.startsWith(`${sigil(m.kind)}${m.label}`, i)) : -1
     if (hit === -1) {
       plain += text[i++]
       continue

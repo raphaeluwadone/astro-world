@@ -51,7 +51,7 @@ as $$
     union all select 'month-playmaker', scope, player_id, n from assisted where scope = 'month'
     union all select 'month-golden-glove', scope, player_id, n from cleans where scope = 'month'
     union all select 'month-player-of-the-month', scope, player_id, avg from rated where scope = 'month' and games >= min_rated
-    union all select 'ronaldo-without-the-abs', scope, player_id, n from scored where scope = 'year'
+    union all select 'cr7-syndrome', scope, player_id, n from scored where scope = 'year'
     union all select 'mesuts-apprentice', scope, player_id, n from assisted where scope = 'year'
     union all select 'clean-freak', scope, player_id, n from cleans where scope = 'year'
     union all select 'messi-ah', scope, player_id, avg from rated where scope = 'year' and games >= min_rated
@@ -65,7 +65,7 @@ as $$
   keys as (
     select k, s from (values
       ('month-golden-boot', 'month'), ('month-playmaker', 'month'), ('month-golden-glove', 'month'), ('month-player-of-the-month', 'month'),
-      ('ronaldo-without-the-abs', 'year'), ('mesuts-apprentice', 'year'), ('clean-freak', 'year'), ('messi-ah', 'year'),
+      ('cr7-syndrome', 'year'), ('mesuts-apprentice', 'year'), ('clean-freak', 'year'), ('messi-ah', 'year'),
       ('main-character', 'year'), ('most-capped', 'year')
     ) t(k, s)
   )

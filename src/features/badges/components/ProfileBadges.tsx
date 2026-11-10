@@ -1,3 +1,4 @@
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Timeline, TimelineItem } from '@/components/timeline/Timeline'
@@ -193,7 +194,9 @@ function BadgeCollection({
                         <BadgeIconTile badge={b} />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[13.5px] font-extrabold text-astro-text">{b.def.name}</span>
+                        <BadgeHoverCard badge={b} side="right" triggerClassName="block truncate rounded text-[13.5px] font-extrabold text-astro-text cursor-pointer hover:underline">
+                          {b.def.name}
+                        </BadgeHoverCard>
                         <span className="block truncate text-[11.5px] text-astro-text-dim">
                           {/^\d{4}$/.test(b.period_key) ? b.period_key : b.tier === 'cup' ? 'Salami Cup' : periodLabel(b)}
                           {b.stat ? ` · ${b.stat}` : ''}
@@ -265,7 +268,12 @@ export function NewBadgeBanner({ badges, nickname }: { badges: Badge[]; nickname
     >
       <BadgeSquare badge={fresh} size={30} />
       <div className="min-w-0 flex-1">
-        <div className="font-display text-xl leading-none text-astro-text">New badge: {fresh.def.name}</div>
+        <div className="font-display text-xl leading-none text-astro-text">
+          New badge:{' '}
+          <BadgeHoverCard badge={fresh} triggerClassName="inline rounded cursor-pointer hover:underline">
+            {fresh.def.name}
+          </BadgeHoverCard>
+        </div>
         <div className="text-xs text-astro-text-muted">
           {fresh.detail ?? `${nickname} earned it`}
           {fresh.tiedWith.length > 0 && `, shared with ${fresh.tiedWith.map((p) => p.nickname).slice(0, 3).join(', ')}`}

@@ -69,7 +69,7 @@ export const AWARD_COPY: Record<string, AwardCopy> = {
       },
     ],
   },
-  'ronaldo-without-the-abs': {
+  'cr7-syndrome': {
     recognition: 'Most goals of the year',
     personality: 'Confidence, ambition, determination, finishing ability, consistency and an unmistakable goal-scoring mentality.',
     variations: [

@@ -10,8 +10,8 @@ export interface MatchRatingRow {
 }
 
 export interface MatchHistoryRow extends MatchRatingRow {
-  team_a: { greek_name: string; colour: string }
-  team_b: { greek_name: string; colour: string }
+  team_a: { id: string; greek_name: string; colour: string }
+  team_b: { id: string; greek_name: string; colour: string }
   score_a: number
   score_b: number
 }
@@ -128,8 +128,8 @@ export async function fetchMatchHistory(playerId: string): Promise<MatchHistoryR
     .from('matches')
     .select(
       `id, score_a, score_b,
-       team_a:teams!matches_team_a_id_fkey (greek_name, colour),
-       team_b:teams!matches_team_b_id_fkey (greek_name, colour)`,
+       team_a:teams!matches_team_a_id_fkey (id, greek_name, colour),
+       team_b:teams!matches_team_b_id_fkey (id, greek_name, colour)`,
     )
     .in('id', matchIds)
   if (error) throw error
@@ -139,8 +139,8 @@ export async function fetchMatchHistory(playerId: string): Promise<MatchHistoryR
       const m = matchById.get(r.match_id) as unknown as {
         score_a: number
         score_b: number
-        team_a: { greek_name: string; colour: string }
-        team_b: { greek_name: string; colour: string }
+        team_a: { id: string; greek_name: string; colour: string }
+        team_b: { id: string; greek_name: string; colour: string }
       }
       return m ? { ...r, ...m } : null
     })

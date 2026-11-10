@@ -256,7 +256,7 @@ begin
   insert into player_badges (player_id, badge_key, period_key, stat, detail, awarded_at, expires_at)
   select player_id, badge_key, y_key, stat, detail, now(), now() + interval '12 months'
   from (
-    select player_id, 'ronaldo-without-the-abs' as badge_key, goals || ' goals' as stat, 'Top scorer of ' || y_key as detail,
+    select player_id, 'cr7-syndrome' as badge_key, goals || ' goals' as stat, 'Top scorer of ' || y_key as detail,
            goals as v, max(goals) over () as top from season_stats
     union all
     select player_id, 'mesuts-apprentice', assists || ' assists', 'Most assists of ' || y_key, assists, max(assists) over () from season_stats

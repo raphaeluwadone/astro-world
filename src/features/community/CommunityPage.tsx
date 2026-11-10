@@ -9,7 +9,7 @@ import { MostMentioned } from './components/MostMentioned'
 import { PostCard } from './components/PostCard'
 import { PostComposer } from './components/PostComposer'
 import { TagPool } from './components/TagPool'
-import { useCreatePost, useFeed, useLinkedPost, useMostMentioned, useTagPool, useToggleLike } from './hooks'
+import { useCreatePost, useFeed, useLinkedPost, useMostMentioned, useTagPool, useToggleDislike, useToggleLike } from './hooks'
 
 export function CommunityPage() {
   const { player } = useCurrentPlayer()
@@ -20,6 +20,7 @@ export function CommunityPage() {
   const { data: tags = [] } = useTagPool()
   const createPost = useCreatePost(playerId)
   const toggleLike = useToggleLike(playerId)
+  const toggleDislike = useToggleDislike(playerId)
 
   const { post: linkedId } = useSearch({ from: '/_app/community/' })
   const inFeed = !!linkedId && feed.some((p) => p.id === linkedId)
@@ -42,6 +43,7 @@ export function CommunityPage() {
       highlighted={highlightId === post.id}
       canLike={!!playerId}
       onToggleLike={() => toggleLike.mutate({ postId: post.id, liked: !post.likedByMe })}
+      onToggleDislike={() => toggleDislike.mutate({ postId: post.id, disliked: !post.dislikedByMe })}
     />
   )
 

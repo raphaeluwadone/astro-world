@@ -1,3 +1,4 @@
+import { NothingHere } from '@/components/states/NothingHere'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -389,7 +390,7 @@ export function AwardPage({ awardKey }: { awardKey: string }) {
               {current.reduce((n, s) => n + s.badges.length, 0) > 1 ? 'Current holders' : 'Current holder'}
             </h2>
             {current.length === 0 ? (
-              <p className="text-sm text-astro-text-dim">Nobody holds this one right now.</p>
+              <NothingHere compact body="Nobody holds this one right now." />
             ) : (
               <div className="flex flex-col gap-3">
                 {current.map((s) => (
@@ -402,7 +403,7 @@ export function AwardPage({ awardKey }: { awardKey: string }) {
           <section>
             <h2 className="mb-3 font-display text-[30px] leading-none text-astro-text">Past winners</h2>
             {past.length === 0 ? (
-              <p className="text-sm text-astro-text-dim">No past winners yet. This is where the history starts.</p>
+              <NothingHere compact body="No past winners yet. This is where the history starts." />
             ) : (
               <Timeline>
                 {past.map((s) => (

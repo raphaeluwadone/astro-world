@@ -1,8 +1,10 @@
 import { Link, useNavigate } from '@tanstack/react-router'
+import { cn } from 'cn'
 import { HoverCard } from 'radix-ui'
 import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { isNewBadge, type Badge } from '../api'
-import { TIER_COLOR, TIER_LABEL } from '../definitions'
+import { badgeDef, TIER_COLOR, TIER_LABEL, TIER_LASTS } from '../definitions'
+import { useBadgesByPlayer } from '../hooks'
 
 const GOLD = 'linear-gradient(90deg,#ffe2a1,#f2a93b)'
 
@@ -20,24 +22,62 @@ function timeLeft(b: Badge) {
   return `${days} day${days === 1 ? '' : 's'} left`
 }
 
-/** Opens after a short pause on hover or focus; a tap opens it on touch screens. */
-export function BadgeHoverCard({ badge, children, side = 'bottom' }: { badge: Badge; children: ReactNode; side?: 'bottom' | 'right' | 'top' }) {
+function CurrentHolders({ awardKey }: { awardKey: string }) {
+  const byPlayer = useBadgesByPlayer()
+  const holders = [...byPlayer.values()].flat().filter((b) => b.badge_key === awardKey && b.active)
+  if (holders.length === 0) return <div className="text-xs text-astro-text-dim">Nobody holds it right now.</div>
+  return (
+    <div className="text-xs text-astro-text-muted">
+      <span className="font-bold text-astro-text">Held by </span>
+      {holders.slice(0, 4).map((h, i) => (
+        <span key={h.id}>
+          {i > 0 && ', '}
+          <Link to="/players/$playerId" params={{ playerId: h.player_id }} className="font-bold text-astro-accent-soft hover:underline">
+            {h.nickname}
+          </Link>
+        </span>
+      ))}
+      {holders.length > 4 && ` and ${holders.length - 4} more`}
+    </div>
+  )
+}
+
+/**
+ * About-this-award card. Pass a player's `badge` for their copy of it, or just an `awardKey` for the award itself.
+ * Opens after a short pause on hover or focus; a tap opens it on touch screens.
+ */
+export function BadgeHoverCard({
+  badge,
+  awardKey,
+  children,
+  side = 'bottom',
+  triggerClassName,
+}: {
+  badge?: Badge
+  awardKey?: string
+  children: ReactNode
+  side?: 'bottom' | 'right' | 'top'
+  triggerClassName?: string
+}) {
   const [open, setOpen] = useState(false)
   const pointer = useRef<string>('mouse')
   const navigate = useNavigate()
-  const goToAward = () => navigate({ to: '/awards/$awardKey', params: { awardKey: badge.badge_key } })
-  const color = TIER_COLOR[badge.tier]
-  const isCup = badge.tier === 'cup'
+  const key = badge?.badge_key ?? awardKey ?? ''
+  const def = badge?.def ?? badgeDef(key, null)
+  const tier = badge?.tier ?? def.tier
+  const goToAward = () => navigate({ to: '/awards/$awardKey', params: { awardKey: key } })
+  const color = TIER_COLOR[tier]
+  const isCup = tier === 'cup'
 
   return (
     <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={400} closeDelay={80}>
       <HoverCard.Trigger asChild>
         <span
           tabIndex={0}
-          className="inline-flex rounded-[10px] outline-none focus-visible:ring-2 focus-visible:ring-astro-accent/60"
+          className={cn(triggerClassName ?? 'inline-flex rounded-[10px]', 'outline-none focus-visible:ring-2 focus-visible:ring-astro-accent/60')}
           onPointerDown={(e) => (pointer.current = e.pointerType)}
           role="link"
-          aria-label={`${badge.def.name}: about this award`}
+          aria-label={`${def.name}: about this award`}
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
@@ -66,36 +106,44 @@ export function BadgeHoverCard({ badge, children, side = 'bottom' }: { badge: Ba
         >
           <div className="mb-1 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-[0.14em]" style={{ color: isCup ? '#f7c25e' : color }}>
             <span>
-              {TIER_LABEL[badge.tier]} badge{badge.tiedWith.length > 0 ? ' · joint' : ''}
+              {TIER_LABEL[tier]} badge{badge && badge.tiedWith.length > 0 ? ' · joint' : ''}
             </span>
-            {isNewBadge(badge) && <span className="rounded-full bg-[#ffd23f] px-1.5 py-px text-[9px] tracking-[0.08em] text-[#1a1300]">NEW</span>}
+            {badge && isNewBadge(badge) && <span className="rounded-full bg-[#ffd23f] px-1.5 py-px text-[9px] tracking-[0.08em] text-[#1a1300]">NEW</span>}
           </div>
-          <div className="font-display text-[24px] leading-none text-astro-text">{badge.def.name}</div>
-          <div className="mb-2 mt-1 text-xs text-astro-text-muted">{badge.def.for}</div>
-          {(badge.detail || badge.stat) && (
+          <div className="font-display text-[24px] leading-none text-astro-text">{def.name}</div>
+          <div className="mb-2 mt-1 text-xs text-astro-text-muted">{def.for}</div>
+          {!badge && (
+            <>
+              <div className="mb-2 text-[11px] text-astro-text-dim">Held {TIER_LASTS[tier].toLowerCase()}</div>
+              <CurrentHolders awardKey={key} />
+            </>
+          )}
+          {badge && (badge.detail || badge.stat) && (
             <div className="mb-2 text-[12.5px] text-astro-text">
               {badge.detail}
               {badge.detail && badge.stat ? ' · ' : ''}
               {badge.stat}
             </div>
           )}
-          {badge.active && (
+          {badge?.active && (
             <div className="mb-1.5 h-1 overflow-hidden rounded-full bg-white/[0.08]">
               <div className="h-full" style={{ width: `${Math.round(badge.remaining * 100)}%`, background: isCup ? GOLD : color }} />
             </div>
           )}
-          <div className="flex justify-between text-[11px] text-astro-text-dim">
-            <span>Earned {fmt(badge.liveFrom)}</span>
-            <span>{timeLeft(badge)}</span>
-          </div>
+          {badge && (
+            <div className="flex justify-between text-[11px] text-astro-text-dim">
+              <span>Earned {fmt(badge.liveFrom)}</span>
+              <span>{timeLeft(badge)}</span>
+            </div>
+          )}
           <Link
             to="/awards/$awardKey"
-            params={{ awardKey: badge.badge_key }}
+            params={{ awardKey: key }}
             className="mt-2.5 block text-xs font-bold text-astro-accent-soft hover:underline"
           >
             About this award &rarr;
           </Link>
-          {badge.tiedWith.length > 0 && (
+          {badge && badge.tiedWith.length > 0 && (
             <div className="mt-2.5 border-t border-white/[0.08] pt-2.5 text-xs text-astro-text-muted">
               <span className="font-bold text-astro-text">Shared with </span>
               {badge.tiedWith.slice(0, 4).map((p, i) => (

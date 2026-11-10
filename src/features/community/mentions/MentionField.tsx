@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from '
 import { cn } from 'cn'
 import { useMentionables } from '../hooks'
 import { KindGlyph, mentionText, tierSwatch } from './MentionChip'
-import { SALAMI, SALAMI_CUP, splitTyped, type MentionKind, type Mentionable } from './tokens'
+import { SALAMI, SALAMI_CUP, sigil, splitTyped, type MentionKind, type Mentionable } from './tokens'
 
 const GROUPS: { kind: MentionKind; title: string; max: number }[] = [
   { kind: 'memorial', title: 'In memory', max: 1 },
@@ -126,7 +126,7 @@ export function MentionField({
   function choose(m: Mentionable) {
     if (!query) return
     const end = query.start + 1 + query.q.length
-    const insert = `@${m.label} `
+    const insert = `${sigil(m.kind)}${m.label} `
     onChange(value.slice(0, query.start) + insert + value.slice(end))
     onPickedChange([...picked, m])
     setQuery(null)
@@ -202,7 +202,7 @@ export function MentionField({
             <span key={i}>{part.text}</span>
           ) : (
             <span key={i} className={cn('font-bold', mentionText(part.mention))}>
-              @{part.mention.label}
+              {sigil(part.mention.kind)}{part.mention.label}
             </span>
           ),
         )}
