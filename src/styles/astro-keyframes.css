@@ -155,3 +155,113 @@
 /* Not from the design files: swapping the take on an award page. */
 @keyframes award-take-out { to { opacity: 0; transform: translateY(-6px); filter: blur(4px) } }
 @keyframes award-take-in { from { opacity: 0.001; transform: translateY(10px); filter: blur(5px) } to { opacity: 1; transform: none; filter: none } }
+
+/* Not from the design files: the one-off icon animation in the award hover card, one per award. */
+.ai svg * { transform-box: view-box }
+@media (prefers-reduced-motion: reduce) { .ai-fx { display: none } }
+@keyframes ai-spin-in { 0% { transform: scale(.2) rotate(-140deg); opacity: 0 } 100% { transform: none; opacity: 1 } }
+@keyframes ai-spark { 0%, 100% { transform: scale(0) } 50% { transform: scale(1) } }
+@keyframes ai-spot { 0% { transform: scale(.2); opacity: .9 } 100% { transform: scale(1.6); opacity: 0 } }
+@keyframes ai-rise { 0% { transform: translateY(6px) scale(.7); opacity: 0 } 60% { transform: translateY(-2px) scale(1.08); opacity: 1 } 100% { transform: none } }
+@keyframes ai-shoot { 0% { transform: translate(-18px, 10px) rotate(-90deg); opacity: 0 } 70% { transform: translate(1px, -1px) rotate(8deg); opacity: 1 } 100% { transform: none } }
+@keyframes ai-trail { 0% { transform: translate(-18px, 10px) scaleX(.3); opacity: 0 } 40% { opacity: .8 } 100% { transform: none; opacity: 0 } }
+@keyframes ai-impact { 0%, 40%, 100% { transform: none } 48% { transform: translateX(1.5px) scale(.94) } 60% { transform: translateX(-.5px) } }
+@keyframes ai-deflect { 0% { transform: translate(-14px, -12px); opacity: 1 } 45% { transform: none } 100% { transform: translate(-14px, 10px); opacity: 0 } }
+@keyframes ai-tackle { 0% { transform: translateX(-12px) rotate(-25deg); opacity: 0 } 55% { transform: translateX(2px) rotate(6deg); opacity: 1 } 75% { transform: translateX(-1px) rotate(-2deg) } 100% { transform: none } }
+@keyframes ai-dust { 0% { transform: scale(0); opacity: .8 } 100% { transform: translateX(-4px) scale(1.3); opacity: 0 } }
+@keyframes ai-bullseye { 0% { transform: translate(18px, -16px) scale(1.6); opacity: 0 } 20% { opacity: 1 } 100% { transform: none; opacity: 1 } }
+@keyframes ai-ring { 50% { transform: scale(1.18) } }
+@keyframes ai-thump3 { 0%, 30%, 60% { transform: none } 15%, 45%, 75% { transform: scale(1.2) } 100% { transform: none } }
+@keyframes ai-roll-up { 0% { transform: translateY(22px); opacity: 0 } 100% { transform: none; opacity: 1 } }
+@keyframes ai-reach { 0%, 40% { transform: translateY(3px) } 55% { transform: translateY(-2px) rotate(-8deg) } 100% { transform: none } }
+@keyframes ai-drop-in { 0% { transform: translateY(-16px); opacity: 1 } 50% { transform: none; opacity: 1 } 70%, 100% { transform: translateY(1px); opacity: 0 } }
+@keyframes ai-wipe { 0%, 100% { transform: none } 20%, 60% { transform: translateX(-2.5px) rotate(-12deg) } 40%, 80% { transform: translateX(2.5px) rotate(12deg) } }
+@keyframes ai-crown { 0% { transform: translateY(-16px); opacity: 0 } 55% { transform: rotate(-6deg); opacity: 1 } 75% { transform: rotate(4deg) } 100% { transform: none } }
+@keyframes ai-page { 0% { transform: perspective(40px) rotateX(-90deg) } 100% { transform: none } }
+@keyframes ai-page2 { 0%, 50% { transform: perspective(40px) rotateX(-90deg) } 25%, 100% { transform: none } }
+@keyframes ai-draw { from { stroke-dashoffset: 16 } to { stroke-dashoffset: 0 } }
+@keyframes ai-pulse { 50% { transform: scale(1.08) } }
+@keyframes ai-swing-peg { 0% { transform: rotate(-18deg) } 35% { transform: rotate(12deg) } 65% { transform: rotate(-5deg) } 100% { transform: none } }
+@keyframes ai-sweep { 0% { transform: rotate(-360deg) } 100% { transform: none } }
+@keyframes ai-toss { 0% { transform: none } 25% { transform: scaleX(-1) translateY(-6px) } 50% { transform: translateY(-7px) } 75% { transform: scaleX(-1) translateY(-3px) } 100% { transform: none } }
+@keyframes ai-pop { 0% { transform: scale(0) } 100% { transform: none } }
+@keyframes ai-beat { 0%, 30%, 100% { transform: none } 12% { transform: scale(1.25) } 45% { transform: scale(1.15) } }
+@keyframes ai-fan-l { 0% { transform: rotate(14deg) translateX(4px) } 100% { transform: none } }
+@keyframes ai-fan-r { 0% { transform: rotate(-14deg) translateX(-4px) } 100% { transform: none } }
+@keyframes ai-lift { 0% { transform: none } 30% { transform: translateY(-5px) rotate(-8deg) } 50% { transform: translateY(-5px) rotate(8deg) } 70% { transform: translateY(-4px) rotate(-4deg) } 100% { transform: none } }
+@keyframes ai-kick { 0% { transform: rotate(-28deg) } 40% { transform: rotate(12deg) } 100% { transform: none } }
+@keyframes ai-fly-off { 0% { transform: none; opacity: 1 } 100% { transform: translate(16px, -12px); opacity: 0 } }
+@keyframes ai-keepy-boot { 0%, 50%, 100% { transform: none } 20%, 70% { transform: rotate(-10deg) translateY(-1px) } }
+@keyframes ai-keepy-ball { 0% { transform: translateY(-1px) } 25% { transform: translateY(-11px) } 50% { transform: translateY(-1px) } 75% { transform: translateY(-9px) } 100% { transform: translateY(-1px) } }
+@keyframes ai-pendulum { 0% { transform: rotate(28deg) } 30% { transform: rotate(-18deg) } 55% { transform: rotate(9deg) } 80% { transform: rotate(-3deg) } 100% { transform: none } }
+@keyframes ai-brick { 0% { transform: translateY(-10px); opacity: 0 } 100% { transform: none; opacity: 1 } }
+@keyframes ai-flare { 0% { transform: scale(.5, .3) } 30% { transform: scale(1.05, 1.2) skewX(-4deg) } 55% { transform: scale(.95, 1.05) skewX(4deg) } 80% { transform: scale(1.02, 1.1) } 100% { transform: none } }
+@keyframes ai-stir { 0%, 100% { transform: none } 20%, 60% { transform: rotate(-14deg) } 40%, 80% { transform: rotate(10deg) } }
+@keyframes ai-pass { 0% { transform: translate(-9px, 9px); opacity: 0 } 100% { transform: none; opacity: 1 } }
+@keyframes ai-grow { 0% { transform: scale(0) rotate(-35deg) } 70% { transform: scale(1.1) rotate(4deg) } 100% { transform: none } }
+
+/* Not from the design files: photo placeholders, a quick shimmer while loading and a slow sheen when there's no photo. */
+@keyframes astro-ph-load { 0% { transform: translateX(-100%) } 100% { transform: translateX(100%) } }
+@keyframes astro-ph-idle { 0% { transform: translateX(-100%) } 30%, 100% { transform: translateX(100%) } }
+
+/* Not from the design files: the colour travelling round the memorial link while you're on it. */
+@keyframes astro-memorial-orbit { from { transform: translate(-50%, -50%) rotate(0deg) } to { transform: translate(-50%, -50%) rotate(360deg) } }
+
+/* Heart count surge: blue up through violet and pink to red, a held swell, then back down. */
+@keyframes astro-heart-rise {
+  0% { color: #38bdf8; scale: 1; }
+  20% { color: #5b8cff; }
+  40% { color: #8f6bff; }
+  60% { color: #d14fe0; }
+  80% { color: #ff3a86; }
+  100% { color: #ff1f35; scale: 1.06; }
+}
+@keyframes astro-heart-hold {
+  0%, 100% { color: #ff1f35; scale: 1.06; }
+  50% { color: #ff4458; scale: 1.07; }
+}
+/* The lub-dub on top of the swell, with the glow kicking on each beat. */
+@keyframes astro-heart-pump {
+  0%, 60%, 100% { scale: 1; box-shadow: 0 0 10px color-mix(in srgb, currentColor 25%, transparent); }
+  12% { scale: 1.05; box-shadow: 0 0 22px color-mix(in srgb, currentColor 60%, transparent); }
+  24% { scale: 1; }
+  36% { scale: 1.03; box-shadow: 0 0 16px color-mix(in srgb, currentColor 45%, transparent); }
+}
+@keyframes astro-heart-fall {
+  0% { color: #ff1f35; scale: 1.06; }
+  20% { color: #ff3a86; }
+  40% { color: #d14fe0; }
+  60% { color: #8f6bff; }
+  80% { color: #5b8cff; }
+  100% { color: #38bdf8; scale: 1; }
+}
+@keyframes astro-heart-thump {
+  0%, 60%, 100% { scale: 1; }
+  12% { scale: 1.35; }
+  24% { scale: 1; }
+  36% { scale: 1.2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .astro-heart-pill, .astro-heart-pill * { scale: none !important; }
+}
+
+/* Phones: every drawer drops from the top and covers the screen. */
+@keyframes astro-drawer-in { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes astro-drawer-out { from { transform: translateY(0); } to { transform: translateY(-100%); } }
+.astro-drawer-top { animation: astro-drawer-in 280ms cubic-bezier(.2,.8,.2,1) both; }
+.astro-drawer-top[data-state='closed'] { animation: astro-drawer-out 200ms ease-in both; }
+@media (max-width: 767px) {
+  [data-slot='sheet-content'] {
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    border: 0 !important;
+    padding-top: env(safe-area-inset-top);
+    animation: astro-drawer-in 280ms cubic-bezier(.2,.8,.2,1) both !important;
+  }
+  [data-slot='sheet-content'][data-state='closed'] { animation: astro-drawer-out 200ms ease-in both !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .astro-drawer-top, [data-slot='sheet-content'] { animation-duration: 1ms !important; }
+}

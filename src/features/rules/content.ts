@@ -13,7 +13,7 @@ export const RULE_GLANCE_STATIC: Array<{ k: string; v: string }> = [
   { k: 'Monthly ten', v: '1st, 08:00' },
   { k: 'Weekly ballot', v: '20 spots' },
   { k: 'Sides', v: '5 × 6' },
-  { k: 'Self-set tags', v: '2 max' },
+  { k: 'Self-set traits', v: '2 max' },
   { k: 'Salami Cup', v: 'Quarterly' },
 ]
 
@@ -160,11 +160,11 @@ export const RULE_SECTIONS: RuleSection[] = [
   },
   {
     n: '06',
-    title: 'PROFILE & TAGS',
+    title: 'PROFILE & TRAITS',
     items: [
-      { k: '6.1', text: 'You set your nickname, real name, positions, foot, bio, photo and up to two tags.' },
-      { k: '6.2', text: 'Rating, stats, achievements, jersey number and community tags are earned, not set.' },
-      { k: '6.3', text: 'Anyone can invent a tag. Three votes and it shows on the card.' },
+      { k: '6.1', text: 'You set your nickname, real name, positions, foot, bio, photo and up to two traits.' },
+      { k: '6.2', text: 'Rating, stats, achievements, jersey number and traits from the group are earned, not set.' },
+      { k: '6.3', text: 'Anyone can invent a trait. Three votes and it joins the pool, and three votes on a player puts it on their card.' },
       {
         k: '6.4',
         text: '“I am him” is your own claim, three at most. “You are him” belongs to the group.',

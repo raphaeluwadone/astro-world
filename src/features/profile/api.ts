@@ -274,13 +274,18 @@ export async function createComparison(params: {
   source: Database['public']['Enums']['comparison_source']
   createdBy: string
 }) {
-  const { error } = await supabase.from('player_comparisons').insert({
-    player_id: params.playerId,
-    pro_player_id: params.proPlayerId,
-    source: params.source,
-    created_by: params.createdBy,
-  })
+  const { data, error } = await supabase
+    .from('player_comparisons')
+    .insert({
+      player_id: params.playerId,
+      pro_player_id: params.proPlayerId,
+      source: params.source,
+      created_by: params.createdBy,
+    })
+    .select('id')
+    .single()
   if (error) throw error
+  return data.id
 }
 
 export async function removeComparison(comparisonId: string) {

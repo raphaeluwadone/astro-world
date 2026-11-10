@@ -2,10 +2,11 @@ import { cn } from 'cn'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
-import { PostContent } from '@/features/community/mentions/MentionChip'
+import { RichText } from '@/components/editor/RichText'
 import { REACTIONS, type HonoursPost, type ReactionKey } from '../api'
 import { useDeleteHonoursPost, useSetHonoursPin, useToggleReaction } from '../hooks'
 import { HonoursComposer } from './HonoursComposer'
+import { PlayerHoverCard } from '@/components/hover/InfoCards'
 
 const EMOJI = Object.fromEntries(REACTIONS.map((r) => [r.key, r])) as Record<ReactionKey, (typeof REACTIONS)[number]>
 
@@ -143,14 +144,18 @@ export function HonoursPostCard({ post, playerId, isAdmin }: { post: HonoursPost
       )}
       <div className="mb-2 flex items-center gap-2 pr-16 text-xs text-astro-text-dim">
         <span className="size-[22px] rounded-[7px]" style={{ background: 'linear-gradient(140deg, #2c3c74, #182448)' }} />
-        <span className="font-bold text-astro-text-muted">{post.author?.nickname ?? 'Admin'}</span>
+        {post.author ? (
+          <PlayerHoverCard playerId={post.author.id} name={post.author.nickname} className="font-bold text-astro-text-muted hover:text-astro-text hover:underline">
+            {post.author.nickname}
+          </PlayerHoverCard>
+        ) : (
+          <span className="font-bold text-astro-text-muted">Admin</span>
+        )}
         <BadgeMark playerId={post.author?.id} size={13} showExtra={false} />
         <span>· {shortDate(post.created_at)}</span>
       </div>
       <h3 className="mb-2 font-display text-[32px] leading-[0.95] text-astro-text [text-wrap:balance]">{post.title}</h3>
-      <p className="mb-3.5 whitespace-pre-line text-[14.5px] leading-[1.55] text-[#d7dcef] [text-wrap:pretty]">
-        <PostContent content={post.content} />
-      </p>
+      <RichText content={post.content} className="mb-3.5 text-[14.5px] leading-[1.55] text-[#d7dcef] [text-wrap:pretty]" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Reactions post={post} playerId={playerId} />
         {isAdmin && <AdminActions post={post} onEdit={() => setEditing(true)} />}

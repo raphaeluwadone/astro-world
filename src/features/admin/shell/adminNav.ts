@@ -90,6 +90,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       {
         id: 'articles',
         label: 'Articles',
+        to: '/admin/articles',
         icon: 'M3.2 3.4h13.2l4.4 4.4v12.8H3.2Zm2.4 2.4v12.4h12.8V9.2h-3.6V5.8Zm1.8 4.2h5.4v1.9H7.4Zm0 3.6h9.2v1.9H7.4Z',
         iconEvenOdd: true,
       },

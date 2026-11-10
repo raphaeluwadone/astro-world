@@ -11,8 +11,7 @@ export function MobileNavDrawer({ open, onOpenChange }: { open: boolean; onOpenC
           style={{ animation: 'md-backdrop 200ms ease both' }}
         />
         <DialogPrimitive.Content
-          className="fixed inset-y-0 left-0 z-[90] flex w-[82%] max-w-80 flex-col gap-[22px] overflow-y-auto border-r border-border bg-astro-surface px-4 pt-[26px] pb-[30px] outline-none md:hidden"
-          style={{ animation: 'md-drawer 260ms cubic-bezier(.2,.8,.2,1) both' }}
+          className="astro-drawer-top fixed inset-0 z-[90] flex h-dvh w-full flex-col gap-[22px] overflow-y-auto bg-astro-surface px-4 pb-[30px] pt-[calc(26px+env(safe-area-inset-top))] outline-none md:hidden"
         >
           <DialogPrimitive.Title className="sr-only">Navigation</DialogPrimitive.Title>
           <DialogPrimitive.Close className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full text-astro-text-muted hover:bg-astro-surface-2 hover:text-astro-text">

@@ -141,7 +141,7 @@ export function EditProfilePage() {
               { label: 'Goals / assists', why: 'Logged from the matchday record.', value: `${careerStats?.goals ?? 0} / ${careerStats?.assists ?? 0}` },
               { label: 'Man of the Match', why: 'Voted by the group, tallied per matchday.', value: (careerStats?.motm ?? 0).toString() },
               {
-                label: 'Community tags',
+                label: 'Traits from the group',
                 why: 'Voted onto you by the group.',
                 value: communityTags.length > 0 ? communityTags.map((t) => t.label).join(', ') : 'None yet',
               },

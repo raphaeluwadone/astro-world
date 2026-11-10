@@ -17,6 +17,7 @@ const UNITS: Record<string, [string, string]> = {
   'most-capped': ['appearance', 'appearances'],
 }
 const YEAR_ROWS = 4
+const PHONE_ROWS = 3
 
 function amount(key: string, v: number) {
   if (RATING_KEYS.has(key)) return `${v.toFixed(2)} avg`
@@ -47,7 +48,7 @@ function status(r: AwardRaceRow): { text: string; tone: 'lead' | 'chase' | 'open
   return { text: `${gap} behind ${leaderName}`, tone: 'chase' }
 }
 
-function RaceRow({ row }: { row: AwardRaceRow }) {
+function RaceRow({ row, phoneHidden }: { row: AwardRaceRow; phoneHidden?: boolean }) {
   const def = badgeDef(row.badge_key, null)
   const color = TIER_COLOR[def.tier]
   const s = status(row)
@@ -56,7 +57,7 @@ function RaceRow({ row }: { row: AwardRaceRow }) {
     <Link
       to="/awards/$awardKey"
       params={{ awardKey: row.badge_key }}
-      className="group flex items-center gap-3 rounded-xl px-2 py-2 no-underline transition-colors hover:bg-white/[0.04]"
+      className={cn('group flex items-center gap-3 rounded-xl px-2 py-2 no-underline transition-colors hover:bg-white/[0.04]', phoneHidden && 'max-md:hidden')}
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px]" style={{ background: color, color: '#0a0f1f' }}>
         <BadgeIcon name={def.icon} className="size-[18px]" />
@@ -96,20 +97,20 @@ export function AwardRaceCard({ race }: { race: AwardRaceRow[] }) {
   const monthStarted = month.some((r) => r.contenders > 0)
 
   return (
-    <section className="astro-card p-5 md:p-6">
+    <section className="@container astro-card p-5 md:p-6">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-display text-[26px] leading-none text-astro-text">Race for the awards</h2>
         <Link to="/awards" className="text-[12.5px] font-bold text-astro-accent-soft no-underline hover:underline">
           All awards &rarr;
         </Link>
       </div>
-      <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+      <div className="grid gap-x-6 gap-y-4 @2xl:grid-cols-2">
         <div>
           <div className="mb-1 px-2 text-[10.5px] font-extrabold uppercase tracking-[0.14em]" style={{ color: TIER_COLOR.month }}>
             {monthName}
           </div>
           {monthStarted ? (
-            month.map((r) => <RaceRow key={r.badge_key} row={r} />)
+            month.map((r, i) => <RaceRow key={r.badge_key} row={r} phoneHidden={i >= PHONE_ROWS} />)
           ) : (
             <p className="px-2 py-3 text-[13px] leading-relaxed text-astro-text-muted">
               No games yet in {monthName}. Golden Boot, Playmaker, Golden Glove and Player of the Month are all up for grabs.
@@ -121,7 +122,7 @@ export function AwardRaceCard({ race }: { race: AwardRaceRow[] }) {
             {new Date().getFullYear()} titles, closest for you
           </div>
           {year.length > 0 ? (
-            year.map((r) => <RaceRow key={r.badge_key} row={r} />)
+            year.map((r, i) => <RaceRow key={r.badge_key} row={r} phoneHidden={i >= PHONE_ROWS} />)
           ) : (
             <p className="px-2 py-3 text-[13px] text-astro-text-muted">The yearly races start with the first game of the year.</p>
           )}

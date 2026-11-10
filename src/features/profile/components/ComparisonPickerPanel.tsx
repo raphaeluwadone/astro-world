@@ -24,6 +24,7 @@ export function ComparisonPickerPanel({
   subjectNickname,
   ownSelfClaims,
   onClose,
+  onPicked,
 }: {
   source: 'self' | 'community'
   playerId: string
@@ -31,6 +32,7 @@ export function ComparisonPickerPanel({
   subjectNickname: string
   ownSelfClaims: ComparisonRow[]
   onClose: () => void
+  onPicked?: (comparisonId: string, proName: string) => void
 }) {
   const [query, setQuery] = useState('')
   // The account's API-Football plan allows 100 requests/day: a search
@@ -52,13 +54,21 @@ export function ComparisonPickerPanel({
         : "Pick a pro. The group gets a say on whether you're dreaming."
       : 'Your pick, not his. Everyone else votes on whether you got it right.'
 
-  function pick(proPlayerId: string) {
+  function pick(proPlayerId: string, proName: string) {
     // Real stats land before the comparison exists, not after: fetch
     // them first so the card never shows blank apps/goals/assists for a
     // player the search already found.
     refreshStats.mutate(proPlayerId, {
       onSettled: () => {
-        createComparison.mutate({ proPlayerId, source, createdBy }, { onSuccess: onClose })
+        createComparison.mutate(
+          { proPlayerId, source, createdBy },
+          {
+            onSuccess: (id) => {
+              onPicked?.(id, proName)
+              onClose()
+            },
+          },
+        )
       },
     })
   }
@@ -128,7 +138,7 @@ export function ComparisonPickerPanel({
                   key={p.id}
                   type="button"
                   disabled={picking || !!cooldown}
-                  onClick={() => pick(p.id)}
+                  onClick={() => pick(p.id, p.name)}
                   className="flex items-center gap-3 rounded-xl bg-astro-surface-2 px-4 py-3 text-left hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {p.photo_url ? (

@@ -42,7 +42,7 @@ export function QuickLinks({
   const dueInDays = dues ? Math.ceil((new Date(dues.due_date).getTime() - Date.now()) / DAY_MS) : 0
 
   return (
-    <div className="mb-5 flex flex-wrap gap-2.5 md:hidden">
+    <div className="flex flex-wrap gap-2.5">
       <Tile to="/players" label="Players" cta={rosterSize != null ? `Browse ${rosterSize}` : 'Browse'} />
       <Tile to="/articles" label="Articles" cta={newArticles > 0 ? `${newArticles} new` : 'Read'} />
       <Tile to="/rules" label="Rules" cta={isRuleChangeRecent() ? 'Amended' : 'Read'} />

@@ -1,10 +1,10 @@
-import { Link } from '@tanstack/react-router'
 import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { BadgeSquare, periodLabel } from '@/features/badges/components/BadgePatch'
 import { useAllPlayers } from '@/features/kitty/hooks'
 import type { ClubMoment } from '../api'
 import { momentTitle, type BadgeDrop } from '../feed'
 import { shortDate } from './HonoursPostCard'
+import { PlayerHoverCard } from '@/components/hover/InfoCards'
 
 function Names({ drop }: { drop: BadgeDrop }) {
   const shown = drop.badges.slice(0, 3)
@@ -14,9 +14,9 @@ function Names({ drop }: { drop: BadgeDrop }) {
       {shown.map((b, i) => (
         <span key={b.id}>
           {i > 0 && (i === shown.length - 1 && rest === 0 ? ' and ' : ', ')}
-          <Link to="/players/$playerId" params={{ playerId: b.player_id }} className="font-bold text-astro-text-muted hover:text-astro-text hover:underline">
+          <PlayerHoverCard playerId={b.player_id} name={b.nickname} className="font-bold text-astro-text-muted hover:text-astro-text hover:underline">
             {b.nickname}
-          </Link>
+          </PlayerHoverCard>
         </span>
       ))}
       {rest > 0 && ` and ${rest} more`}
@@ -60,9 +60,9 @@ export function MomentRow({ moment, names }: { moment: ClubMoment; names: Map<st
       <div className="min-w-0">
         <div className="font-display text-[22px] leading-none text-astro-text">
           {moment.player_id ? (
-            <Link to="/players/$playerId" params={{ playerId: moment.player_id }} className="hover:underline">
+            <PlayerHoverCard playerId={moment.player_id} name={String(title)} className="hover:underline">
               {title}
-            </Link>
+            </PlayerHoverCard>
           ) : (
             title
           )}

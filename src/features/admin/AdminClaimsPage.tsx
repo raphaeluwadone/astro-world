@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import type { PendingClaimRow } from './api'
+import { MembersTabs } from './members/MembersTabs'
 import { useApproveClaim, usePendingClaims, useRejectClaim } from './hooks'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -26,11 +27,12 @@ export function AdminClaimsPage() {
       <h1 className="mb-1.5 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
         Record claims
       </h1>
-      <p className="mb-6 max-w-lg text-sm text-astro-text-muted">
+      <p className="mb-5 max-w-lg text-sm text-astro-text-muted">
         Records hold ratings other people voted for, so a claim on one waits here until an admin
         confirms it's genuinely that person. Rejecting keeps their account; they just start as a new
         player.
       </p>
+      <MembersTabs />
 
       {isLoading ? (
         <PageLoader />

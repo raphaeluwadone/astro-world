@@ -103,24 +103,7 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         )}
 
-        <Link
-          to="/memorial"
-          onClick={onNavigate}
-          className="flex items-center gap-2.5 rounded-[11px] px-2 py-2.5 no-underline hover:bg-[rgba(166,63,255,0.07)]"
-        >
-          <div
-            className="flex size-7 shrink-0 items-center justify-center rounded-[8px] border border-[rgba(166,63,255,0.4)] bg-astro-surface-2 font-display text-[15px] text-astro-accent-soft"
-            style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
-          >
-            13
-          </div>
-          <div className="min-w-0">
-            <div className="text-[9.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
-              In memory
-            </div>
-            <div className="text-[12.5px] font-extrabold text-astro-text-muted">Salami</div>
-          </div>
-        </Link>
+        <MemorialLink active={pathname.startsWith('/memorial')} onNavigate={onNavigate} />
 
         {matchday && (
           <div className="rounded-[14px] border border-[rgba(166,63,255,0.22)] bg-astro-surface-2 p-3.5">
@@ -139,5 +122,59 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </div>
     </>
+  )
+}
+
+function MemorialLink({ active, onNavigate }: { active: boolean; onNavigate?: () => void }) {
+  const inner = (
+    <>
+      <div
+        className={cn(
+          'flex size-7 shrink-0 items-center justify-center rounded-[8px] border font-display text-[15px] transition-colors',
+          active
+            ? 'border-[#e8ecfa]/70 bg-[linear-gradient(150deg,#2b3a6e,#18234a)] text-[#f3f5ff] shadow-[0_0_14px_rgba(203,213,245,0.35)]'
+            : 'border-[rgba(166,63,255,0.4)] bg-astro-surface-2 text-astro-accent-soft',
+        )}
+        style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
+      >
+        13
+      </div>
+      <div className="min-w-0">
+        <div className={cn('text-[9.5px] font-extrabold uppercase tracking-[0.13em]', active ? 'text-[#cbd5f5]' : 'text-astro-text-dim')}>In memory</div>
+        <div className={cn('text-[12.5px] font-extrabold', active ? 'text-astro-text' : 'text-astro-text-muted')}>Salami</div>
+      </div>
+    </>
+  )
+
+  return (
+    <Link
+      to="/memorial"
+      onClick={onNavigate}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'relative block overflow-hidden rounded-[12px] no-underline',
+        active ? 'p-[1.5px]' : 'p-px hover:bg-[rgba(166,63,255,0.07)]',
+      )}
+    >
+      {active && (
+        <span
+          aria-hidden="true"
+          className="absolute left-1/2 top-1/2 aspect-square w-[160%]"
+          style={{
+            background: 'conic-gradient(from 0deg, transparent 0 55%, #a63fff 70%, #e8ecfa 82%, #38bdf8 92%, transparent 100%)',
+            transform: 'translate(-50%, -50%)',
+            animation: 'astro-memorial-orbit 3.2s linear infinite',
+          }}
+        />
+      )}
+      <span
+        className={cn(
+          'relative flex items-center gap-2.5 rounded-[11px] px-2 py-2.5',
+          active && 'bg-[linear-gradient(120deg,#1d2a55,#141d3c)] shadow-[inset_0_0_0_1px_rgba(203,213,245,0.12)]',
+        )}
+      >
+        {inner}
+      </span>
+    </Link>
   )
 }

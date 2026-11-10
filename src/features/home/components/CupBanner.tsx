@@ -24,7 +24,7 @@ function countdownTitle(days: number) {
   return `The Salami Cup is in ${days} days`
 }
 
-function eyebrow(cup: CupQuarter) {
+export function cupEyebrow(cup: CupQuarter) {
   if (cup.status === 'live') return `${cup.label} · live now`
   if (cup.status === 'drawn') return `${cup.label} · squads are up`
   if (new Date(cup.entries_close_at) > new Date()) {
@@ -34,9 +34,12 @@ function eyebrow(cup: CupQuarter) {
   return `${cup.label} · entries closed`
 }
 
+export function cupCountdownTitle(cup: CupQuarter) {
+  return cup.status === 'live' ? 'The Salami Cup is on' : countdownTitle(daysUntil(cup.scheduled_at))
+}
+
 /** Shown on Home only while a cup is open, drawn or live. */
 export function CupBanner({ cup }: { cup: CupQuarter }) {
-  const live = cup.status === 'live'
   const when = new Date(cup.scheduled_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 
   return (
@@ -68,10 +71,10 @@ export function CupBanner({ cup }: { cup: CupQuarter }) {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="#f2a93b" aria-hidden="true">
               <path d="M7.2 2.8h9.6v5.4a4.8 4.8 0 1 1-9.6 0ZM10.6 14h2.8v3.2h3.2V21H7.4v-3.8h3.2Z" />
             </svg>
-            <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-amber">{eyebrow(cup)}</div>
+            <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-amber">{cupEyebrow(cup)}</div>
           </div>
           <div className="font-display mb-1.5 text-[32px] leading-none text-astro-text md:text-[38px]">
-            {live ? 'The Salami Cup is on' : countdownTitle(daysUntil(cup.scheduled_at))}
+            {cupCountdownTitle(cup)}
           </div>
           <p className="max-w-[58ch] text-sm text-astro-text-muted [text-wrap:pretty]">
             {when}

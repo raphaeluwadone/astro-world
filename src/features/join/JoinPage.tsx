@@ -279,7 +279,7 @@ export function JoinPage() {
           <h1 className="mb-2.5 font-display text-[46px] leading-[0.95] text-astro-text">THIS IS YOUR RECORD</h1>
           <p className="mb-6 text-[14.5px] leading-[1.6] text-astro-text-muted [text-wrap:pretty]">
             Everything the group has voted about you since you started. Claiming it means it becomes
-            yours: ratings, tags, the lot.
+            yours: ratings, traits, the lot.
           </p>
 
           <div

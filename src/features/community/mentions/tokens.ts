@@ -32,9 +32,7 @@ export function parseContent(content: string): ContentPart[] {
   return parts
 }
 
-export function plainText(content: string) {
-  return content.replace(TOKEN, (_, label: string, kind: MentionKind) => `${sigil(kind)}${label}`)
-}
+export { toPlainText as plainText } from '@/components/editor/markdown'
 
 /** Splits typed text into plain runs and picked "@Label"s; longest label wins, so "@Salami Cup" beats "@Salami". */
 export function splitTyped(text: string, picked: Mentionable[]): ContentPart[] {

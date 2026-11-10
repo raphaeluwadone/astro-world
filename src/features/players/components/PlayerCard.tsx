@@ -62,7 +62,7 @@ export function PlayerCard({ player }: { player: PlayerCardRow }) {
         )}
         {player.tags.length > 0 && (
           <div className="flex flex-wrap gap-[5px]">
-            {player.tags.map((t) => (
+            {player.tags.slice(0, 2).map((t) => (
               <span
                 key={t}
                 className="rounded-md border border-border bg-astro-surface-2 px-2 py-1 text-[10.5px] font-bold text-astro-text-muted"

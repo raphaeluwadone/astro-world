@@ -49,8 +49,42 @@ export type Database = {
         }
         Relationships: []
       }
+      article_writers: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          player_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          player_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_writers_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_writers_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
+          author_id: string | null
           body: string
           cover_image_url: string | null
           created_at: string
@@ -58,8 +92,10 @@ export type Database = {
           kicker: string | null
           published_at: string | null
           title: string
+          updated_at: string
         }
         Insert: {
+          author_id?: string | null
           body: string
           cover_image_url?: string | null
           created_at?: string
@@ -67,8 +103,10 @@ export type Database = {
           kicker?: string | null
           published_at?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
+          author_id?: string | null
           body?: string
           cover_image_url?: string | null
           created_at?: string
@@ -76,8 +114,17 @@ export type Database = {
           kicker?: string | null
           published_at?: string | null
           title?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       availability: {
         Row: {
@@ -1283,6 +1330,8 @@ export type Database = {
           instagram_handle: string | null
           is_admin: boolean
           joined_at: string
+          left_at: string | null
+          left_by: string | null
           legacy_appearances: number
           legacy_assists: number
           legacy_clean_sheets: number
@@ -1315,6 +1364,8 @@ export type Database = {
           instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
+          left_at?: string | null
+          left_by?: string | null
           legacy_appearances?: number
           legacy_assists?: number
           legacy_clean_sheets?: number
@@ -1347,6 +1398,8 @@ export type Database = {
           instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
+          left_at?: string | null
+          left_by?: string | null
           legacy_appearances?: number
           legacy_assists?: number
           legacy_clean_sheets?: number
@@ -1365,7 +1418,15 @@ export type Database = {
           user_id?: string | null
           weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "players_left_by_fkey"
+            columns: ["left_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_dislikes: {
         Row: {
@@ -1876,6 +1937,7 @@ export type Database = {
         Args: { object_name: string }
         Returns: boolean
       }
+      can_write_articles: { Args: never; Returns: boolean }
       cause_contributors: {
         Args: { p_cause_id: string }
         Returns: {
@@ -2037,6 +2099,7 @@ export type Database = {
         Args: { p_pinned: boolean; p_post_id: string }
         Returns: undefined
       }
+      trait_hearts: { Args: { p_player: string }; Returns: number }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
       weekly_spots_remaining: {
         Args: { p_matchday_id: string }

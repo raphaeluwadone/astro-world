@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { InlineLoader } from '@/components/states/InlineLoader'
 import { useCurrentPlayer } from '@/features/auth/useSession'
-import { MentionField, taggedIn } from '../mentions/MentionField'
+import { RichEditor } from '@/components/editor/RichEditor'
+import { mentionsIn } from '@/components/editor/markdown'
 import type { Mentionable } from '../mentions/tokens'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
@@ -16,30 +17,29 @@ export function PostComposer({
 }) {
   const { player } = useCurrentPlayer()
   const [content, setContent] = useState('')
-  const [picked, setPicked] = useState<Mentionable[]>([])
 
   function submit() {
     const trimmed = content.trim()
-    if (!trimmed) return
-    onSubmit(trimmed, taggedIn(content, picked))
+    if (!trimmed || disabled || isSubmitting) return
+    onSubmit(trimmed, mentionsIn(trimmed))
     setContent('')
-    setPicked([])
   }
 
   return (
     <div className="astro-card relative px-[18px] py-4">
-      <div className="flex items-center gap-3">
-        <PlayerPhoto playerId={player?.id} alt="" className="size-[38px] rounded-[10px]" />
-        <MentionField
+      <div className="flex items-start gap-3">
+        <PlayerPhoto playerId={player?.id} alt="" className="size-[38px] shrink-0 rounded-[10px]" />
+        <RichEditor
           value={content}
           onChange={setContent}
-          picked={picked}
-          onPickedChange={setPicked}
-          onEnter={submit}
+          enterSubmits
+          onSubmit={submit}
+          toolbar="focus"
           disabled={disabled}
           placeholder="Say something regrettable… type @ to tag"
           aria-label="Write a post"
-          className="text-sm"
+          className="self-center"
+          contentClassName="py-2 text-sm text-astro-text"
         />
         <button
           type="button"

@@ -4,11 +4,11 @@ import { useMentionables } from '../hooks'
 import { KindGlyph, mentionText, tierSwatch } from './MentionChip'
 import { SALAMI, SALAMI_CUP, sigil, splitTyped, type MentionKind, type Mentionable } from './tokens'
 
-const GROUPS: { kind: MentionKind; title: string; max: number }[] = [
+export const GROUPS: { kind: MentionKind; title: string; max: number }[] = [
   { kind: 'memorial', title: 'In memory', max: 1 },
   { kind: 'cup', title: 'Competitions', max: 1 },
   { kind: 'player', title: 'Players', max: 6 },
-  { kind: 'tag', title: 'Tags', max: 4 },
+  { kind: 'tag', title: 'Traits', max: 4 },
   { kind: 'achievement', title: 'Badges', max: 4 },
 ]
 
@@ -27,7 +27,7 @@ function score(m: Mentionable, q: string) {
   return -1
 }
 
-function filter(all: Mentionable[], q: string) {
+export function filter(all: Mentionable[], q: string) {
   const query = q.toLowerCase()
   return GROUPS.flatMap((g) =>
     all

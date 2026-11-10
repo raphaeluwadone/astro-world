@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { MENTIONABLE_BADGES, TIER_LABEL } from '@/features/badges/definitions'
-import { encodeMentions, type Mentionable } from './mentions/tokens'
+import { mentionsIn } from '@/components/editor/markdown'
+import type { Mentionable } from './mentions/tokens'
 
 export interface PostRow {
   id: string
@@ -96,8 +97,8 @@ export async function fetchPost(postId: string, currentPlayerId: string | null):
   return post
 }
 
-export async function createPost(authorId: string, text: string, picked: Mentionable[]) {
-  const { content, mentions } = encodeMentions(text, picked)
+export async function createPost(authorId: string, content: string) {
+  const mentions = mentionsIn(content)
   const { data, error } = await supabase.from('posts').insert({ author_id: authorId, content }).select('id').single()
   if (error) throw error
   const playerIds = [...new Set(mentions.filter((m) => m.kind === 'player').map((m) => m.ref))]
@@ -111,7 +112,7 @@ export async function createPost(authorId: string, text: string, picked: Mention
 
 export async function fetchMentionables(): Promise<Mentionable[]> {
   const [players, tags, awards] = await Promise.all([
-    supabase.from('players').select('id, nickname, full_name').order('nickname'),
+    supabase.from('players').select('id, nickname, full_name').is('left_at', null).order('nickname'),
     supabase.from('tags').select('id, label').eq('is_approved', true).order('label'),
     supabase.from('monthly_awards').select('award_name'),
   ])
@@ -198,4 +199,63 @@ export async function fetchTagPool(): Promise<TagPoolRow[]> {
     .order('label', { ascending: true })
   if (error) throw error
   return data ?? []
+}
+
+export interface PendingTrait {
+  id: string
+  label: string
+  votes: number
+  votedByMe: boolean
+  mine: boolean
+}
+
+export async function fetchPendingTraits(viewerId: string | null): Promise<PendingTrait[]> {
+  const { data, error } = await supabase
+    .from('tags')
+    .select('id, label, created_by, tag_creation_votes (voter_id)')
+    .eq('is_approved', false)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map((t) => {
+    const voters = (t.tag_creation_votes ?? []).map((v) => v.voter_id)
+    return { id: t.id, label: t.label, votes: voters.length, votedByMe: !!viewerId && voters.includes(viewerId), mine: t.created_by === viewerId }
+  })
+}
+
+export async function inventTrait(label: string, createdBy: string) {
+  const { error } = await supabase.from('tags').insert({ label: label.trim(), created_by: createdBy })
+  if (error) throw error
+}
+
+export async function setTraitVote(tagId: string, voterId: string, on: boolean) {
+  const { error } = on
+    ? await supabase.from('tag_creation_votes').insert({ tag_id: tagId, voter_id: voterId })
+    : await supabase.from('tag_creation_votes').delete().eq('tag_id', tagId).eq('voter_id', voterId)
+  if (error) throw error
+}
+
+export interface PlayerTraitVotes {
+  tagId: string
+  votes: number
+  votedByMe: boolean
+}
+
+export async function fetchPlayerTraitVotes(playerId: string, viewerId: string | null): Promise<PlayerTraitVotes[]> {
+  const { data, error } = await supabase.from('player_tag_votes').select('tag_id, voter_id').eq('player_id', playerId)
+  if (error) throw error
+  const byTag = new Map<string, PlayerTraitVotes>()
+  for (const v of data ?? []) {
+    const row = byTag.get(v.tag_id) ?? { tagId: v.tag_id, votes: 0, votedByMe: false }
+    row.votes += 1
+    if (v.voter_id === viewerId) row.votedByMe = true
+    byTag.set(v.tag_id, row)
+  }
+  return [...byTag.values()]
+}
+
+export async function setPlayerTraitVote(playerId: string, tagId: string, voterId: string, on: boolean) {
+  const { error } = on
+    ? await supabase.from('player_tag_votes').insert({ player_id: playerId, tag_id: tagId, voter_id: voterId })
+    : await supabase.from('player_tag_votes').delete().eq('player_id', playerId).eq('tag_id', tagId).eq('voter_id', voterId)
+  if (error) throw error
 }

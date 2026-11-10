@@ -37,7 +37,7 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
   { label: 'Salami Cup', to: '/salami-cup', icon: SalamiCupIcon },
   { label: 'Community', to: '/community', icon: CommunityIcon },
   { label: 'Honours', to: '/honours', icon: HonoursIcon, children: [{ label: 'Awards', to: '/awards' }] },
-  { label: 'Players', to: '/players', icon: PlayersIcon },
+  { label: 'Players', to: '/players', icon: PlayersIcon, children: [{ label: 'He Is Him', to: '/him' }] },
   { label: 'Rankings', to: '/rankings', icon: RankingsIcon },
   { label: 'Predictions', to: '/predictions', icon: PredictionsIcon, disabled: true },
   { label: 'Articles', to: '/articles', icon: ArticlesIcon },

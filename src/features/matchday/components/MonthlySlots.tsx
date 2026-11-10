@@ -1,4 +1,5 @@
 import type { AvailabilityRow, MonthlyMemberRow } from '../api'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 const MAX_MONTHLY_SLOTS = 10
 
@@ -39,10 +40,7 @@ export function MonthlySlots({
         <div className="mb-3.5 flex flex-col gap-1.5">
           {members.map((m) => (
             <div key={m.player_id} className="flex items-center gap-2.5 rounded-lg bg-astro-surface-2 px-3 py-2">
-              <div
-                className="size-7 shrink-0 rounded-lg"
-                style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
-              />
+              <PlayerPhoto playerId={m.player_id} alt="" className="size-7 rounded-lg" />
               <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-astro-text">{m.players.nickname}</span>
               {outThisWeek.has(m.player_id) && (
                 <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-[0.06em] text-astro-red">

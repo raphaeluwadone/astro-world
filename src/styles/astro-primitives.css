@@ -145,3 +145,18 @@
 }
 .astro-nav__sub:hover { color: #eef0f9; background: rgba(255,255,255,0.045); }
 .astro-nav__sub--active { color: #eef0f9; font-weight: 800; border-left-color: #a63fff; background: linear-gradient(90deg,rgba(166,63,255,0.16),rgba(166,63,255,0.02)); }
+
+/* ---- rich editor (TipTap) ---- */
+.astro-editor .tiptap { outline: none; min-height: 1.5em; overflow-wrap: anywhere; }
+.astro-editor .tiptap > * + * { margin-top: 0.5em; }
+.astro-editor .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: #6d7496; }
+.astro-editor .tiptap ul { list-style: disc; padding-left: 1.25em; }
+.astro-editor .tiptap ol { list-style: decimal; padding-left: 1.25em; }
+.astro-editor .tiptap li::marker { color: #a63fff; }
+.astro-editor .tiptap a { color: #c589ff; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.astro-editor .tiptap strong { font-weight: 800; }
+.astro-editor .tiptap h2 { font-family: "Bebas Neue", sans-serif; font-size: 28px; line-height: 1; margin-top: 0.8em; }
+.astro-editor .tiptap h3 { font-size: 17px; font-weight: 800; margin-top: 0.6em; }
+.astro-editor .tiptap blockquote { border-left: 3px solid rgba(166,63,255,0.6); padding-left: 1em; font-style: italic; color: #d7dcef; }
+.astro-editor .tiptap img { max-width: 100%; border-radius: 12px; }
+.astro-editor .tiptap img.ProseMirror-selectednode { outline: 2px solid #a63fff; }

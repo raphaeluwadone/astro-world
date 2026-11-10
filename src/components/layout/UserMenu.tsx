@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +10,12 @@ import {
 import { signOut } from '@/features/auth/api'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { NotificationBell } from '@/features/notifications/NotificationBell'
+import { useUnreadCount } from '@/features/notifications/hooks'
 
 export function UserMenu() {
   const { player } = useCurrentPlayer()
   const navigate = useNavigate()
+  const unread = useUnreadCount()
 
   const handleSignOut = async () => {
     await signOut()
@@ -39,6 +41,18 @@ export function UserMenu() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuLabel>{player?.full_name}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/profile">Profile</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/notifications" className="flex justify-between">
+              Notifications
+              {unread > 0 && (
+                <span className="rounded-full bg-astro-accent px-1.5 text-[10.5px] font-extrabold leading-[17px] text-white">{unread > 9 ? '9+' : unread}</span>
+              )}
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
         </DropdownMenuContent>

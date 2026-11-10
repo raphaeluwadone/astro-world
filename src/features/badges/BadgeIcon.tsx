@@ -1,7 +1,7 @@
 import type { SVGProps } from 'react'
 import type { BadgeIconName } from './definitions'
 
-const PATHS: Record<BadgeIconName, string> = {
+export const PATHS: Record<BadgeIconName, string> = {
   trophy: 'M7.2 2.8h9.6v5.4a4.8 4.8 0 1 1-9.6 0ZM10.6 14h2.8v3.2h3.2V21H7.4v-3.8h3.2Z',
   target: 'M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19Zm0 3.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12Zm0 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z',
   assist: 'M3 17.5 13.5 7H9V4.5h9v9h-2.5V8.9L5 19.4Zm14 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
@@ -26,7 +26,7 @@ const PATHS: Record<BadgeIconName, string> = {
   medal: 'M6.5 2h4.2L12 5.6 13.3 2h4.2l-3.2 7.4a6 6 0 1 1-4.6 0ZM12 11.2a3.9 3.9 0 1 0 0 7.8 3.9 3.9 0 0 0 0-7.8Z',
 }
 
-const EVEN_ODD = new Set<BadgeIconName>(['medal', 'target', 'calendar', 'clock', 'coin', 'chat', 'hundred', 'three'])
+export const EVEN_ODD = new Set<BadgeIconName>(['medal', 'target', 'calendar', 'clock', 'coin', 'chat', 'hundred', 'three'])
 
 export function BadgeIcon({ name, ...props }: { name: BadgeIconName } & SVGProps<SVGSVGElement>) {
   return (

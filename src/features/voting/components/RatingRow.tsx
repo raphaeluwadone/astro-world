@@ -1,4 +1,5 @@
 import type { RosterPlayer } from '../api'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 const SCORES = Array.from({ length: 19 }, (_, i) => 1 + i * 0.5)
 
@@ -15,10 +16,7 @@ export function RatingRow({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-4 rounded-[14px] border border-border bg-astro-surface px-[18px] py-3.5">
-      <div
-        className="size-11 shrink-0 rounded-[11px]"
-        style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
-      />
+      <PlayerPhoto playerId={player.id} alt="" className="size-11 rounded-[11px]" />
       <div className="min-w-[150px] flex-1">
         <div className="text-[15px] font-extrabold text-astro-text">{player.nickname}</div>
         <div className="text-xs text-astro-text-dim">

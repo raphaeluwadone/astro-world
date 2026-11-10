@@ -5,6 +5,7 @@ import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { isNewBadge, type Badge } from '../api'
 import { badgeDef, TIER_COLOR, TIER_LABEL, TIER_LASTS } from '../definitions'
 import { useBadgesByPlayer } from '../hooks'
+import { AwardIconTile } from './AwardIconTile'
 
 const GOLD = 'linear-gradient(90deg,#ffe2a1,#f2a93b)'
 
@@ -104,14 +105,19 @@ export function BadgeHoverCard({
           className="z-50 w-[270px] rounded-b-xl rounded-t-[4px] border border-white/[0.12] bg-[#16213f] px-3.5 pb-3 pt-3 text-left shadow-[0_20px_44px_rgba(0,0,0,0.5)] data-[state=open]:animate-in data-[state=open]:fade-in-0"
           style={{ borderTop: `3px solid ${color}` } as CSSProperties}
         >
-          <div className="mb-1 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-[0.14em]" style={{ color: isCup ? '#f7c25e' : color }}>
-            <span>
-              {TIER_LABEL[tier]} badge{badge && badge.tiedWith.length > 0 ? ' · joint' : ''}
-            </span>
-            {badge && isNewBadge(badge) && <span className="rounded-full bg-[#ffd23f] px-1.5 py-px text-[9px] tracking-[0.08em] text-[#1a1300]">NEW</span>}
+          <div className="mb-2 flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-[0.14em]" style={{ color: isCup ? '#f7c25e' : color }}>
+                <span>
+                  {TIER_LABEL[tier]} badge{badge && badge.tiedWith.length > 0 ? ' · joint' : ''}
+                </span>
+                {badge && isNewBadge(badge) && <span className="rounded-full bg-[#ffd23f] px-1.5 py-px text-[9px] tracking-[0.08em] text-[#1a1300]">NEW</span>}
+              </div>
+              <div className="font-display text-[24px] leading-none text-astro-text">{def.name}</div>
+              <div className="mt-1 text-xs text-astro-text-muted">{def.for}</div>
+            </div>
+            <AwardIconTile awardKey={key} icon={def.icon} tier={tier} />
           </div>
-          <div className="font-display text-[24px] leading-none text-astro-text">{def.name}</div>
-          <div className="mb-2 mt-1 text-xs text-astro-text-muted">{def.for}</div>
           {!badge && (
             <>
               <div className="mb-2 text-[11px] text-astro-text-dim">Held {TIER_LASTS[tier].toLowerCase()}</div>

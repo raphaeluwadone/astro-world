@@ -1,7 +1,8 @@
-import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
+import { CupHoverCard, MemorialHoverCard, PlayerHoverCard, TagHoverCard } from '@/components/hover/InfoCards'
+import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
-import { MENTIONABLE_BADGES, TIER_COLOR, type BadgeTier } from '@/features/badges/definitions'
+import { BADGE_DEFS, MENTIONABLE_BADGES, MONTHLY_DEFS, TIER_COLOR, type BadgeTier } from '@/features/badges/definitions'
 import { parseContent, type MentionKind, type Mentionable } from './tokens'
 
 const KIND_TEXT: Record<Exclude<MentionKind, 'achievement'>, string> = {
@@ -17,6 +18,8 @@ const TIER_TEXT: Record<BadgeTier, string> = {
   year: 'text-[#b980ff]',
   cup: 'text-[#f7c25e]',
 }
+
+const AWARD_KEY_BY_NAME = new Map(Object.entries({ ...BADGE_DEFS, ...MONTHLY_DEFS }).map(([key, d]) => [d.name, key]))
 
 /** Monthly award names aren't in the badge list, so anything unknown counts as monthly. */
 export function achievementTier(label: string): BadgeTier {
@@ -67,46 +70,56 @@ export function MentionChip({ mention }: { mention: Mentionable }) {
     case 'player':
       return (
         <span className="inline-flex items-baseline gap-1">
-          <Link to="/players/$playerId" params={{ playerId: mention.ref }} className={cn(PLAIN, KIND_TEXT.player, 'hover:underline')}>
+          <PlayerHoverCard playerId={mention.ref} name={mention.label} className={cn(PLAIN, KIND_TEXT.player, 'hover:underline')}>
             @{mention.label}
-          </Link>
+          </PlayerHoverCard>
           <BadgeMark playerId={mention.ref} size={13} showExtra={false} />
         </span>
       )
     case 'memorial':
       return (
-        <Link
-          to="/memorial"
-          className={cn(
-            BASE,
-            KIND_TEXT.memorial,
-            'items-center border border-[#cbd5f5]/30 bg-[linear-gradient(120deg,rgba(203,213,245,0.14),rgba(203,213,245,0.03))] pl-1 font-display text-[1.06em] font-normal tracking-[0.02em] hover:border-[#cbd5f5]/55',
-          )}
-        >
-          <KindGlyph kind="memorial" />
-          {mention.label}
-        </Link>
+        <MemorialHoverCard>
+          <span
+            className={cn(
+              BASE,
+              KIND_TEXT.memorial,
+              'items-center border border-[#cbd5f5]/30 bg-[linear-gradient(120deg,rgba(203,213,245,0.14),rgba(203,213,245,0.03))] pl-1 font-display text-[1.06em] font-normal tracking-[0.02em] hover:border-[#cbd5f5]/55',
+            )}
+          >
+            <KindGlyph kind="memorial" />
+            {mention.label}
+          </span>
+        </MemorialHoverCard>
       )
     case 'cup':
       return (
-        <Link
-          to="/salami-cup"
-          className={cn(
-            BASE,
-            'items-center border border-astro-amber/55 bg-[linear-gradient(120deg,rgba(242,169,59,0.24),rgba(242,169,59,0.05))] font-display text-[1.06em] font-normal tracking-[0.02em] shadow-[0_0_14px_rgba(242,169,59,0.22)] hover:border-astro-amber',
-          )}
-        >
-          <KindGlyph kind="cup" />
-          <span className={GOLD_TEXT}>{mention.label}</span>
-        </Link>
+        <CupHoverCard>
+          <span
+            className={cn(
+              BASE,
+              'items-center border border-astro-amber/55 bg-[linear-gradient(120deg,rgba(242,169,59,0.24),rgba(242,169,59,0.05))] font-display text-[1.06em] font-normal tracking-[0.02em] shadow-[0_0_14px_rgba(242,169,59,0.22)] hover:border-astro-amber',
+            )}
+          >
+            <KindGlyph kind="cup" />
+            <span className={GOLD_TEXT}>{mention.label}</span>
+          </span>
+        </CupHoverCard>
       )
-    case 'achievement':
+    case 'achievement': {
+      const key = AWARD_KEY_BY_NAME.get(mention.label)
+      const text = <span className={cn(PLAIN, mentionText(mention))}>@{mention.label}</span>
+      if (!key) return text
       return (
-        <span className={cn(PLAIN, mentionText(mention))}>@{mention.label}</span>
+        <BadgeHoverCard awardKey={key} triggerClassName="inline cursor-pointer rounded hover:underline">
+          {text}
+        </BadgeHoverCard>
       )
+    }
     case 'tag':
       return (
-        <span className={cn(PLAIN, KIND_TEXT.tag)}>#{mention.label}</span>
+        <TagHoverCard label={mention.label}>
+          <span className={cn(PLAIN, KIND_TEXT.tag, 'hover:text-astro-text')}>#{mention.label}</span>
+        </TagHoverCard>
       )
   }
 }

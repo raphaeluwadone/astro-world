@@ -6,6 +6,7 @@ export function useMyCommunityLikes(playerId: string | undefined) {
     queryKey: ['my-community-likes', playerId],
     queryFn: () => fetchMyCommunityLikes(playerId!),
     enabled: !!playerId,
+    refetchInterval: 30_000,
   })
 }
 

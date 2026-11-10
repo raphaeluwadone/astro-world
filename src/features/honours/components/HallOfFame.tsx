@@ -1,8 +1,8 @@
 import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
-import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { BadgeSquare } from '@/features/badges/components/BadgePatch'
 import type { HallEntry, HallYear } from '../feed'
+import { PlayerHoverCard } from '@/components/hover/InfoCards'
 
 const GOLD_TEXT = 'bg-[linear-gradient(180deg,#ffe8b5,#f2a93b)] bg-clip-text text-transparent'
 
@@ -46,9 +46,9 @@ function Winners({ entry, max = 1 }: { entry: HallEntry; max?: number }) {
       {shown.map((b, i) => (
         <span key={b.id}>
           {i > 0 && ', '}
-          <Link to="/players/$playerId" params={{ playerId: b.player_id }} className="hover:underline">
+          <PlayerHoverCard playerId={b.player_id} name={b.nickname} className="hover:underline">
             {b.nickname}
-          </Link>
+          </PlayerHoverCard>
         </span>
       ))}
       {rest > 0 && <span className="block text-[11px] font-semibold text-astro-text-dim">joint with {rest} {rest === 1 ? 'other' : 'others'}</span>}

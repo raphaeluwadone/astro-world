@@ -24,6 +24,8 @@ import { buildFeed, groupDrops } from '@/features/honours/feed'
 import { useCupQuarters, useHonoursPosts } from '@/features/honours/hooks'
 import { AwardRaceCard } from './components/AwardRaceCard'
 import { CupBanner, shouldShowCupBanner } from './components/CupBanner'
+import { HomeNotices } from './components/HomeNotices'
+import { LastResultCard } from './components/LastResultCard'
 import { LatestHonour, recentHonour } from './components/LatestHonour'
 import { isRuleChangeRecent, RulesChangedStrip } from './components/RulesChangedStrip'
 import { ArticlesPreview } from './components/ArticlesPreview'
@@ -32,6 +34,7 @@ import { NextMatchdayCard } from './components/NextMatchdayCard'
 import { QuickLinks } from './components/QuickLinks'
 import { RatingsPrompt } from './components/RatingsPrompt'
 import { TopOfThePile } from './components/TopOfThePile'
+import { HeartCount } from './components/HeartCount'
 import { useAwardRace, useMyCommunityLikes, usePendingRatings } from './hooks'
 
 /** "Averaging 7.6 over 5", plus a note when the latest game beats the rest of the run. */
@@ -72,7 +75,7 @@ export function HomePage() {
   const { data: rankings = [] } = useRankings()
   const { data: feed = [] } = useFeed(playerId)
   const { data: articles = [] } = useArticles()
-  const { data: likes = 0 } = useMyCommunityLikes(playerId ?? undefined)
+  const { data: likes, isSuccess: likesLoaded } = useMyCommunityLikes(playerId ?? undefined)
   const { data: pendingRatings } = usePendingRatings(playerId ?? undefined, lastComplete?.id)
   const { data: cup } = useCurrentCup()
   const { data: race = [] } = useAwardRace(!!playerId)
@@ -97,9 +100,10 @@ export function HomePage() {
   }
 
   return (
-    <div>
-      <div className="mb-[26px] flex flex-wrap items-end justify-between gap-4">
-        <div>
+    // On phones the top grid dissolves (display: contents) so every card can be ordered on its own.
+    <div className="@container flex flex-col gap-5">
+      <div className="mb-1.5 flex items-start justify-between gap-3 md:flex-wrap md:items-end md:gap-4 max-md:order-1">
+        <div className="min-w-0">
           <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
             Sunday football, weekly ballot
           </div>
@@ -113,78 +117,74 @@ export function HomePage() {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2.5 rounded-full border border-border bg-astro-surface-2 px-3.5 py-2">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="#38bdf8"
-            style={{ animation: 'astro-beat 2.6s ease-in-out infinite' }}
-          >
-            <path d="M12 21.4C12 21.4 3.6 16.2 3.6 10.5A4.7 4.7 0 0 1 12 7.2a4.7 4.7 0 0 1 8.4 3.3c0 5.7-8.4 10.9-8.4 10.9Z" />
-          </svg>
-          <span className="text-[13px] font-bold text-astro-text">{likes}</span>
-          <span className="text-xs text-astro-text-dim">likes</span>
-        </div>
+        <HeartCount count={likesLoaded ? likes : undefined} playerId={playerId ?? undefined} />
       </div>
 
-      <PlayerSearchBar className="mb-5 md:hidden" />
+      <PlayerSearchBar className="md:hidden max-md:order-2" />
 
+      <div className="md:hidden max-md:order-5">
+        <HomeNotices honour={latestHonour} cup={shouldShowCupBanner(cup) ? cup : null} rulesChanged={isRuleChangeRecent()} />
+      </div>
       {isRuleChangeRecent() && (
-        <div className="mb-5">
+        <div className="max-md:hidden">
           <RulesChangedStrip />
         </div>
       )}
-
       {latestHonour && (
-        <div className="mb-5">
+        <div className="max-md:hidden">
           <LatestHonour item={latestHonour} />
         </div>
       )}
-
       {shouldShowCupBanner(cup) && (
-        <div className="mb-5">
+        <div className="max-md:hidden">
           <CupBanner cup={cup} />
         </div>
       )}
 
       {!!pendingRatings && pendingRatings.pending > 0 && (
-        <div className="mb-5">
+        <div className="max-md:order-4">
           <RatingsPrompt pending={pendingRatings.pending} playedAt={lastComplete!.played_at} />
         </div>
       )}
 
-      <div
-        className="mb-5 grid items-start gap-5"
-        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 330px), 1fr))' }}
-      >
+      <div className="grid grid-cols-1 items-start gap-5 @3xl:grid-cols-2 @[78rem]:grid-cols-4 max-md:contents">
         {!matchdayLoading && matchday && (
-          <NextMatchdayCard
-            matchday={matchday}
-            monthlyInCount={monthlyMembers.filter((m) => !optedOut.has(m.player_id)).length}
-            weeklyCount={weeklyClaims.length}
-            standbyCount={standby.length}
-            spotsRemaining={spotsRemaining}
-            playerId={playerId}
-            me={me}
-          />
+          <div className="max-md:order-3">
+            <NextMatchdayCard
+              matchday={matchday}
+              monthlyInCount={monthlyMembers.filter((m) => !optedOut.has(m.player_id)).length}
+              weeklyCount={weeklyClaims.length}
+              standbyCount={standby.length}
+              spotsRemaining={spotsRemaining}
+              playerId={playerId}
+              me={me}
+            />
+          </div>
         )}
-        <RecentForm matchRatings={matchRatings} title="Your Recent Form" titleSize={26} summary={formSummary(matchRatings)} compact />
-        <TopOfThePile rankings={rankings} />
+        {lastComplete && (
+          <div className="max-md:order-6">
+            <LastResultCard matchdayId={lastComplete.id} playedAt={lastComplete.played_at} />
+          </div>
+        )}
+        <div className="max-md:order-7">
+          <RecentForm matchRatings={matchRatings} title="Your Recent Form" titleSize={26} summary={formSummary(matchRatings)} compact />
+        </div>
+        <div className="max-md:order-8">
+          <TopOfThePile rankings={rankings} />
+        </div>
       </div>
 
       {playerId && race.length > 0 && (
-        <div className="mb-5">
+        <div className="max-md:order-9">
           <AwardRaceCard race={race} />
         </div>
       )}
 
-      <QuickLinks articles={articles} playerId={playerId} newHonours={newHonours} awardsWon={awardsWon} />
+      <div className="md:hidden max-md:order-10">
+        <QuickLinks articles={articles} playerId={playerId} newHonours={newHonours} awardsWon={awardsWon} />
+      </div>
 
-      <div
-        className="grid items-start gap-5"
-        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))' }}
-      >
+      <div className="grid grid-cols-1 items-start gap-5 @3xl:grid-cols-2 max-md:order-11">
         <GroupChatPreview posts={feed} />
         <ArticlesPreview articles={articles} />
       </div>
