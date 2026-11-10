@@ -143,6 +143,15 @@
 
 @keyframes md-drawer { from { transform: translateX(-100%) } to { transform: translateX(0) } }
 
+@keyframes adm-pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important }
 }
+
+/* Not from the design files: the shine across gold badges. */
+@keyframes astro-badge-sheen { 0% { transform: translateX(-120%) } 35%, 100% { transform: translateX(120%) } }
+
+/* Not from the design files: swapping the take on an award page. */
+@keyframes award-take-out { to { opacity: 0; transform: translateY(-6px); filter: blur(4px) } }
+@keyframes award-take-in { from { opacity: 0.001; transform: translateY(10px); filter: blur(5px) } to { opacity: 1; transform: none; filter: none } }

@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import type { LineupRow, MatchDetail } from '../api'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
 
 function ratingBadgeColor(rating: number | null) {
   if (rating === null) return { background: '#182448', color: '#6d7496', border: 'rgba(255,255,255,0.07)' }
@@ -45,8 +46,9 @@ function TeamLineup({
                 style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
               />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13.5px] font-extrabold text-astro-text">
-                  {m.players.nickname}
+                <div className="flex min-w-0 items-center gap-1.5 text-[13.5px] font-extrabold text-astro-text">
+                  <span className="truncate">{m.players.nickname}</span>
+                  <BadgeMark playerId={m.player_id} />
                 </div>
                 <div className="truncate text-[11px] text-astro-text-dim">
                   {m.players.full_name} &middot; {m.players.positions?.join('/')}

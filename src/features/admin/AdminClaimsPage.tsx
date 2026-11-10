@@ -21,15 +21,15 @@ export function AdminClaimsPage() {
   return (
     <div>
       <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-        A separate application, on purpose
+        Members
       </div>
       <h1 className="mb-1.5 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
-        Pending Claims
+        Record claims
       </h1>
       <p className="mb-6 max-w-lg text-sm text-astro-text-muted">
         Records hold ratings other people voted for, so a claim on one waits here until an admin
-        confirms it's genuinely that person. The rest of the Admin Portal (matchday control, cup
-        squads, rules editor) isn't built yet: this is a real, working slice of it.
+        confirms it's genuinely that person. Rejecting keeps their account; they just start as a new
+        player.
       </p>
 
       {isLoading ? (

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AstroSelect } from '@/components/ui/astro-select'
 import { Button } from '@/components/ui/button'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { ErrorState } from '@/components/states/ErrorState'
@@ -166,20 +167,16 @@ function SquadsPanel({ cupId }: { cupId: string }) {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <select
+            <AstroSelect
+              size="sm"
+              placeholder="Add a player…"
               value={adding[s.id] ?? ''}
-              onChange={(e) => setAdding({ ...adding, [s.id]: e.target.value })}
-              className="min-w-0 flex-1 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text"
-            >
-              <option value="">Add a player…</option>
-              {players
+              onValueChange={(v) => setAdding({ ...adding, [s.id]: v })}
+              options={players
                 .filter((p) => !s.members.some((m) => m.id === p.id))
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nickname}
-                  </option>
-                ))}
-            </select>
+                .map((p) => ({ value: p.id, label: p.nickname }))}
+              className="flex-1"
+            />
             <button
               type="button"
               disabled={!adding[s.id]}
@@ -213,23 +210,23 @@ function FixturesPanel({ cupId }: { cupId: string }) {
     <div className="astro-card p-6">
       <div className="font-display mb-4.5 text-[28px] leading-none text-astro-text">Fixtures</div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <select value={squadAId} onChange={(e) => setSquadAId(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text">
-          <option value="">Squad A</option>
-          {squads.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <AstroSelect
+          size="sm"
+          placeholder="Squad A"
+          value={squadAId}
+          onValueChange={setSquadAId}
+          options={squads.map((s) => ({ value: s.id, label: s.name }))}
+          className="flex-1"
+        />
         <span className="text-astro-text-dim">v</span>
-        <select value={squadBId} onChange={(e) => setSquadBId(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text">
-          <option value="">Squad B</option>
-          {squads.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <AstroSelect
+          size="sm"
+          placeholder="Squad B"
+          value={squadBId}
+          onValueChange={setSquadBId}
+          options={squads.map((s) => ({ value: s.id, label: s.name }))}
+          className="flex-1"
+        />
         <button
           type="button"
           disabled={!squadAId || !squadBId || squadAId === squadBId || createMatch.isPending}

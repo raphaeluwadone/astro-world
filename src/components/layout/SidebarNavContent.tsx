@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
+import { cn } from 'cn'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -15,6 +16,7 @@ import { SIDEBAR_NAV_ITEMS } from './nav-items'
  */
 export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
   const { player } = useCurrentPlayer()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
   const { data: matchday } = useNextMatchday()
   const { data: weeklyClaims = [] } = useWeeklyClaims(matchday?.id)
   const { data: monthlyMembers = [] } = useMonthlyMembers(matchday ? monthOf(matchday.played_at) : undefined)
@@ -29,17 +31,12 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <div className="flex items-center gap-2.5 px-2">
-        <div
-          className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-gradient-to-br from-astro-accent to-astro-accent-strong"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%)' }}
-        >
-          <BrandMarkIcon className="size-[18px]" />
-        </div>
+        <BrandMarkIcon className="h-9 w-auto shrink-0" />
         <Wordmark size={27} className="leading-none text-astro-text" />
       </div>
 
       <nav className="flex flex-col gap-[3px]">
-        {SIDEBAR_NAV_ITEMS.map(({ label, to, icon: Icon, disabled }) => {
+        {SIDEBAR_NAV_ITEMS.map(({ label, to, icon: Icon, disabled, children }) => {
           const badge =
             label === 'Matchday' && daysUntil !== null && daysUntil >= 0 ? (
               <span className="astro-marker">{daysUntil === 0 ? 'Today' : daysUntil}</span>
@@ -57,12 +54,13 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
             )
           }
 
-          return (
+          const inChild = children?.some((c) => pathname === c.to || pathname.startsWith(`${c.to}/`))
+          const link = (
             <Link
               key={to}
               to={to}
               activeOptions={{ exact: to === '/' }}
-              className="astro-nav__item no-underline"
+              className={cn('astro-nav__item no-underline', inChild && 'astro-nav__item--parent')}
               activeProps={{ className: 'astro-nav__item--active' }}
               onClick={onNavigate}
             >
@@ -70,6 +68,17 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
               <span>{label}</span>
               {badge}
             </Link>
+          )
+          if (!children) return link
+          return (
+            <div key={to} className="flex flex-col gap-[3px]">
+              {link}
+              {children.map((c) => (
+                <Link key={c.to} to={c.to} className="astro-nav__sub no-underline" activeProps={{ className: 'astro-nav__sub--active' }} onClick={onNavigate}>
+                  {c.label}
+                </Link>
+              ))}
+            </div>
           )
         })}
       </nav>

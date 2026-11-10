@@ -1,5 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { BackLink } from '@/components/navigation/BackLink'
 import { InlineLoader } from '@/components/states/InlineLoader'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -85,15 +86,7 @@ export function EditProfilePage() {
 
   return (
     <div>
-      <Link
-        to="/profile"
-        className="mb-[18px] inline-flex items-center gap-[7px] text-[12.5px] font-bold text-astro-text-muted hover:text-astro-text"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M15.6 3.6 7.2 12l8.4 8.4Z" />
-        </svg>
-        Back to profile
-      </Link>
+      <BackLink to="/profile" label="Back to profile" className="mb-[18px]" />
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -139,7 +132,7 @@ export function EditProfilePage() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
-          <CardPhotoCard />
+          <CardPhotoCard playerId={player.id} nickname={player.nickname} />
           <LockedFieldsCard
             fields={[
               { label: 'Overall rating', why: 'Averaged from everyone else’s scores.', value: careerAvg?.toString() ?? '—' },

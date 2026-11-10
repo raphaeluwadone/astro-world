@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { PullOutDialog } from './PullOutDialog'
 import { useSetAvailability } from '../hooks'
 
 const BASE_BUTTON =
@@ -47,6 +49,8 @@ export function AvailabilityCard({
   isLeavingStandby,
 }: Props) {
   const { mutate: setMonthlyOptStatus, isPending: settingOptStatus } = useSetAvailability(_matchdayId)
+  const [confirming, setConfirming] = useState<'claim' | 'standby' | null>(null)
+  const isIn = hasWeeklyClaim || (isMonthlyMember && monthlyOptStatus !== 'out')
 
   return (
     <div
@@ -84,8 +88,10 @@ export function AvailabilityCard({
         {!playerId ? (
           <p className="mt-5 text-xs font-semibold text-astro-text-dim">Sign in to respond.</p>
         ) : !isOpen ? (
-          <p className="mt-5 text-xs font-semibold text-astro-text-dim">
-            Spots for this matchday are no longer open.
+          <p className="mt-5 text-xs font-semibold text-astro-text-dim [text-wrap:pretty]">
+            {isIn
+              ? 'Claims are closed. Can’t make it now? Tell an admin and find your own replacement.'
+              : 'Spots for this matchday are no longer open.'}
           </p>
         ) : isMonthlyMember ? (
           <div className="mt-5 flex gap-3">
@@ -116,10 +122,10 @@ export function AvailabilityCard({
             <button
               type="button"
               disabled={isWithdrawing}
-              onClick={onWithdrawClaim}
+              onClick={() => setConfirming('claim')}
               className="text-xs font-bold text-astro-text-dim hover:text-astro-red"
             >
-              {isWithdrawing ? 'Withdrawing…' : 'Withdraw'}
+              Pull out
             </button>
           </div>
         ) : isOnStandby ? (
@@ -130,10 +136,10 @@ export function AvailabilityCard({
             <button
               type="button"
               disabled={isLeavingStandby}
-              onClick={onLeaveStandby}
+              onClick={() => setConfirming('standby')}
               className="text-xs font-bold text-astro-text-dim hover:text-astro-red"
             >
-              {isLeavingStandby ? 'Leaving…' : 'Leave standby'}
+              Leave standby
             </button>
           </div>
         ) : spotsRemaining > 0 ? (
@@ -156,6 +162,17 @@ export function AvailabilityCard({
           </button>
         )}
       </div>
+      <PullOutDialog
+        kind={confirming ?? 'claim'}
+        open={confirming !== null}
+        onOpenChange={(open) => !open && setConfirming(null)}
+        isPending={confirming === 'claim' ? isWithdrawing : isLeavingStandby}
+        onConfirm={() => {
+          if (confirming === 'claim') onWithdrawClaim()
+          else onLeaveStandby()
+          setConfirming(null)
+        }}
+      />
     </div>
   )
 }

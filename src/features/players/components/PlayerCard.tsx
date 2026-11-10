@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import type { PlayerCardRow } from '../api'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 export function PlayerCard({ player }: { player: PlayerCardRow }) {
   return (
@@ -28,16 +30,18 @@ export function PlayerCard({ player }: { player: PlayerCardRow }) {
         )}
       </div>
 
-      <div
-        className="relative mb-3 flex h-[112px] items-end justify-center overflow-hidden rounded-[11px]"
+      <PlayerPhoto
+        playerId={player.id}
+        alt={player.nickname}
+        className="relative mb-3 flex h-[112px] items-end justify-center rounded-[11px]"
         style={{ background: 'linear-gradient(160deg, #243463, #131c3a)' }}
-      >
-        <div className="h-[78%] w-[56%] rounded-t-full bg-white/5" />
-      </div>
+        fallback={<div className="h-[78%] w-[56%] rounded-t-full bg-white/5" />}
+      />
 
       <div className="relative min-w-0">
-        <div className="font-display truncate text-[27px] leading-none text-astro-text">
-          {player.nickname}
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="font-display truncate text-[27px] leading-none text-astro-text">{player.nickname}</div>
+          <BadgeMark playerId={player.id} size={18} max={2} />
         </div>
         <div className="mb-2.5 truncate text-[11.5px] text-astro-text-dim">{player.full_name}</div>
         {player.favourite_club && (

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
@@ -27,7 +28,12 @@ export function ArticlesPage() {
       ) : (
         <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))' }}>
           {articles.map((a) => (
-            <div key={a.id} className="astro-card overflow-hidden">
+            <Link
+              key={a.id}
+              to="/articles/$articleId"
+              params={{ articleId: a.id }}
+              className="astro-card group block overflow-hidden no-underline transition-colors hover:border-astro-accent/40"
+            >
               <div
                 className="h-[150px]"
                 style={{ background: 'linear-gradient(150deg, #243463, #131c3a)' }}
@@ -38,7 +44,7 @@ export function ArticlesPage() {
                     {a.kicker}
                   </div>
                 )}
-                <div className="font-display mb-2 text-[25px] leading-[1.05] text-astro-text [text-wrap:pretty]">
+                <div className="font-display mb-2 text-[25px] leading-[1.05] text-astro-text [text-wrap:pretty] group-hover:underline">
                   {a.title}
                 </div>
                 <p className="text-[13px] leading-[1.5] text-astro-text-muted [text-wrap:pretty]">
@@ -54,7 +60,7 @@ export function ArticlesPage() {
                   </div>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { usePublicRosterSize } from '@/features/auth/hooks'
-import { AMENDMENTS, LAST_AMENDED, PUNISHMENTS, RULE_GLANCE_STATIC, RULE_SECTIONS } from './content'
+import { formatAmendmentDate, LATEST_AMENDMENT, PUNISHMENTS, RULE_GLANCE_STATIC, RULE_SECTIONS } from './content'
+import { RuleHistorySheet } from './RuleHistorySheet'
 
 const SEVERITY_STYLE: Record<string, string> = {
   Light: 'bg-astro-cyan/15 border border-astro-cyan/45 text-astro-cyan',
@@ -9,13 +11,18 @@ const SEVERITY_STYLE: Record<string, string> = {
 
 export function RulesPage() {
   const { data: rosterSize } = usePublicRosterSize()
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const glance = [{ k: 'Group', v: rosterSize != null ? String(rosterSize) : '—' }, ...RULE_GLANCE_STATIC]
 
   return (
     <div>
-      <div className="mb-6 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-        Last amended {LAST_AMENDED}
+      <div className="mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
+        <span>Last amended {formatAmendmentDate(LATEST_AMENDMENT.date)}</span>
+        <span aria-hidden="true">&middot;</span>
+        <button type="button" onClick={() => setHistoryOpen(true)} className="uppercase tracking-[0.16em] text-astro-text-muted underline-offset-4 hover:text-astro-text hover:underline">
+          History
+        </button>
       </div>
       <h1 className="mb-1.5 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">THE RULES</h1>
       <p className="mb-6 max-w-[62ch] text-sm text-astro-text-muted [text-wrap:pretty]">
@@ -53,18 +60,22 @@ export function RulesPage() {
                     <div className="w-8.5 shrink-0 pt-0.5 text-xs font-extrabold text-astro-accent">{r.k}</div>
                     <div className="min-w-0 flex-1">
                       <div className="text-[14.5px] leading-[1.6] text-astro-text [text-wrap:pretty]">{r.text}</div>
-                      {r.tag && (
-                        <div
-                          className={
-                            'mt-2 inline-block rounded-md border px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.08em] ' +
-                            (r.tagTone === 'pending'
-                              ? 'border-astro-amber/40 bg-astro-amber/15 text-astro-amber'
-                              : 'border-astro-accent/40 bg-astro-accent/15 text-astro-accent-soft')
-                          }
-                        >
-                          {r.tag}
-                        </div>
-                      )}
+                      {r.tag &&
+                        (r.tagTone === 'pending' ? (
+                          <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-astro-amber/80">
+                            <span className="size-1.5 rounded-full bg-astro-amber/80" />
+                            {r.tag}
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setHistoryOpen(true)}
+                            className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-astro-text-dim hover:text-astro-text-muted"
+                          >
+                            <span className="size-1.5 rounded-full bg-astro-accent/70" />
+                            {r.tag}
+                          </button>
+                        ))}
                     </div>
                   </div>
                 ))}
@@ -74,37 +85,6 @@ export function RulesPage() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
-          <div className="astro-card border-[1.5px] border-astro-accent/40 p-6">
-            <div className="font-display mb-1.5 text-[28px] leading-none text-astro-text">AMENDMENTS</div>
-            <p className="mb-5 text-[13px] text-astro-text-muted [text-wrap:pretty]">
-              Every change to the rules, newest first, who made it and how it was decided.
-            </p>
-            <div className="flex flex-col gap-0.5">
-              {AMENDMENTS.map((a, i) => (
-                <div key={a.date} className="flex gap-3.5">
-                  <div className="flex w-3 shrink-0 flex-col items-center">
-                    <div className="mt-1.5 size-2.5 shrink-0 rounded-sm bg-astro-accent" />
-                    {i < AMENDMENTS.length - 1 && <div className="w-px flex-1 bg-white/[0.09]" />}
-                  </div>
-                  <div className="min-w-0 flex-1 pb-5">
-                    <div className="mb-1.5 text-[10.5px] font-extrabold uppercase tracking-[0.1em] text-astro-text-dim">
-                      {a.date}
-                    </div>
-                    <div className="mb-2 text-[13.5px] leading-[1.55] text-astro-text [text-wrap:pretty]">{a.text}</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      <div className="rounded-md border border-white/[0.07] bg-astro-surface-2 px-2.5 py-1 text-[11px] font-bold text-astro-text-muted">
-                        {a.by}
-                      </div>
-                      <div className="rounded-md border border-white/[0.07] bg-astro-surface-2 px-2.5 py-1 text-[11px] font-extrabold text-astro-text-dim">
-                        {a.vote}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="astro-card border-astro-amber/35 p-6">
             <div className="mb-1.5 flex items-center gap-2.5">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="#f2a93b">
@@ -145,6 +125,8 @@ export function RulesPage() {
           </div>
         </div>
       </div>
+
+      <RuleHistorySheet open={historyOpen} onOpenChange={setHistoryOpen} />
     </div>
   )
 }

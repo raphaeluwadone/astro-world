@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
+import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
 import { AuthLayout } from './AuthLayout'
 import { signIn } from './api'
@@ -41,16 +42,12 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
     <div className="relative flex min-h-screen flex-col items-center bg-astro-bg px-5 py-9 pb-[70px]">
       <JoinBackdrop />
       <div className="relative z-[1] w-full max-w-[560px]" style={{ animation: 'jn-in 540ms cubic-bezier(.2,.8,.2,1) both' }}>
-        <div className="mb-[26px] flex justify-center">
-          <svg width="72" height="72" viewBox="0 0 24 24" style={{ animation: 'jn-spin 46s linear infinite' }}>
+        <div className="relative mx-auto mb-[26px] flex size-[72px] items-center justify-center">
+          <svg className="absolute inset-0" width="72" height="72" viewBox="0 0 24 24" style={{ animation: 'jn-spin 46s linear infinite' }}>
             <circle cx="12" cy="12" r="11" fill="none" stroke="rgba(166,63,255,0.45)" strokeWidth={0.6} />
             <path d="M12 1 12 23M1 12h22M4 4l16 16M20 4 4 20" stroke="rgba(166,63,255,0.2)" strokeWidth={0.5} />
-            <path
-              d="M50.00 4.00L59.40 37.06L93.75 35.79L65.22 54.94L77.04 87.21L50.00 66.00L22.96 87.21L34.78 54.94L6.25 35.79L40.60 37.06Z"
-              fill="#a63fff"
-              transform="scale(0.2) translate(10 10)"
-            />
           </svg>
+          <BrandMarkIcon className="absolute h-11 w-auto" />
         </div>
 
         <div className="mb-[30px] text-center">
@@ -73,7 +70,7 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="shrink-0 text-astro-on-accent">
               <path d="M8.4 3.6 16.8 12l-8.4 8.4Z" />
-            </svg>
+          </svg>
           </button>
           <Link
             to="/signup"
@@ -85,7 +82,7 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#c589ff" className="shrink-0">
               <path d="M8.4 3.6 16.8 12l-8.4 8.4Z" />
-            </svg>
+          </svg>
           </Link>
         </div>
 

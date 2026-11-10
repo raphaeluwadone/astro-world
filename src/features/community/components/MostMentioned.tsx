@@ -1,4 +1,6 @@
 import type { MentionedRow } from '../api'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 export function MostMentioned({ mentioned }: { mentioned: MentionedRow[] }) {
   return (
@@ -10,13 +12,11 @@ export function MostMentioned({ mentioned }: { mentioned: MentionedRow[] }) {
         <div className="flex flex-col gap-[9px]">
           {mentioned.map((m) => (
             <div key={m.player_id} className="flex items-center gap-[11px]">
-              <div
-                className="size-8 shrink-0 rounded-[9px]"
-                style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
-              />
-              <div className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-astro-text">
-                {m.nickname}
+              <div className="relative shrink-0">
+                <PlayerPhoto playerId={m.player_id} alt="" className="size-8 rounded-[9px]" />
+                <BadgeMark playerId={m.player_id} size={14} showExtra={false} className="absolute -bottom-1.5 -right-1.5" />
               </div>
+              <div className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-astro-text">{m.nickname}</div>
               <div className="flex items-center gap-1.5 rounded-full border border-[rgba(56,189,248,0.3)] bg-astro-surface-2 px-[11px] py-1">
                 <span className="text-[11.5px] font-extrabold text-astro-cyan">{m.count}</span>
                 <span className="text-[11px] text-astro-text-dim">mentions</span>

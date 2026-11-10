@@ -544,6 +544,80 @@ export type Database = {
           },
         ]
       }
+      honours_posts: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          id: string
+          pinned: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honours_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honours_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          player_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          player_id: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          player_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honours_reactions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honours_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "honours_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_players: {
         Row: {
           match_id: string
@@ -821,6 +895,69 @@ export type Database = {
           },
         ]
       }
+      player_badges: {
+        Row: {
+          auto_live_at: string
+          awarded_at: string
+          badge_key: string
+          decided_at: string | null
+          decided_by: string | null
+          detail: string | null
+          expires_at: string
+          id: string
+          period_key: string
+          player_id: string
+          stat: string | null
+          status: Database["public"]["Enums"]["badge_status"]
+          title: string | null
+        }
+        Insert: {
+          auto_live_at?: string
+          awarded_at?: string
+          badge_key: string
+          decided_at?: string | null
+          decided_by?: string | null
+          detail?: string | null
+          expires_at: string
+          id?: string
+          period_key: string
+          player_id: string
+          stat?: string | null
+          status?: Database["public"]["Enums"]["badge_status"]
+          title?: string | null
+        }
+        Update: {
+          auto_live_at?: string
+          awarded_at?: string
+          badge_key?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          detail?: string | null
+          expires_at?: string
+          id?: string
+          period_key?: string
+          player_id?: string
+          stat?: string | null
+          status?: Database["public"]["Enums"]["badge_status"]
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_badges_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_badges_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_claims: {
         Row: {
           birthday_day: number | null
@@ -1035,6 +1172,7 @@ export type Database = {
           photo_url: string | null
           positions: Database["public"]["Enums"]["position_type"][]
           preferred_foot: Database["public"]["Enums"]["foot_type"] | null
+          seen_intros: string[]
           updated_at: string
           user_id: string | null
           weight_kg: number | null
@@ -1064,6 +1202,7 @@ export type Database = {
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null
+          seen_intros?: string[]
           updated_at?: string
           user_id?: string | null
           weight_kg?: number | null
@@ -1093,6 +1232,7 @@ export type Database = {
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null
+          seen_intros?: string[]
           updated_at?: string
           user_id?: string | null
           weight_kg?: number | null
@@ -1503,6 +1643,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_badges: { Args: { p_year?: number }; Returns: number }
+      award_cup_extras: { Args: never; Returns: number }
+      award_race: {
+        Args: never
+        Returns: {
+          badge_key: string
+          contenders: number
+          leader: number
+          leaders: string[]
+          mine: number
+          my_rank: number
+          scope: string
+        }[]
+      }
+      badge_is_locked: {
+        Args: {
+          p_badge_key: string
+          p_period_key: string
+          p_status: Database["public"]["Enums"]["badge_status"]
+        }
+        Returns: boolean
+      }
+      badge_is_visible: {
+        Args: {
+          auto_live: string
+          s: Database["public"]["Enums"]["badge_status"]
+        }
+        Returns: boolean
+      }
       cause_contributors: {
         Args: { p_cause_id: string }
         Returns: {
@@ -1511,6 +1680,26 @@ export type Database = {
         }[]
       }
       cause_raised_amount: { Args: { p_cause_id: string }; Returns: number }
+      club_moments: {
+        Args: never
+        Returns: {
+          detail: string
+          happened_at: string
+          kind: string
+          player_id: string
+          value: number
+        }[]
+      }
+      club_totals: {
+        Args: never
+        Returns: {
+          appearances: number
+          goals: number
+          matchdays: number
+          raised: number
+          roster: number
+        }[]
+      }
       cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
       dues_paid_count: { Args: { p_dues_quarter_id: string }; Returns: number }
       is_own_player: { Args: { p_player_id: string }; Returns: boolean }
@@ -1542,6 +1731,7 @@ export type Database = {
         }[]
       }
       motm_open_for: { Args: { p_matchday_id: string }; Returns: boolean }
+      next_matchday_at: { Args: { after: string }; Returns: string }
       played_in_match: {
         Args: { p_match_id: string; p_player_id: string }
         Returns: boolean
@@ -1584,6 +1774,10 @@ export type Database = {
           played_at: string
         }[]
       }
+      set_honours_pin: {
+        Args: { p_pinned: boolean; p_post_id: string }
+        Returns: undefined
+      }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
       weekly_spots_remaining: {
         Args: { p_matchday_id: string }
@@ -1592,6 +1786,7 @@ export type Database = {
     }
     Enums: {
       availability_status: "in" | "out"
+      badge_status: "pending" | "live" | "held"
       cause_status: "suggested" | "open" | "met" | "closed"
       comparison_source: "self" | "community"
       cup_status: "open" | "drawn" | "live" | "played" | "cancelled"
@@ -1738,6 +1933,7 @@ export const Constants = {
   public: {
     Enums: {
       availability_status: ["in", "out"],
+      badge_status: ["pending", "live", "held"],
       cause_status: ["suggested", "open", "met", "closed"],
       comparison_source: ["self", "community"],
       cup_status: ["open", "drawn", "live", "played", "cancelled"],

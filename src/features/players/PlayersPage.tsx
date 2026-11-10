@@ -1,3 +1,4 @@
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import type { Database } from '@/types/database'
 import { EmptyState } from '@/components/states/EmptyState'
@@ -22,7 +23,8 @@ const PER_PAGE = 8
 export function PlayersPage() {
   const { data: players = [], isLoading, isError, refetch } = usePlayerCards()
   const [filter, setFilter] = useState<PositionType | 'ALL'>('ALL')
-  const [search, setSearch] = useState('')
+  const search = useSearch({ from: '/_app/players/' }).q ?? ''
+  const navigate = useNavigate()
   const [page, setPage] = useState(0)
 
   const filtered = useMemo(() => {
@@ -45,13 +47,12 @@ export function PlayersPage() {
   }
 
   function updateSearch(value: string) {
-    setSearch(value)
+    navigate({ to: '/players', search: { q: value || undefined }, replace: true })
     setPage(0)
   }
 
   function clearSearch() {
-    setSearch('')
-    setPage(0)
+    updateSearch('')
   }
 
   return (
@@ -63,7 +64,7 @@ export function PlayersPage() {
         {players.length} in the group. Thirty spots every Sunday.
       </p>
 
-      <div className="mb-3.5 flex min-w-0 items-center gap-2.5 rounded-[11px] border border-white/[0.09] bg-astro-surface px-3.5">
+      <div className="mb-3.5 flex min-w-0 items-center gap-2.5 rounded-[11px] border border-white/[0.09] bg-astro-surface px-3.5 md:hidden">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="#6d7496" className="shrink-0">
           <path
             fillRule="evenodd"
@@ -72,6 +73,7 @@ export function PlayersPage() {
         </svg>
         <input
           value={search}
+          autoFocus={hasSearch}
           onChange={(e) => updateSearch(e.target.value)}
           placeholder='Nickname or real name, try "ade"'
           className="min-w-0 flex-1 bg-transparent py-3.5 text-sm font-semibold text-astro-text placeholder:text-astro-text-dim focus:outline-none"

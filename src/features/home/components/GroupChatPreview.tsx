@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import type { PostRow } from '@/features/community/api'
+import { plainText } from '@/features/community/mentions/tokens'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
 
 function relativeTime(iso: string) {
   const hours = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60))
@@ -23,13 +25,11 @@ export function GroupChatPreview({ posts }: { posts: PostRow[] }) {
       ) : (
         <div className="flex flex-col gap-3">
           {recent.map((p, i) => (
-            <div
+            <Link
               key={p.id}
-              className={
-                i < recent.length - 1
-                  ? 'flex gap-3 border-b border-border pb-3'
-                  : 'flex gap-3'
-              }
+              to="/community"
+              search={{ post: p.id }}
+              className={`group flex gap-3 no-underline ${i < recent.length - 1 ? 'border-b border-border pb-3' : ''}`}
             >
               <div
                 className="size-[34px] shrink-0 rounded-lg"
@@ -37,12 +37,12 @@ export function GroupChatPreview({ posts }: { posts: PostRow[] }) {
               />
               <div className="min-w-0">
                 <div className="mb-0.5 text-[13px] font-extrabold text-astro-text">
-                  {p.author.nickname}{' '}
+                  {p.author.nickname} <BadgeMark playerId={p.author.id} size={14} />{' '}
                   <span className="font-medium text-astro-text-dim">&middot; {relativeTime(p.created_at)}</span>
                 </div>
-                <div className="text-[13px] text-astro-text-muted [text-wrap:pretty]">{p.content}</div>
+                <div className="text-[13px] text-astro-text-muted [text-wrap:pretty] group-hover:text-astro-text">{plainText(p.content)}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

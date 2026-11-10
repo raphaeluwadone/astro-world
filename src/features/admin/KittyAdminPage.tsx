@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AstroSelect } from '@/components/ui/astro-select'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/states/ErrorState'
@@ -186,20 +187,16 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
           </p>
           {cause.status === 'open' && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <select
+              <AstroSelect
+                size="sm"
+                placeholder="Add a contribution…"
                 value={contributorId}
-                onChange={(e) => setContributorId(e.target.value)}
-                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text"
-              >
-                <option value="">Add a contribution…</option>
-                {players
+                onValueChange={setContributorId}
+                options={players
                   .filter((p) => !contributedIds.has(p.id))
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nickname}
-                    </option>
-                  ))}
-              </select>
+                  .map((p) => ({ value: p.id, label: p.nickname }))}
+                className="flex-1"
+              />
               <input
                 type="number"
                 placeholder="₦ amount"
@@ -241,11 +238,10 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
   )
 }
 
-export function KittyAdminPage() {
+export function DuesAdminPage() {
   const { player } = useCurrentPlayer()
   const { data: duesQuarter, isLoading, isError, refetch } = useCurrentDuesQuarter()
   const { data: paidCount = 0 } = useDuesPaidCount(duesQuarter?.id)
-  const { data: causes = [] } = useCauses()
 
   if (isLoading) return <PageLoader />
   if (isError) return <ErrorState onRetry={() => refetch()} />
@@ -253,13 +249,10 @@ export function KittyAdminPage() {
 
   return (
     <div>
-      <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-        Dues and causes
-      </div>
-      <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Kitty</h1>
+      <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">Money</div>
+      <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Dues</h1>
 
-      <div className="mb-8 flex flex-col gap-5">
-        <div className="font-display text-2xl leading-none text-astro-text">Dues</div>
+      <div className="flex flex-col gap-5">
         {!duesQuarter ? (
           <OpenQuarterForm lastAmount={12000} />
         ) : (
@@ -280,9 +273,24 @@ export function KittyAdminPage() {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+export function CausesAdminPage() {
+  const { player } = useCurrentPlayer()
+  const { data: causes = [], isLoading, isError, refetch } = useCauses()
+
+  if (isLoading) return <PageLoader />
+  if (isError) return <ErrorState onRetry={() => refetch()} />
+  if (!player) return null
+
+  return (
+    <div>
+      <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">Money</div>
+      <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Causes</h1>
 
       <div className="flex flex-col gap-4">
-        <div className="font-display text-2xl leading-none text-astro-text">Causes</div>
         {causes.length === 0 && <p className="text-sm text-astro-text-dim">Nobody has suggested one yet.</p>}
         {causes.map((c) => (
           <CauseAdminRow key={c.id} cause={c} markedBy={player.id} />

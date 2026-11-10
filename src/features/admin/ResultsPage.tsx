@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { AstroSelect } from '@/components/ui/astro-select'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/states/EmptyState'
@@ -184,17 +185,13 @@ export function ResultsPage() {
               </div>
 
               <div className="mb-4 flex flex-wrap items-center gap-2.5">
-                <select
+                <AstroSelect
+                  aria-label="Home team"
                   value={fixture.teamAId}
-                  onChange={(e) => updateFixture(fi, { teamAId: e.target.value })}
-                  className="min-w-0 flex-1 rounded-[10px] border border-white/10 bg-astro-surface-2 px-3 py-3 text-sm font-bold text-astro-text"
-                >
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.greek_name}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={(v) => updateFixture(fi, { teamAId: v })}
+                  options={teams.map((t) => ({ value: t.id, label: t.greek_name }))}
+                  className="flex-1"
+                />
                 <input
                   type="number"
                   min={0}
@@ -210,17 +207,13 @@ export function ResultsPage() {
                   onChange={(e) => updateFixture(fi, { scoreB: e.target.value })}
                   className="font-display w-14 shrink-0 rounded-[10px] border border-white/10 bg-astro-surface-2 px-2 py-3 text-center text-xl text-astro-text"
                 />
-                <select
+                <AstroSelect
+                  aria-label="Away team"
                   value={fixture.teamBId}
-                  onChange={(e) => updateFixture(fi, { teamBId: e.target.value })}
-                  className="min-w-0 flex-1 rounded-[10px] border border-white/10 bg-astro-surface-2 px-3 py-3 text-sm font-bold text-astro-text"
-                >
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.greek_name}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={(v) => updateFixture(fi, { teamBId: v })}
+                  options={teams.map((t) => ({ value: t.id, label: t.greek_name }))}
+                  className="flex-1"
+                />
               </div>
 
               <div className="mb-3 text-[10.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
@@ -229,32 +222,27 @@ export function ResultsPage() {
               <div className="mb-3 flex flex-col gap-2">
                 {fixture.goals.map((goal, gi) => (
                   <div key={gi} className="flex flex-wrap items-center gap-2">
-                    <select
+                    <AstroSelect
+                      size="sm"
+                      placeholder="Scorer"
                       value={goal.scorerId}
-                      onChange={(e) => updateGoal(fi, gi, { scorerId: e.target.value })}
-                      className="min-w-[120px] flex-1 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text"
-                    >
-                      <option value="">Scorer</option>
-                      {allMembers.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nickname}
-                        </option>
-                      ))}
-                    </select>
-                    <select
+                      onValueChange={(v) => updateGoal(fi, gi, { scorerId: v })}
+                      options={allMembers.map((p) => ({ value: p.id, label: p.nickname }))}
+                      className="min-w-[120px] flex-1"
+                    />
+                    <AstroSelect
+                      size="sm"
+                      placeholder="No assist"
                       value={goal.assistId}
-                      onChange={(e) => updateGoal(fi, gi, { assistId: e.target.value })}
-                      className="min-w-[120px] flex-1 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text"
-                    >
-                      <option value="">No assist</option>
-                      {allMembers
-                        .filter((p) => p.id !== goal.scorerId)
-                        .map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.nickname}
-                          </option>
-                        ))}
-                    </select>
+                      onValueChange={(v) => updateGoal(fi, gi, { assistId: v })}
+                      options={[
+                        { value: '', label: 'No assist' },
+                        ...allMembers
+                          .filter((p) => p.id !== goal.scorerId)
+                          .map((p) => ({ value: p.id, label: p.nickname })),
+                      ]}
+                      className="min-w-[120px] flex-1"
+                    />
                     <input
                       type="number"
                       min={0}

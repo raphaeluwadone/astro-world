@@ -1,24 +1,61 @@
+import { useMemo } from 'react'
 import { useArticles } from '@/features/articles/hooks'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { useFeed } from '@/features/community/hooks'
 import {
+  useAvailability,
   useLastCompleteMatchday,
   useMonthlyMembers,
   useNextMatchday,
   useStandbyEntries,
   useWeeklyClaims,
+  useWeeklySpotsRemaining,
 } from '@/features/matchday/hooks'
 import { monthOf } from '@/features/matchday/api'
 import { useMatchRatings } from '@/features/profile/hooks'
 import { RecentForm } from '@/features/profile/components/RecentForm'
+import type { MatchRatingRow } from '@/features/profile/api'
 import { useRankings } from '@/features/rankings/hooks'
-import { Link } from '@tanstack/react-router'
+import { PlayerSearchBar } from '@/components/layout/PlayerSearchBar'
+import { useCurrentCup } from '@/features/salami-cup/hooks'
+import { useBadgesByPlayer } from '@/features/badges/hooks'
+import { BADGE_DEFS, MONTHLY_DEFS } from '@/features/badges/definitions'
+import { buildFeed, groupDrops } from '@/features/honours/feed'
+import { useCupQuarters, useHonoursPosts } from '@/features/honours/hooks'
+import { AwardRaceCard } from './components/AwardRaceCard'
+import { CupBanner, shouldShowCupBanner } from './components/CupBanner'
+import { LatestHonour, recentHonour } from './components/LatestHonour'
+import { isRuleChangeRecent, RulesChangedStrip } from './components/RulesChangedStrip'
 import { ArticlesPreview } from './components/ArticlesPreview'
 import { GroupChatPreview } from './components/GroupChatPreview'
 import { NextMatchdayCard } from './components/NextMatchdayCard'
+import { QuickLinks } from './components/QuickLinks'
 import { RatingsPrompt } from './components/RatingsPrompt'
 import { TopOfThePile } from './components/TopOfThePile'
-import { useMyCommunityLikes, usePendingRatings } from './hooks'
+import { useAwardRace, useMyCommunityLikes, usePendingRatings } from './hooks'
+
+/** "Averaging 7.6 over 5", plus a note when the latest game beats the rest of the run. */
+function formSummary(ratings: MatchRatingRow[]) {
+  const recent = ratings.slice(0, 5)
+  if (recent.length === 0) return null
+  const avg = recent.reduce((sum, r) => sum + r.avg_rating, 0) / recent.length
+  const base = (
+    <>
+      Averaging <span className="font-extrabold text-astro-text">{avg.toFixed(1)}</span> over {recent.length}.
+    </>
+  )
+  const [last, ...earlier] = ratings
+  if (recent.length < 2 || recent.slice(1).some((r) => r.avg_rating >= last.avg_rating)) return base
+  const lastBetter = earlier.find((r) => r.avg_rating >= last.avg_rating)
+  const since = lastBetter
+    ? `your best since ${new Date(lastBetter.played_at).toLocaleDateString('en-GB', { month: 'long' })}`
+    : 'your best yet'
+  return (
+    <>
+      {base} Your last game&rsquo;s {last.avg_rating} was {since}.
+    </>
+  )
+}
 
 export function HomePage() {
   const { player } = useCurrentPlayer()
@@ -28,6 +65,8 @@ export function HomePage() {
   const { data: lastComplete } = useLastCompleteMatchday()
   const { data: weeklyClaims = [] } = useWeeklyClaims(matchday?.id)
   const { data: standby = [] } = useStandbyEntries(matchday?.id)
+  const { data: availability = [] } = useAvailability(matchday?.id)
+  const { data: spotsRemaining = 0 } = useWeeklySpotsRemaining(matchday?.id)
   const { data: monthlyMembers = [] } = useMonthlyMembers(matchday ? monthOf(matchday.played_at) : undefined)
   const { data: matchRatings = [] } = useMatchRatings(playerId ?? undefined)
   const { data: rankings = [] } = useRankings()
@@ -35,6 +74,27 @@ export function HomePage() {
   const { data: articles = [] } = useArticles()
   const { data: likes = 0 } = useMyCommunityLikes(playerId ?? undefined)
   const { data: pendingRatings } = usePendingRatings(playerId ?? undefined, lastComplete?.id)
+  const { data: cup } = useCurrentCup()
+  const { data: race = [] } = useAwardRace(!!playerId)
+  const { data: honoursPosts = [] } = useHonoursPosts(playerId)
+  const { data: quarters } = useCupQuarters()
+  const byPlayer = useBadgesByPlayer()
+
+  const honoursFeed = useMemo(() => buildFeed(honoursPosts, groupDrops(byPlayer, quarters), []), [honoursPosts, byPlayer, quarters])
+  const latestHonour = recentHonour(honoursFeed)
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+  const newHonours = honoursFeed.filter((i) => i.type !== 'moment' && i.at.getTime() > weekAgo).length
+  const awardTotal = Object.keys(BADGE_DEFS).length + Object.keys(MONTHLY_DEFS).length
+  const awardsWon = playerId ? { won: new Set((byPlayer.get(playerId) ?? []).map((b) => b.badge_key)).size, total: awardTotal } : null
+
+  const optedOut = new Set(availability.filter((a) => a.status === 'out').map((a) => a.player_id))
+  const isMonthlyMember = !!playerId && monthlyMembers.some((m) => m.player_id === playerId)
+  const me = {
+    isMonthlyMember,
+    monthlyOptStatus: availability.find((a) => a.player_id === playerId)?.status ?? null,
+    hasWeeklyClaim: !!playerId && weeklyClaims.some((w) => w.player_id === playerId),
+    isOnStandby: !!playerId && standby.some((s) => s.player_id === playerId),
+  }
 
   return (
     <div>
@@ -68,30 +128,29 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Desktop reaches the memorial page from the sidebar's own "In
-          memory" widget; mobile has no sidebar and the hamburger menu
-          isn't wired to anything yet, so this is its only way in. */}
-      <Link
-        to="/memorial"
-        className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-[rgba(166,63,255,0.22)] bg-astro-surface-2 px-3.5 py-3 no-underline md:hidden"
-      >
-        <div
-          className="flex size-7 shrink-0 items-center justify-center rounded-[8px] border border-[rgba(166,63,255,0.4)] bg-astro-surface font-display text-[15px] text-astro-accent-soft"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
-        >
-          13
+      <PlayerSearchBar className="mb-5 md:hidden" />
+
+      {isRuleChangeRecent() && (
+        <div className="mb-5">
+          <RulesChangedStrip />
         </div>
-        <div className="min-w-0">
-          <div className="text-[9.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
-            In memory
-          </div>
-          <div className="text-[12.5px] font-extrabold text-astro-text-muted">Salami</div>
+      )}
+
+      {latestHonour && (
+        <div className="mb-5">
+          <LatestHonour item={latestHonour} />
         </div>
-      </Link>
+      )}
+
+      {shouldShowCupBanner(cup) && (
+        <div className="mb-5">
+          <CupBanner cup={cup} />
+        </div>
+      )}
 
       {!!pendingRatings && pendingRatings.pending > 0 && (
         <div className="mb-5">
-          <RatingsPrompt pending={pendingRatings.pending} />
+          <RatingsPrompt pending={pendingRatings.pending} playedAt={lastComplete!.played_at} />
         </div>
       )}
 
@@ -102,17 +161,25 @@ export function HomePage() {
         {!matchdayLoading && matchday && (
           <NextMatchdayCard
             matchday={matchday}
-            weeklyClaims={weeklyClaims}
-            standby={standby}
-            monthlyCount={monthlyMembers.length}
+            monthlyInCount={monthlyMembers.filter((m) => !optedOut.has(m.player_id)).length}
+            weeklyCount={weeklyClaims.length}
+            standbyCount={standby.length}
+            spotsRemaining={spotsRemaining}
             playerId={playerId}
-            hasWeeklyClaim={weeklyClaims.some((w) => w.player_id === playerId)}
-            isOnStandby={standby.some((s) => s.player_id === playerId)}
+            me={me}
           />
         )}
-        <RecentForm matchRatings={matchRatings} title="Your Recent Form" titleSize={26} />
+        <RecentForm matchRatings={matchRatings} title="Your Recent Form" titleSize={26} summary={formSummary(matchRatings)} compact />
         <TopOfThePile rankings={rankings} />
       </div>
+
+      {playerId && race.length > 0 && (
+        <div className="mb-5">
+          <AwardRaceCard race={race} />
+        </div>
+      )}
+
+      <QuickLinks articles={articles} playerId={playerId} newHonours={newHonours} awardsWon={awardsWon} />
 
       <div
         className="grid items-start gap-5"

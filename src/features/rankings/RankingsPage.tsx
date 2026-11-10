@@ -7,6 +7,8 @@ import { PageLoader } from '@/components/states/PageLoader'
 import type { RankingRow } from './api'
 import { TeamStandingsTable } from './components/TeamStandingsTable'
 import { useRankings, useSeasonTeamStandings } from './hooks'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 type PositionType = Database['public']['Enums']['position_type']
 type SortKey = 'avg_rating' | 'appearances' | 'goals' | 'assists' | 'motm_count'
@@ -139,14 +141,12 @@ function PlayerRankings() {
                   {clampedPage * PER_PAGE + i + 1}
                 </div>
                 <div className="flex min-w-0 items-center gap-2.5">
-                  <div
-                    className="size-[34px] shrink-0 rounded-[9px]"
-                    style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
-                  />
+                  <div className="relative shrink-0">
+                    <PlayerPhoto playerId={r.id} alt="" className="size-[34px] rounded-[9px]" />
+                    <BadgeMark playerId={r.id} size={15} showExtra={false} className="absolute -bottom-1.5 -right-1.5" />
+                  </div>
                   <div className="min-w-0">
-                    <div className="truncate text-[13.5px] font-extrabold text-astro-text">
-                      {r.nickname}
-                    </div>
+                    <div className="truncate text-[13.5px] font-extrabold text-astro-text">{r.nickname}</div>
                     <div className="truncate text-[11px] text-astro-text-dim">{r.full_name}</div>
                   </div>
                 </div>

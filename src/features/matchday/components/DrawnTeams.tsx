@@ -1,4 +1,5 @@
 import type { TeamWithMembers } from '../api'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
 
 export function DrawnTeams({ teams }: { teams: TeamWithMembers[] }) {
   return (
@@ -28,6 +29,7 @@ export function DrawnTeams({ teams }: { teams: TeamWithMembers[] }) {
                   {m.favourite_number ?? ''}
                 </span>
                 <span className="truncate text-[12.5px] font-bold text-astro-text">{m.nickname}</span>
+                <BadgeMark playerId={m.id} size={14} />
               </div>
             ))}
           </div>

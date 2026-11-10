@@ -16,7 +16,7 @@ export function ArticlesPreview({ articles }: { articles: ArticleRow[] }) {
       ) : (
         <div className="flex flex-col gap-3">
           {recent.map((a) => (
-            <div key={a.id} className="flex items-center gap-3.5">
+            <Link key={a.id} to="/articles/$articleId" params={{ articleId: a.id }} className="group flex items-center gap-3.5 no-underline">
               <div
                 className="h-14 w-[72px] shrink-0 rounded-[10px]"
                 style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
@@ -27,9 +27,9 @@ export function ArticlesPreview({ articles }: { articles: ArticleRow[] }) {
                     {a.kicker}
                   </div>
                 )}
-                <div className="text-sm font-bold text-astro-text [text-wrap:pretty]">{a.title}</div>
+                <div className="text-sm font-bold text-astro-text [text-wrap:pretty] group-hover:underline">{a.title}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

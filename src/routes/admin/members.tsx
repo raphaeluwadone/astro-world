@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { AdminClaimsPage } from '@/features/admin/AdminClaimsPage'
 
-export const Route = createFileRoute('/_app/admin/')({
+// TODO: the full roster lands here; until then Members holds the record-claims queue.
+export const Route = createFileRoute('/admin/members')({
   component: AdminClaimsPage,
 })

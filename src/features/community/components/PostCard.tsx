@@ -1,4 +1,7 @@
 import type { PostRow } from '../api'
+import { PostContent } from '../mentions/MentionChip'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 function relativeTime(iso: string) {
   const ms = Date.now() - new Date(iso).getTime()
@@ -13,27 +16,32 @@ export function PostCard({
   post,
   onToggleLike,
   canLike,
+  highlighted,
 }: {
   post: PostRow
   onToggleLike: () => void
   canLike: boolean
+  highlighted?: boolean
 }) {
   return (
-    <div className="astro-card p-5">
+    <div
+      id={`post-${post.id}`}
+      className={`astro-card scroll-mt-24 p-5 transition-[box-shadow,border-color] duration-700 ${highlighted ? 'border-astro-accent/70 shadow-[0_0_0_3px_rgba(166,63,255,0.25)]' : ''}`}
+    >
       <div className="mb-3 flex items-center gap-3">
-        <div
-          className="size-10 shrink-0 rounded-[10px]"
-          style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
-        />
+        <PlayerPhoto playerId={post.author.id} alt="" className="size-10 rounded-[10px]" />
         <div className="min-w-0">
-          <div className="text-sm font-extrabold text-astro-text">{post.author.nickname}</div>
+          <div className="flex items-center gap-1.5 text-sm font-extrabold text-astro-text">
+            {post.author.nickname}
+            <BadgeMark playerId={post.author.id} max={2} />
+          </div>
           <div className="text-[11.5px] text-astro-text-dim">
             {post.author.full_name} &middot; {relativeTime(post.created_at)}
           </div>
         </div>
       </div>
       <p className="mb-3.5 text-[14.5px] leading-[1.5] text-astro-text [text-wrap:pretty]">
-        {post.content}
+        <PostContent content={post.content} />
       </p>
       <div className="flex flex-wrap gap-[9px]">
         <button

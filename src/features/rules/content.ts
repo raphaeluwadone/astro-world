@@ -2,7 +2,6 @@
 // confirmed against the group's real rules. Revisit once real content
 // arrives (STATUS.md notes a data-collection form went to the client
 // covering exactly this).
-export const LAST_AMENDED = '2 Sep 2026'
 
 export const RULE_GLANCE_STATIC: Array<{ k: string; v: string }> = [
   { k: 'Availability closes', v: 'Wed 20:00' },
@@ -192,7 +191,10 @@ export const RULE_SECTIONS: RuleSection[] = [
 ]
 
 export interface Amendment {
+  /** ISO date the change took effect. */
   date: string
+  /** Short form for the Home strip. */
+  headline: string
   text: string
   by: string
   vote: string
@@ -200,28 +202,62 @@ export interface Amendment {
 
 export const AMENDMENTS: Amendment[] = [
   {
-    date: '18 Sep 2026',
+    date: '2026-09-18',
+    headline: 'Selection 07:40, kick-off 07:45',
     text: 'Kick-off moved to 07:45 with selection at 07:40, late excuses cut back to life-changing events with evidence, and substitute rotation added so everyone who turns up gets on. Applies to admins too.',
     by: 'The admins',
     vote: 'Announced',
   },
-  { date: '2 Sep 2026', text: 'Teams renamed from colours to the Greek alphabet. Colours kept as identifiers only.', by: 'Debo', vote: '22–33' },
   {
-    date: '26 Aug 2026',
+    date: '2026-09-02',
+    headline: 'Teams renamed to the Greek alphabet',
+    text: 'Teams renamed from colours to the Greek alphabet. Colours kept as identifiers only.',
+    by: 'Debo',
+    vote: '22–33',
+  },
+  {
+    date: '2026-08-26',
+    headline: '“I am him” added',
     text: '“I am him” added alongside “you are him”, both capped at three with up and down votes.',
     by: 'Wale',
     vote: '17–9',
   },
   {
-    date: '12 Aug 2026',
+    date: '2026-08-12',
+    headline: 'Ballot night moved to Wednesday',
     text: 'Ballot night moved from Saturday 20:00 to Wednesday 20:00 to give people midweek notice.',
     by: 'Kunle',
     vote: '19–6',
   },
-  { date: '5 Aug 2026', text: 'Positions simplified to GK, DEF, ATT and UTIL. Players may hold more than one.', by: 'Fred', vote: '24–1' },
-  { date: '14 Jul 2026', text: 'Numeric attribute ratings scrapped. Playstyle tags replaced them.', by: 'Wale', vote: '26–0' },
-  { date: '3 Mar 2025', text: 'No. 13 retired in memory of Ade Salami.', by: 'The group', vote: 'Unanimous' },
+  {
+    date: '2026-08-05',
+    headline: 'Positions simplified',
+    text: 'Positions simplified to GK, DEF, ATT and UTIL. Players may hold more than one.',
+    by: 'Fred',
+    vote: '24–1',
+  },
+  {
+    date: '2026-07-14',
+    headline: 'Attribute ratings scrapped',
+    text: 'Numeric attribute ratings scrapped. Playstyle tags replaced them.',
+    by: 'Wale',
+    vote: '26–0',
+  },
+  {
+    date: '2025-03-03',
+    headline: 'No. 13 retired',
+    text: 'No. 13 retired in memory of Ade Salami.',
+    by: 'The group',
+    vote: 'Unanimous',
+  },
 ]
+
+export const LATEST_AMENDMENT = AMENDMENTS[0]
+
+export function formatAmendmentDate(iso: string, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }) {
+  // en-GB abbreviates September as "Sept"; the design uses "Sep".
+  return new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', opts).replace('Sept', 'Sep')
+}
 
 export interface Punishment {
   name: string

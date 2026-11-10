@@ -1,4 +1,8 @@
+import { Link } from '@tanstack/react-router'
+import { useMemo } from 'react'
+import { Timeline, TimelineItem } from '@/components/timeline/Timeline'
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { useBadgesByPlayer } from '@/features/badges/hooks'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
@@ -12,6 +16,8 @@ import {
   useJoinCup,
   useLeaveCup,
 } from './hooks'
+import { usePageIntro } from '@/features/intros/usePageIntro'
+import { CupIntro } from './components/CupIntro'
 import { computeCupStandings } from './standings'
 
 function formatDateTime(iso: string) {
@@ -31,6 +37,7 @@ export function SalamiCupPage() {
   const { data: honours = [] } = useCupHonours()
   const joinCup = useJoinCup(cup?.id)
   const leaveCup = useLeaveCup(cup?.id)
+  const intro = usePageIntro('salami-cup')
 
   if (isLoading) return <PageLoader />
   if (isError) return <ErrorState onRetry={() => refetch()} />
@@ -38,6 +45,7 @@ export function SalamiCupPage() {
   if (!cup) {
     return (
       <div>
+        <CupIntro open={intro.show} cup={null} onDone={intro.dismiss} />
         <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">THE SALAMI CUP</h1>
         <EmptyState icon={<EmptyPitchIcon />} title="No cup on the calendar yet." body="Four times a year, in Ade's name. Nothing scheduled right now." />
       </div>
@@ -50,6 +58,7 @@ export function SalamiCupPage() {
 
   return (
     <div>
+      <CupIntro open={intro.show} cup={cup.status === 'played' ? null : cup} onDone={intro.dismiss} />
       <div
         className="relative mb-5.5 overflow-hidden rounded-[18px] border-2 p-7"
         style={{
@@ -223,20 +232,52 @@ export function SalamiCupPage() {
             {honours.length === 0 ? (
               <p className="text-[13px] text-astro-text-muted">No cup has been completed yet.</p>
             ) : (
-              <div className="flex flex-col gap-2.5">
+              <Timeline>
                 {honours.map((h) => (
-                  <div key={h.quarter.id} className="rounded-[11px] bg-astro-surface-2 px-3.5 py-3.5">
-                    <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">{h.quarter.label}</div>
-                    <div className="font-display text-[20px] leading-none" style={{ color: h.winnerColour ?? '#eef0f9' }}>
-                      {h.winnerName ?? 'No result recorded'}
-                    </div>
-                  </div>
+                  <TimelineItem
+                    key={h.quarter.id}
+                    color={h.winnerColour ?? '#f2a93b'}
+                    eyebrow={`${h.quarter.label} · ${new Date(h.quarter.scheduled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace('Sept', 'Sep')}`}
+                    title={h.winnerName ?? 'No result recorded'}
+                    titleColor={h.winnerColour ?? undefined}
+                  >
+                    <CupAwardsList cupId={h.quarter.id} />
+                  </TimelineItem>
                 ))}
-              </div>
+              </Timeline>
             )}
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/** Every Salami Cup award handed out at one cup, Silverware first. */
+function CupAwardsList({ cupId }: { cupId: string }) {
+  const byPlayer = useBadgesByPlayer()
+  const awards = useMemo(() => {
+    const map = new Map<string, { key: string; name: string; names: string[] }>()
+    for (const b of [...byPlayer.values()].flat()) {
+      if (b.period_key !== cupId) continue
+      const a = map.get(b.badge_key) ?? { key: b.badge_key, name: b.def.name, names: [] }
+      a.names.push(b.nickname)
+      map.set(b.badge_key, a)
+    }
+    return [...map.values()].sort((a, b) => (a.key === 'silverware' ? -1 : b.key === 'silverware' ? 1 : a.name.localeCompare(b.name)))
+  }, [byPlayer, cupId])
+
+  if (awards.length === 0) return null
+  return (
+    <div className="flex flex-col gap-1.5">
+      {awards.map((a) => (
+        <div key={a.key} className="flex flex-wrap items-baseline gap-x-2 text-[12.5px]">
+          <Link to="/awards/$awardKey" params={{ awardKey: a.key }} className="font-extrabold text-[#f7c25e] hover:underline">
+            {a.name}
+          </Link>
+          <span className="text-astro-text-muted">{a.names.join(', ')}</span>
+        </div>
+      ))}
     </div>
   )
 }

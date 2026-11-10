@@ -1,17 +1,24 @@
+import type { Badge } from '@/features/badges/api'
+import { BadgeSleeve } from '@/features/badges/components/ProfileBadges'
 import type { Player, PlayerTagRow } from '../api'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 export function HeroCard({
   player,
   careerAvg,
   tags,
+  badges,
+  cupWinner,
 }: {
   player: Player
   careerAvg: number | null
   tags: PlayerTagRow[]
+  badges: Badge[]
+  cupWinner: boolean
 }) {
   return (
     <div
-      className="relative overflow-hidden rounded-[18px] border-2 border-[rgba(166,63,255,0.45)] p-5"
+      className={`relative overflow-hidden rounded-[18px] border-2 p-5 ${cupWinner ? 'border-astro-amber/75' : 'border-[rgba(166,63,255,0.45)]'}`}
       style={{
         background: 'linear-gradient(165deg, #2a1147 0%, #1b2650 42%, #111a33 100%)',
         clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 34px), calc(100% - 34px) 100%, 0 100%)',
@@ -24,6 +31,11 @@ export function HeroCard({
             'linear-gradient(115deg, transparent 43%, rgba(255,255,255,0.1) 50%, transparent 57%)',
         }}
       />
+      {cupWinner && (
+        <div className="pointer-events-none absolute -right-[38px] top-[18px] z-10 rotate-[35deg] bg-[linear-gradient(180deg,#ffe2a1,#f2a93b)] px-11 py-1 text-[10px] font-extrabold tracking-[0.12em] text-[#2a1a05]">
+          CUP WINNER
+        </div>
+      )}
       {player.favourite_number != null && (
         <div
           className="astro-ghost pointer-events-none absolute -right-6 top-[70px] text-[250px]"
@@ -43,7 +55,7 @@ export function HeroCard({
           </div>
         </div>
         {player.favourite_number != null && (
-          <div className="text-right">
+          <div className={`text-right ${cupWinner ? 'mr-9 mt-6' : ''}`}>
             <div className="font-display text-[30px] leading-none text-astro-text">
               {player.favourite_number}
             </div>
@@ -56,10 +68,21 @@ export function HeroCard({
         className="relative mb-4 flex h-[250px] items-end justify-center overflow-hidden rounded-[13px]"
         style={{ background: 'linear-gradient(160deg, #2c3c74, #131c3a)' }}
       >
-        <div className="h-[82%] w-[52%] rounded-t-full bg-white/[0.055]" />
-        <div className="absolute inset-x-0 bottom-2.5 text-center text-[10px] font-extrabold tracking-[0.16em] text-white/30 uppercase">
-          Photo pending
-        </div>
+        <PlayerPhoto
+          playerId={player.id}
+          alt={player.nickname}
+          className="absolute inset-0 flex items-end justify-center"
+          style={{ background: 'transparent' }}
+          fallback={
+            <>
+              <div className="h-[82%] w-[52%] rounded-t-full bg-white/[0.055]" />
+              <div className="absolute inset-x-0 bottom-2.5 text-center text-[10px] font-extrabold tracking-[0.16em] text-white/30 uppercase">
+                No photo yet
+              </div>
+            </>
+          }
+        />
+        <BadgeSleeve badges={badges} />
       </div>
 
       <div className="relative">

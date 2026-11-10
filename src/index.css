@@ -207,4 +207,21 @@
   html {
     @apply font-sans;
     }
+
+  /* Tailwind's preflight leaves buttons on the default cursor. */
+  :where(button, [role='button'], [role='tab'], [role='link'], [role='option'], [role='menuitem'], [role='checkbox'], [role='switch'], summary, select, label[for], input[type='checkbox'], input[type='radio']):not(:disabled, [aria-disabled='true']) {
+    cursor: pointer;
+  }
+  :where(button, [role='button'], select, input):disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  /* A fallback hover for anything clickable that doesn't style its own. */
+  :where(a[href], button, [role='button'], [role='tab'], [role='link'], summary):not(:disabled, [aria-disabled='true'], [class*='hover:'], [class*='astro-nav__']) {
+    transition: filter 150ms ease, opacity 150ms ease;
+  }
+  :where(a[href], button, [role='button'], [role='tab'], [role='link'], summary):not(:disabled, [aria-disabled='true'], [class*='hover:'], [class*='astro-nav__']):hover {
+    filter: brightness(1.25);
+  }
 }

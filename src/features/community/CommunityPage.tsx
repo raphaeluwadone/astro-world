@@ -1,3 +1,5 @@
+import { useSearch } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
@@ -7,7 +9,7 @@ import { MostMentioned } from './components/MostMentioned'
 import { PostCard } from './components/PostCard'
 import { PostComposer } from './components/PostComposer'
 import { TagPool } from './components/TagPool'
-import { useCreatePost, useFeed, useMostMentioned, useTagPool, useToggleLike } from './hooks'
+import { useCreatePost, useFeed, useLinkedPost, useMostMentioned, useTagPool, useToggleLike } from './hooks'
 
 export function CommunityPage() {
   const { player } = useCurrentPlayer()
@@ -18,6 +20,30 @@ export function CommunityPage() {
   const { data: tags = [] } = useTagPool()
   const createPost = useCreatePost(playerId)
   const toggleLike = useToggleLike(playerId)
+
+  const { post: linkedId } = useSearch({ from: '/_app/community/' })
+  const inFeed = !!linkedId && feed.some((p) => p.id === linkedId)
+  const { data: linkedPost, isFetched: linkedFetched } = useLinkedPost(linkedId, playerId, !feedLoading && !inFeed)
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+  const linkedReady = inFeed || !!linkedPost
+
+  useEffect(() => {
+    if (!linkedId || !linkedReady) return
+    document.getElementById(`post-${linkedId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setHighlightId(linkedId)
+    const t = setTimeout(() => setHighlightId(null), 2400)
+    return () => clearTimeout(t)
+  }, [linkedId, linkedReady])
+
+  const renderPost = (post: (typeof feed)[number]) => (
+    <PostCard
+      key={post.id}
+      post={post}
+      highlighted={highlightId === post.id}
+      canLike={!!playerId}
+      onToggleLike={() => toggleLike.mutate({ postId: post.id, liked: !post.likedByMe })}
+    />
+  )
 
   return (
     <div>
@@ -31,8 +57,21 @@ export function CommunityPage() {
           <PostComposer
             disabled={!playerId}
             isSubmitting={createPost.isPending}
-            onSubmit={(content) => createPost.mutate(content)}
+            onSubmit={(text, mentions) => createPost.mutate({ text, mentions })}
           />
+
+          {!inFeed && linkedPost && (
+            <div className="flex flex-col gap-2">
+              <div className="text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-astro-accent">Linked post</div>
+              {renderPost(linkedPost)}
+              <div className="mt-2 text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-astro-text-dim">Latest</div>
+            </div>
+          )}
+          {linkedId && !inFeed && linkedFetched && !linkedPost && (
+            <div className="rounded-xl border border-white/[0.07] bg-astro-surface px-4 py-3 text-[13px] text-astro-text-muted">
+              That post has been deleted, or the link is wrong.
+            </div>
+          )}
 
           {feedLoading ? (
             <PageLoader />
@@ -41,16 +80,7 @@ export function CommunityPage() {
           ) : feed.length === 0 ? (
             <EmptyState icon={<EmptyPitchIcon />} title="Nobody's said anything yet." body="Be the keen one." />
           ) : (
-            feed.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                canLike={!!playerId}
-                onToggleLike={() =>
-                  toggleLike.mutate({ postId: post.id, liked: !post.likedByMe })
-                }
-              />
-            ))
+            feed.map(renderPost)
           )}
         </div>
 

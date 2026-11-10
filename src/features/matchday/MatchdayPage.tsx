@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import { Link } from '@tanstack/react-router'
 import { useState, type ReactNode } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -154,9 +155,21 @@ export function MatchdayPage() {
         standbyPosition={isOnStandby ? standbyIndex + 1 : null}
         spotsRemaining={spotsRemaining}
         onClaim={() => player?.id && claimWeeklySpot.mutate(player.id)}
-        onWithdrawClaim={() => player?.id && withdrawWeeklyClaim.mutate(player.id)}
+        onWithdrawClaim={() =>
+          player?.id &&
+          withdrawWeeklyClaim.mutate(player.id, {
+            onSuccess: () => toast.success("You've pulled out"),
+            onError: () => toast.error("Couldn't do that. Claims may have just closed."),
+          })
+        }
         onJoinStandby={() => player?.id && joinStandby.mutate(player.id)}
-        onLeaveStandby={() => player?.id && leaveStandby.mutate(player.id)}
+        onLeaveStandby={() =>
+          player?.id &&
+          leaveStandby.mutate(player.id, {
+            onSuccess: () => toast.success("You've left standby"),
+            onError: () => toast.error("Couldn't do that. Try again."),
+          })
+        }
         isClaiming={claimWeeklySpot.isPending}
         isWithdrawing={withdrawWeeklyClaim.isPending}
         isJoiningStandby={joinStandby.isPending}

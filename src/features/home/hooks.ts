@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchMyCommunityLikes, fetchPendingRatings } from './api'
+import { fetchAwardRace, fetchMyCommunityLikes, fetchPendingRatings } from './api'
 
 export function useMyCommunityLikes(playerId: string | undefined) {
   return useQuery({
@@ -15,4 +15,8 @@ export function usePendingRatings(playerId: string | undefined, matchdayId: stri
     queryFn: () => fetchPendingRatings(playerId!, matchdayId!),
     enabled: !!playerId && !!matchdayId,
   })
+}
+
+export function useAwardRace(enabled: boolean) {
+  return useQuery({ queryKey: ['award-race'], queryFn: fetchAwardRace, enabled, staleTime: 60 * 1000 })
 }

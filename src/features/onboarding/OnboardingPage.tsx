@@ -58,12 +58,7 @@ export function OnboardingPage() {
         >
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-7 py-5">
             <div className="flex items-center gap-2.5">
-              <div
-                className="flex size-[26px] items-center justify-center rounded-lg bg-gradient-to-br from-astro-accent to-astro-accent-strong"
-                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%)' }}
-              >
-                <BrandMarkIcon className="size-3.5" />
-              </div>
+              <BrandMarkIcon className="h-8 w-auto shrink-0" />
               <Wordmark size={22} className="text-astro-text" />
             </div>
             <div className="flex items-center gap-2.5">

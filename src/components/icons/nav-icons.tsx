@@ -140,13 +140,25 @@ export function BellIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-/** The adopted "1a" mark from the AllStars rebrand (rev 42): a
- * constructed 10-point star, 46/16 outer-to-inner ratio, never redrawn
- * by eye. Replaces the earlier diamond mark used under the Astro name. */
+/** The 4c "ringed ball" mark. The ring is split so it passes behind the ball at the top and in front at the bottom. */
 export function BrandMarkIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 100 100" fill="#0a0f1f" {...props}>
-      <path d="M50.00 4.00L59.40 37.06L93.75 35.79L65.22 54.94L77.04 87.21L50.00 66.00L22.96 87.21L34.78 54.94L6.25 35.79L40.60 37.06Z" />
+    <svg viewBox="0 0 120 100" fill="none" aria-hidden="true" {...props}>
+      <ellipse cx="60" cy="50" rx="54" ry="19" stroke="#6d3ec9" strokeWidth="6" transform="rotate(-20 60 50)" />
+      <circle cx="60" cy="50" r="31" fill="#a63fff" />
+      <path d="M60 31 L74 41 L68 58 H52 L46 41 Z" fill="#0a0f1f" />
+      <path d="M18 66 Q60 88 103 46" stroke="#eef0f9" strokeWidth="6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function HonoursIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path
+        fillRule="evenodd"
+        d="M6.6 2.4h3.6L12 6.3l1.8-3.9h3.6l-2.9 6.2a6.4 6.4 0 1 1-5 0ZM12 11.3l1.1 2.3 2.5.3-1.8 1.8.4 2.5-2.2-1.2-2.2 1.2.4-2.5-1.8-1.8 2.5-.3Z"
+      />
     </svg>
   )
 }

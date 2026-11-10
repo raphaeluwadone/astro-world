@@ -49,3 +49,20 @@ export async function fetchPendingRatings(
 
   return { pending, total: subjects.length }
 }
+
+export interface AwardRaceRow {
+  badge_key: string
+  scope: 'month' | 'year'
+  mine: number | null
+  my_rank: number | null
+  leader: number | null
+  leaders: string[]
+  contenders: number
+}
+
+/** Where the signed-in player stands in this month's and this year's award races. */
+export async function fetchAwardRace(): Promise<AwardRaceRow[]> {
+  const { data, error } = await supabase.rpc('award_race')
+  if (error) throw error
+  return (data ?? []) as AwardRaceRow[]
+}

@@ -1,6 +1,14 @@
 import { Link } from '@tanstack/react-router'
 
-export function RatingsPrompt({ pending }: { pending: number }) {
+/** Mirrors voting_closes_at() in the database: the London date of the match plus six days, at 23:59. */
+function closesLabel(playedAt: string) {
+  const londonDate = new Date(playedAt).toLocaleDateString('en-CA', { timeZone: 'Europe/London' })
+  const [y, m, d] = londonDate.split('-').map(Number)
+  const closes = new Date(Date.UTC(y, m - 1, d + 6))
+  return `${closes.toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' })} 23:59`
+}
+
+export function RatingsPrompt({ pending, playedAt }: { pending: number; playedAt: string }) {
   return (
     <div
       className="relative overflow-hidden rounded-[18px] border-[1.5px] border-[rgba(166,63,255,0.4)] px-[26px] py-6"
@@ -19,7 +27,7 @@ export function RatingsPrompt({ pending }: { pending: number }) {
       <div className="relative flex flex-wrap items-center justify-between gap-5">
         <div className="min-w-0">
           <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-accent-soft">
-            Ratings open &middot; closes Sat 23:59
+            Ratings open &middot; closes {closesLabel(playedAt)}
           </div>
           <div className="font-display mb-1.5 text-[34px] leading-none text-astro-text">
             Rate Sunday&rsquo;s Lot

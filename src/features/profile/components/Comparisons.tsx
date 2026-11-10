@@ -125,12 +125,26 @@ function ComparisonCard({
   )
 }
 
-function EmptySlot({ ordinal, lastDropped }: { ordinal: string; lastDropped?: { name: string; droppedAt: string } | null }) {
+function EmptySlot({
+  ordinal,
+  lastDropped,
+  onAdd,
+}: {
+  ordinal: string
+  lastDropped?: { name: string; droppedAt: string } | null
+  onAdd?: () => void
+}) {
   const droppedNote = lastDropped
     ? `${lastDropped.name} got voted off on ${new Date(lastDropped.droppedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. Pick someone else.`
     : 'Pick someone to fill it.'
+  const Tag = onAdd ? 'button' : 'div'
   return (
-    <div className="flex min-h-[190px] flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-[rgba(166,63,255,0.4)] bg-[#0d1428] p-4 text-center">
+    <Tag
+      {...(onAdd ? { type: 'button' as const, onClick: onAdd } : {})}
+      className={`flex min-h-[190px] w-full flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-[rgba(166,63,255,0.4)] bg-[#0d1428] p-4 text-center ${
+        onAdd ? 'cursor-pointer transition-colors hover:border-solid hover:border-astro-accent/70 hover:bg-[#111a36] focus-visible:border-solid focus-visible:outline-none' : ''
+      }`}
+    >
       <div className="flex size-[42px] items-center justify-center rounded-xl border border-[rgba(166,63,255,0.4)] bg-[rgba(166,63,255,0.14)]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="#c589ff">
           <path d="M10.5 3.2h3v7.3h7.3v3h-7.3v7.3h-3v-7.3H3.2v-3h7.3Z" />
@@ -142,7 +156,7 @@ function EmptySlot({ ordinal, lastDropped }: { ordinal: string; lastDropped?: { 
           {droppedNote}
         </p>
       </div>
-    </div>
+    </Tag>
   )
 }
 
@@ -202,7 +216,7 @@ function ComparisonSection({
             <ComparisonCard key={c.id} c={c} canVote={canVote} voterId={voterId} playerId={playerId} />
           ))}
           {emptySlots.map((slot) => (
-            <EmptySlot key={slot.ordinal} ordinal={slot.ordinal} lastDropped={slot.lastDropped} />
+            <EmptySlot key={slot.ordinal} ordinal={slot.ordinal} lastDropped={slot.lastDropped} onAdd={onCta} />
           ))}
         </div>
       )}
