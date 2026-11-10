@@ -34,6 +34,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           body: string
@@ -485,6 +500,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_outbox: {
+        Row: {
+          attempts: number
+          created_at: string
+          data: Json
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          sent_at: string | null
+          template: string
+          to_email: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          data?: Json
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          sent_at?: string | null
+          template: string
+          to_email: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          data?: Json
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          sent_at?: string | null
+          template?: string
+          to_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           assist_id: string | null
@@ -889,6 +943,74 @@ export type Database = {
           {
             foreignKeyName: "monthly_memberships_player_id_fkey"
             columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_prefs: {
+        Row: {
+          email_badges: boolean
+          email_dues: boolean
+          email_matchday: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_badges?: boolean
+          email_dues?: boolean
+          email_matchday?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_badges?: boolean
+          email_dues?: boolean
+          email_matchday?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          data: Json
+          dedupe_key: string | null
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          dedupe_key?: string | null
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          dedupe_key?: string | null
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
@@ -1690,6 +1812,27 @@ export type Database = {
         }[]
       }
       cause_raised_amount: { Args: { p_cause_id: string }; Returns: number }
+      claim_email_batch: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          created_at: string
+          data: Json
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          sent_at: string | null
+          template: string
+          to_email: string
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "email_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       club_moments: {
         Args: never
         Returns: {
@@ -1711,9 +1854,18 @@ export type Database = {
         }[]
       }
       cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
+      dispatch_emails: { Args: never; Returns: undefined }
       dues_paid_count: { Args: { p_dues_quarter_id: string }; Returns: number }
+      finish_email: {
+        Args: { p_error?: string; p_id: string }
+        Returns: undefined
+      }
       is_own_player: { Args: { p_player_id: string }; Returns: boolean }
       is_requesting_admin: { Args: never; Returns: boolean }
+      mark_notifications_read: {
+        Args: { p_ids?: string[] }
+        Returns: undefined
+      }
       match_ratings_integrity: {
         Args: { p_match_id: string }
         Returns: {
@@ -1742,6 +1894,29 @@ export type Database = {
       }
       motm_open_for: { Args: { p_matchday_id: string }; Returns: boolean }
       next_matchday_at: { Args: { after: string }; Returns: string }
+      notifications_since: { Args: never; Returns: string }
+      notifications_sweep: { Args: never; Returns: undefined }
+      notify: {
+        Args: {
+          p_actor?: string
+          p_data: Json
+          p_dedupe?: string
+          p_email?: string
+          p_email_pref?: string
+          p_kind: string
+          p_link: string
+          p_user: string
+        }
+        Returns: boolean
+      }
+      notify_badge_won: {
+        Args: { b: Database["public"]["Tables"]["player_badges"]["Row"] }
+        Returns: undefined
+      }
+      notify_spot_opened: {
+        Args: { p_matchday: string; p_reason: string }
+        Returns: undefined
+      }
       played_in_match: {
         Args: { p_match_id: string; p_player_id: string }
         Returns: boolean
@@ -1773,8 +1948,10 @@ export type Database = {
           played_at: string
         }[]
       }
+      player_user: { Args: { p_player: string }; Returns: string }
       public_roster_size: { Args: never; Returns: number }
       ratings_open_for: { Args: { p_match_id: string }; Returns: boolean }
+      requesting_player_id: { Args: never; Returns: string }
       season_team_matches: {
         Args: { p_season_start: string }
         Returns: {

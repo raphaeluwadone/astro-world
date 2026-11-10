@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { signOut } from '@/features/auth/api'
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { NotificationBell } from '@/features/notifications/NotificationBell'
 
 export function UserMenu() {
   const { player } = useCurrentPlayer()
@@ -20,7 +21,8 @@ export function UserMenu() {
   }
 
   return (
-    <div className="fixed right-6 top-5 z-20 hidden md:block">
+    <div className="fixed right-6 top-5 z-20 hidden items-center gap-2 md:flex">
+      <NotificationBell />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button

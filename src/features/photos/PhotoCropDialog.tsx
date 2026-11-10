@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
-import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 
 const FRAME_W = 288
@@ -224,21 +224,7 @@ export function PhotoCropDialog({
 
         <div className="mt-3 flex items-center gap-3 text-xs font-bold text-astro-text-muted">
           <span id="photo-blur-label">Blur</span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={blurOn}
-            aria-labelledby="photo-blur-label"
-            onClick={() => setBlurOn((on) => !on)}
-            className={cn(
-              'relative h-5 w-9 shrink-0 rounded-full border transition-colors',
-              blurOn ? 'border-astro-accent/60 bg-astro-accent/70' : 'border-white/15 bg-white/[0.08] hover:bg-white/[0.14]',
-            )}
-          >
-            <span
-              className={cn('absolute top-1/2 size-3.5 -translate-y-1/2 rounded-full bg-white transition-[left]', blurOn ? 'left-[18px]' : 'left-[2px]')}
-            />
-          </button>
+          <Switch checked={blurOn} onCheckedChange={setBlurOn} aria-labelledby="photo-blur-label" />
           {blurOn && (
             <input
               type="range"

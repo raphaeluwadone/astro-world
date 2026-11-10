@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { useNotificationsRealtime } from '@/features/notifications/hooks'
 import { BottomNav } from './BottomNav'
 import { MobileHeader } from './MobileHeader'
 import { MobileNavDrawer } from './MobileNavDrawer'
@@ -8,6 +9,7 @@ import { UserMenu } from './UserMenu'
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  useNotificationsRealtime()
 
   return (
     <div className="flex min-h-screen items-stretch bg-astro-bg">
