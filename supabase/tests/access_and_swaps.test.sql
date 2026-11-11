@@ -1,6 +1,6 @@
 -- Departed players lose access; Pitch-side swaps move the claim and rewrite the teams post.
 begin;
-select plan(8);
+select plan(9);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'swap-admin@test.local'),
@@ -64,6 +64,13 @@ select throws_ok(
   '42501',
   null,
   'only admins can swap'
+);
+
+select throws_ok(
+  $$insert into teams (matchday_id, greek_name, colour) values ('00000000-0000-0000-0000-00000000d001', 'Alpha', '#38bdf8')$$,
+  '23505',
+  null,
+  'a matchday cannot be drawn twice'
 );
 
 select * from finish();

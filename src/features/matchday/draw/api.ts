@@ -172,7 +172,7 @@ export async function publishTeamDraw(matchdayId: string, teams: string[][]) {
     .from('teams')
     .insert(names.map((t) => ({ matchday_id: matchdayId, greek_name: t.name, colour: t.colour })))
     .select('id, greek_name')
-  if (teamsError) throw teamsError
+  if (teamsError) throw teamsError.code === '23505' ? new Error('The teams for this matchday are already out.') : teamsError
 
   const idByName = new Map(inserted.map((t) => [t.greek_name, t.id]))
   const { error: membersError } = await supabase
