@@ -10,7 +10,7 @@ import { AddMemberDialog } from './AddMemberDialog'
 import { MemberSheet } from './MemberSheet'
 import { MembersTabs } from './MembersTabs'
 
-type Filter = 'active' | 'admins' | 'writers' | 'unclaimed' | 'left' | 'all'
+export type Filter = 'active' | 'admins' | 'writers' | 'unclaimed' | 'left' | 'all'
 
 const FILTERS: { id: Filter; label: string; test: (m: MemberRow) => boolean }[] = [
   { id: 'active', label: 'Active', test: (m) => !m.left_at },
@@ -53,9 +53,9 @@ export function MemberChips({ m }: { m: MemberRow }) {
   )
 }
 
-export function MembersPage() {
+export function MembersPage({ initialFilter = 'active' }: { initialFilter?: Filter }) {
   const { data: members = [], isLoading, isError, refetch } = useMembers()
-  const [filter, setFilter] = useState<Filter>('active')
+  const [filter, setFilter] = useState<Filter>(initialFilter)
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [openId, setOpenId] = useState<string | null>(null)

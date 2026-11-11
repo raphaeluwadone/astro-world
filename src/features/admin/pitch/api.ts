@@ -154,9 +154,9 @@ export async function addWalkIn(nickname: string) {
   return data.id
 }
 
-/** Puts `inId` in `outId`'s place on the team and checks them in. */
+/** Puts `inId` in `outId`'s place, moves the weekly claim, updates the teams post and checks them in. */
 export async function swapPlayer(matchdayId: string, teamId: string, outId: string, inId: string, by: string) {
-  const { error } = await supabase.from('team_members').update({ player_id: inId }).eq('team_id', teamId).eq('player_id', outId)
+  const { error } = await supabase.rpc('swap_team_player', { p_team: teamId, p_out: outId, p_in: inId })
   if (error) throw error
   await setCheckins(matchdayId, [outId], false, by)
   await setCheckins(matchdayId, [inId], true, by)

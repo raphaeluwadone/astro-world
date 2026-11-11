@@ -17,7 +17,7 @@ export const Route = createFileRoute('/_app')({
 
     const { data: player } = await supabase
       .from('players')
-      .select('onboarded_at')
+      .select('onboarded_at, left_at')
       .eq('user_id', data.session.user.id)
       .maybeSingle()
 
@@ -38,6 +38,12 @@ export const Route = createFileRoute('/_app')({
         throw redirect({ to: '/pending-approval' })
       }
       throw redirect({ to: '/join' })
+    }
+
+    // Their current token can outlive leaving by up to an hour; the auth hook refuses the next one.
+    if (player.left_at) {
+      await supabase.auth.signOut()
+      throw redirect({ to: '/login', search: { view: 'signin', left: true } })
     }
 
     if (player.onboarded_at === null) {

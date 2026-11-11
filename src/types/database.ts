@@ -2357,6 +2357,7 @@ export type Database = {
         }[]
       }
       cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       dispatch_emails: { Args: never; Returns: undefined }
       draw_player_stats: {
         Args: {
@@ -2373,6 +2374,7 @@ export type Database = {
           sundays: number
         }[]
       }
+      drawn_teams_lines: { Args: { p_matchday: string }; Returns: string }
       dues_paid_count: { Args: { p_dues_quarter_id: string }; Returns: number }
       finish_email: {
         Args: { p_error?: string; p_id: string }
@@ -2483,6 +2485,10 @@ export type Database = {
       }
       set_honours_pin: {
         Args: { p_pinned: boolean; p_post_id: string }
+        Returns: undefined
+      }
+      swap_team_player: {
+        Args: { p_in: string; p_out: string; p_team: string }
         Returns: undefined
       }
       team_matches_between: {

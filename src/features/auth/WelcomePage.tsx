@@ -23,17 +23,21 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+export const LEFT_NOTICE = 'This account is switched off because you’ve left Astro. Ask an admin if you’re coming back.'
+
 export function WelcomePage({
   redirectTo,
   initialView = 'landing',
+  notice,
 }: {
   redirectTo?: string
   initialView?: 'landing' | 'signin'
+  notice?: string
 }) {
   const [view, setView] = useState(initialView)
 
   if (view === 'signin') {
-    return <SignInForm onBack={() => setView('landing')} redirectTo={redirectTo} />
+    return <SignInForm onBack={() => setView('landing')} redirectTo={redirectTo} notice={notice} />
   }
   return <LandingHero onSignIn={() => setView('signin')} />
 }
@@ -127,10 +131,10 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
   )
 }
 
-function SignInForm({ onBack, redirectTo }: { onBack: () => void; redirectTo?: string }) {
+function SignInForm({ onBack, redirectTo, notice }: { onBack: () => void; redirectTo?: string; notice?: string }) {
   const navigate = useNavigate()
   const [step, setStep] = useState<'password' | 'code' | 'forgot' | 'forgot-sent'>('password')
-  const [formError, setFormError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(notice ?? null)
   const [sending, setSending] = useState(false)
   const {
     register,

@@ -71,6 +71,7 @@ function SwapIn({
     act.mutate((by) => api.swapPlayer(matchdayId, team.id, out.id, inId, by), {
       onSuccess: () => {
         void qc.invalidateQueries({ queryKey: ['drawn-teams', matchdayId] })
+        void qc.invalidateQueries({ queryKey: ['community-feed'] })
         toast.success(`${name} in for ${out.nickname}.`)
         onDone()
       },

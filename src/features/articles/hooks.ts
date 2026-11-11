@@ -7,8 +7,6 @@ import {
   fetchCanWrite,
   fetchDrafts,
   fetchWriters,
-  grantWriter,
-  revokeWriter,
   saveArticle,
   setPublished,
   type ArticleDraft,
@@ -63,16 +61,4 @@ export function useDeleteArticle() {
 
 export function useWriters() {
   return useQuery({ queryKey: ['article-writers'], queryFn: fetchWriters })
-}
-
-export function useSetWriter() {
-  const { player } = useCurrentPlayer()
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ playerId, on }: { playerId: string; on: boolean }) => (on ? grantWriter(playerId, player!.id) : revokeWriter(playerId)),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['article-writers'] })
-      qc.invalidateQueries({ queryKey: ['can-write-articles'] })
-    },
-  })
 }
