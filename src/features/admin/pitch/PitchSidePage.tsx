@@ -414,56 +414,68 @@ function GoalEditor({
       )}
 
       {game.goals.length > 0 && (
-        <section className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card px-3.5 py-2">
-          <ul className="divide-y divide-white/[0.06]">
-            {[...game.goals].reverse().map((g) => {
-              const t = side(g.team_id)
-              return (
-                <li key={g.id} className="flex items-center gap-2.5 py-2">
-                  <GoalTime goal={g} lengthMin={game.length_min} act={act} />
+        <section className="grid gap-2 sm:grid-cols-2">
+          {[side(game.team_a_id), side(game.team_b_id)].map((t) => {
+            const goals = game.goals.filter((g) => g.team_id === t.id)
+            return (
+              <div key={t.id} className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card px-3.5 py-2">
+                <div className="flex items-center gap-2 border-b border-white/[0.06] pb-2 pt-1">
                   <TeamDot team={t} />
-                  <span className="min-w-0 flex-1 truncate text-[13.5px] text-astro-text">
-                    <button
-                      type="button"
-                      onClick={() => setPicking({ teamId: g.team_id, step: 'fix-scorer', goalId: g.id, assistId: g.assist_id })}
-                      className={cn('font-extrabold underline decoration-white/20 decoration-dotted underline-offset-4 hover:decoration-current', !g.scorer_id && 'text-astro-amber')}
-                    >
-                      {nameOf(g.scorer_id) ?? 'Scorer to add'}
-                    </button>
-                    {g.assist_id && (
-                      <>
-                        <span className="text-astro-text-muted"> · </span>
+                  <span className="text-[12px] font-extrabold uppercase tracking-[0.1em] text-astro-text">{t.greek_name}</span>
+                  <span className="ml-auto font-display text-[20px] leading-none text-astro-text">{goals.length}</span>
+                </div>
+                {goals.length === 0 ? (
+                  <p className="py-2 text-[12.5px] text-astro-text-dim">No goals yet.</p>
+                ) : (
+                  <ul className="divide-y divide-white/[0.06]">
+                    {goals.map((g) => (
+                      <li key={g.id} className="flex items-center gap-2.5 py-2">
+                        <GoalTime goal={g} lengthMin={game.length_min} act={act} />
+                        <span className="min-w-0 flex-1 truncate text-[13.5px] text-astro-text">
+                          <button
+                            type="button"
+                            onClick={() => setPicking({ teamId: g.team_id, step: 'fix-scorer', goalId: g.id, assistId: g.assist_id })}
+                            className={cn('font-extrabold underline decoration-white/20 decoration-dotted underline-offset-4 hover:decoration-current', !g.scorer_id && 'text-astro-amber')}
+                          >
+                            {nameOf(g.scorer_id) ?? 'Scorer to add'}
+                          </button>
+                          {g.assist_id && (
+                            <>
+                              <span className="text-astro-text-muted"> · </span>
+                              <button
+                                type="button"
+                                onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: g.assist_id })}
+                                className="text-astro-text-muted underline decoration-white/20 decoration-dotted underline-offset-4 hover:text-astro-text"
+                              >
+                                {nameOf(g.assist_id)}
+                              </button>
+                            </>
+                          )}
+                        </span>
+                        {!g.assist_id && g.scorer_id && (
+                          <button
+                            type="button"
+                            onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: null })}
+                            className="text-[11.5px] font-bold text-astro-cyan hover:underline"
+                          >
+                            + Assist
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: g.assist_id })}
-                          className="text-astro-text-muted underline decoration-white/20 decoration-dotted underline-offset-4 hover:text-astro-text"
+                          aria-label="Undo goal"
+                          onClick={() => act.mutate(() => api.deleteGoal(g.id), { onSuccess: () => toast('Goal removed.'), onError: fail('remove that goal') })}
+                          className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
                         >
-                          {nameOf(g.assist_id)}
+                          &times;
                         </button>
-                      </>
-                    )}
-                  </span>
-                  {!g.assist_id && g.scorer_id && (
-                    <button
-                      type="button"
-                      onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: null })}
-                      className="text-[11.5px] font-bold text-astro-cyan hover:underline"
-                    >
-                      + Assist
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    aria-label="Undo goal"
-                    onClick={() => act.mutate(() => api.deleteGoal(g.id), { onSuccess: () => toast('Goal removed.'), onError: fail('remove that goal') })}
-                    className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
-                  >
-                    &times;
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )
+          })}
         </section>
       )}
     </>

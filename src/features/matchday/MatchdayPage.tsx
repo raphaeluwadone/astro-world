@@ -146,38 +146,40 @@ export function MatchdayPage() {
 
       {matchday.status === 'drawn' && <MyMatchdayCard matchdayId={matchday.id} teams={teams} playerId={player?.id} />}
 
-      <AvailabilityCard
-        matchdayId={matchday.id}
-        playerId={player?.id ?? null}
-        isOpen={matchday.status === 'open'}
-        daysUntil={daysUntil}
-        isMonthlyMember={isMonthlyMember}
-        monthlyOptStatus={monthlyOptStatus}
-        hasWeeklyClaim={hasWeeklyClaim}
-        isOnStandby={isOnStandby}
-        standbyPosition={isOnStandby ? standbyIndex + 1 : null}
-        spotsRemaining={spotsRemaining}
-        onClaim={() => player?.id && claimWeeklySpot.mutate(player.id)}
-        onWithdrawClaim={() =>
-          player?.id &&
-          withdrawWeeklyClaim.mutate(player.id, {
-            onSuccess: () => toast.success("You've pulled out"),
-            onError: () => toast.error("Couldn't do that. Claims may have just closed."),
-          })
-        }
-        onJoinStandby={() => player?.id && joinStandby.mutate(player.id)}
-        onLeaveStandby={() =>
-          player?.id &&
-          leaveStandby.mutate(player.id, {
-            onSuccess: () => toast.success("You've left standby"),
-            onError: () => toast.error("Couldn't do that. Try again."),
-          })
-        }
-        isClaiming={claimWeeklySpot.isPending}
-        isWithdrawing={withdrawWeeklyClaim.isPending}
-        isJoiningStandby={joinStandby.isPending}
-        isLeavingStandby={leaveStandby.isPending}
-      />
+      {matchday.status !== 'drawn' && matchday.status !== 'played' && (
+        <AvailabilityCard
+          matchdayId={matchday.id}
+          playerId={player?.id ?? null}
+          isOpen={matchday.status === 'open'}
+          daysUntil={daysUntil}
+          isMonthlyMember={isMonthlyMember}
+          monthlyOptStatus={monthlyOptStatus}
+          hasWeeklyClaim={hasWeeklyClaim}
+          isOnStandby={isOnStandby}
+          standbyPosition={isOnStandby ? standbyIndex + 1 : null}
+          spotsRemaining={spotsRemaining}
+          onClaim={() => player?.id && claimWeeklySpot.mutate(player.id)}
+          onWithdrawClaim={() =>
+            player?.id &&
+            withdrawWeeklyClaim.mutate(player.id, {
+              onSuccess: () => toast.success("You've pulled out"),
+              onError: () => toast.error("Couldn't do that. Claims may have just closed."),
+            })
+          }
+          onJoinStandby={() => player?.id && joinStandby.mutate(player.id)}
+          onLeaveStandby={() =>
+            player?.id &&
+            leaveStandby.mutate(player.id, {
+              onSuccess: () => toast.success("You've left standby"),
+              onError: () => toast.error("Couldn't do that. Try again."),
+            })
+          }
+          isClaiming={claimWeeklySpot.isPending}
+          isWithdrawing={withdrawWeeklyClaim.isPending}
+          isJoiningStandby={joinStandby.isPending}
+          isLeavingStandby={leaveStandby.isPending}
+        />
+      )}
 
       <div className="grid items-start gap-5 lg:grid-cols-[1fr_1.15fr]">
         <div className="flex min-w-0 flex-col gap-5">

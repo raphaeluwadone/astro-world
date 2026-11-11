@@ -5,14 +5,17 @@ import { useCupMatches, useCupSquads, useCurrentCup, usePastCups } from '../hook
 import { computeCupStandings } from '../standings'
 import type { TablePhase } from '@/features/matchday/components/DayTableCard'
 
-/** The Salami Cup table: the live cup while it's on, otherwise the last one played. */
+const SHOW_AFTER_MS = 14 * 864e5
+
+/** The Salami Cup table: the live cup while it's on, otherwise the last one played, for two weeks after. */
 export function CupTableCard({ phase, className }: { phase?: TablePhase; className?: string }) {
   const { player } = useCurrentPlayer()
   const { data: current } = useCurrentCup()
   const { data: past = [] } = usePastCups()
   const cup = current?.status === 'live' || current?.status === 'played' ? current : past[0]
   const cupPhase: TablePhase = cup?.status === 'live' ? 'during' : 'after'
-  const show = !!cup && (!phase || phase === cupPhase)
+  const stale = !!cup && cupPhase === 'after' && Date.now() - new Date(cup.scheduled_at).getTime() > SHOW_AFTER_MS
+  const show = !!cup && !stale && (!phase || phase === cupPhase)
   const { data: squads = [] } = useCupSquads(show ? cup.id : undefined)
   const { data: matches = [] } = useCupMatches(show ? cup.id : undefined)
   if (!show || squads.length === 0) return null
