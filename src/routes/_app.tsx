@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { AppShell } from '@/components/layout/AppShell'
+import { isKnownOnboarded, markOnboarded } from '@/features/auth/session'
 import { supabase } from '@/lib/supabase'
 
 export const Route = createFileRoute('/_app')({
@@ -12,6 +13,7 @@ export const Route = createFileRoute('/_app')({
     if (!data.session) {
       throw redirect({ to: '/login', search: { redirect: location.href } })
     }
+    if (isKnownOnboarded(data.session.user.id)) return
 
     const { data: player } = await supabase
       .from('players')
@@ -41,6 +43,7 @@ export const Route = createFileRoute('/_app')({
     if (player.onboarded_at === null) {
       throw redirect({ to: '/onboarding' })
     }
+    markOnboarded(data.session.user.id)
   },
   component: () => (
     <AppShell>

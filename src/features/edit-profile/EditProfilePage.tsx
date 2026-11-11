@@ -8,7 +8,9 @@ import { useTagPool } from '@/features/community/hooks'
 import { useCareerStats, useMatchRatings, usePlayerTags } from '@/features/profile/hooks'
 import { CardPhotoCard } from './components/CardPhotoCard'
 import { DetailsCard, type DraftFields } from './components/DetailsCard'
+import { DisplaySettingsCard } from './components/DisplaySettingsCard'
 import { EmailSettingsCard } from './components/EmailSettingsCard'
+import { PasswordCard } from './components/PasswordCard'
 import { LeaveGroupCard } from './components/LeaveGroupCard'
 import { LockedFieldsCard } from './components/LockedFieldsCard'
 import { SelfTagsCard } from './components/SelfTagsCard'
@@ -155,7 +157,9 @@ export function EditProfilePage() {
               },
             ]}
           />
+          <DisplaySettingsCard />
           <EmailSettingsCard />
+          <PasswordCard />
           <LeaveGroupCard />
         </div>
       </div>

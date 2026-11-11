@@ -35,3 +35,49 @@ export async function fetchPublicRosterSize(): Promise<number> {
   if (error) throw error
   return data
 }
+
+/** Where email links and Google send people back to; the callback page finishes sign-in. */
+function callbackUrl(redirect?: string) {
+  return `${window.location.origin}/auth/callback${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`
+}
+
+export async function sendResetLink(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` })
+  if (error) throw error
+}
+
+export async function updatePassword(password: string) {
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) throw error
+}
+
+/** One email with a 6-digit code and a link. `createUser` is false on sign-in so a typo can't open a new account. */
+export async function sendEmailCode(email: string, { createUser, redirect }: { createUser: boolean; redirect?: string }) {
+  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: createUser, emailRedirectTo: callbackUrl(redirect) } })
+  if (error) throw error
+}
+
+export async function verifyEmailCode(email: string, token: string) {
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
+  if (error) throw error
+}
+
+export async function signInWithGoogle(redirect?: string) {
+  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: callbackUrl(redirect) } })
+  if (error) throw error
+}
+
+export const GOOGLE_ENABLED = import.meta.env.VITE_AUTH_GOOGLE === 'true'
+
+/** Supabase's messages are written for developers; these are the ones players actually hit. */
+export function authMessage(err: unknown): string {
+  const msg = err instanceof Error ? err.message : ''
+  if (/invalid login credentials/i.test(msg)) return 'That email and password don’t match.'
+  if (/signups not allowed for otp|user not found/i.test(msg)) return 'There’s no account with that email. Go back and choose “I’m new here”.'
+  if (/expired|invalid/i.test(msg) && /token|otp|code/i.test(msg)) return 'That code is wrong or has expired.'
+  if (/rate limit|security purposes|too many/i.test(msg)) return 'Too many tries. Wait a minute and try again.'
+  if (/already registered/i.test(msg)) return 'That email already has an account. Sign in instead.'
+  if (/should be different/i.test(msg)) return 'Pick a password you haven’t used here before.'
+  if (/provider is not enabled/i.test(msg)) return 'Google sign-in isn’t switched on yet.'
+  return msg || 'Something went wrong. Try again.'
+}

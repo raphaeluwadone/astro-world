@@ -21,7 +21,7 @@ export function AuthLayout({
             <p className="mt-1 text-sm text-astro-text-muted">{subtitle}</p>
           </div>
         </div>
-        <div className="rounded-2xl border border-border bg-astro-surface p-6">{children}</div>
+        <div className="rounded-2xl border border-border bg-astro-surface p-6 [&_[data-slot=input]]:rounded-[6px]">{children}</div>
       </div>
     </div>
   )

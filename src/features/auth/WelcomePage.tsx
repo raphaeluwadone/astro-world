@@ -5,12 +5,15 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
+import { getRememberMe, setRememberMe } from '@/lib/supabase'
 import { AuthLayout } from './AuthLayout'
-import { signIn } from './api'
+import { authMessage, sendEmailCode, sendResetLink, signIn } from './api'
+import { EmailCodeStep, GoogleButton } from './AuthExtras'
 import { usePublicRosterSize } from './hooks'
 
 const schema = z.object({
@@ -126,44 +129,118 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
 
 function SignInForm({ onBack, redirectTo }: { onBack: () => void; redirectTo?: string }) {
   const navigate = useNavigate()
+  const [step, setStep] = useState<'password' | 'code' | 'forgot' | 'forgot-sent'>('password')
   const [formError, setFormError] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
   const {
     register,
     handleSubmit,
+    trigger,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  const [remember, setRemember] = useState(getRememberMe)
+  const done = () => navigate({ to: redirectTo ?? '/' })
+  const toggleRemember = (on: boolean) => {
+    setRemember(on)
+    setRememberMe(on)
+  }
 
   const onSubmit = async (values: FormValues) => {
     setFormError(null)
     try {
       await signIn(values)
-      await navigate({ to: redirectTo ?? '/' })
+      await done()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong.')
+      setFormError(authMessage(err))
     }
   }
 
+  // Code and reset only need a valid email, not a password.
+  const withEmail = async (send: (email: string) => Promise<void>, next: typeof step) => {
+    setFormError(null)
+    if (!(await trigger('email'))) return
+    setSending(true)
+    try {
+      await send(getValues('email'))
+      setStep(next)
+    } catch (err) {
+      setFormError(authMessage(err))
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (step === 'code') {
+    return (
+      <AuthLayout subtitle="Check your email">
+        <EmailCodeStep email={getValues('email')} createUser={false} redirect={redirectTo} onDone={done} onBack={() => setStep('password')} />
+      </AuthLayout>
+    )
+  }
+
+  if (step === 'forgot-sent') {
+    return (
+      <AuthLayout subtitle="Check your email">
+        <p className="text-sm text-astro-text-muted [text-wrap:pretty]">
+          If <span className="font-bold text-astro-text">{getValues('email')}</span> has an account, a link to set a new password is on its way.
+        </p>
+        <button type="button" onClick={() => setStep('password')} className="mt-5 w-full text-center text-xs font-semibold text-astro-text-muted hover:text-astro-text">
+          &larr; Back to sign in
+        </button>
+      </AuthLayout>
+    )
+  }
+
+  const forgot = step === 'forgot'
   return (
-    <AuthLayout subtitle="Sign in to your account">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <AuthLayout subtitle={forgot ? 'Reset your password' : 'Sign in to your account'}>
+      {!forgot && <GoogleButton redirect={redirectTo} onError={setFormError} />}
+      <form
+        onSubmit={forgot ? (e) => (e.preventDefault(), withEmail(sendResetLink, 'forgot-sent')) : handleSubmit(onSubmit)}
+        className="space-y-4"
+      >
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" autoComplete="email" {...register('email')} />
           {errors.email && <p className="text-xs text-astro-red">{errors.email.message}</p>}
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" autoComplete="current-password" {...register('password')} />
-          {errors.password && <p className="text-xs text-astro-red">{errors.password.message}</p>}
-        </div>
+        {!forgot && (
+          <div className="space-y-1.5">
+            <div className="flex items-baseline justify-between">
+              <Label htmlFor="password">Password</Label>
+              <button type="button" onClick={() => (setFormError(null), setStep('forgot'))} className="text-xs font-semibold text-astro-accent">
+                Forgot password?
+              </button>
+            </div>
+            <PasswordInput id="password" autoComplete="current-password" {...register('password')} />
+            {errors.password && <p className="text-xs text-astro-red">{errors.password.message}</p>}
+          </div>
+        )}
+        {!forgot && (
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-astro-text-muted">
+            <input type="checkbox" checked={remember} onChange={(e) => toggleRemember(e.target.checked)} className="size-4 accent-astro-accent" />
+            Remember me
+          </label>
+        )}
         {formError && <p className="text-xs text-astro-red">{formError}</p>}
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        <Button type="submit" disabled={isSubmitting || sending} className="w-full">
+          {forgot ? (sending ? 'Sending…' : 'Email me a reset link') : isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
+      {!forgot && (
+        <button
+          type="button"
+          disabled={sending}
+          onClick={() => withEmail((email) => sendEmailCode(email, { createUser: false, redirect: redirectTo }), 'code')}
+          className="mt-3 w-full text-center text-xs font-semibold text-astro-accent disabled:opacity-50"
+        >
+          {sending ? 'Sending…' : 'Email me a sign-in code instead'}
+        </button>
+      )}
       <button
         type="button"
-        onClick={onBack}
+        onClick={forgot ? () => (setFormError(null), setStep('password')) : onBack}
         className="mt-5 w-full text-center text-xs font-semibold text-astro-text-muted hover:text-astro-text"
       >
         &larr; Back
