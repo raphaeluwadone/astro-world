@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils'
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Database } from '@/types/database'
 import { EmptyState } from '@/components/states/EmptyState'
@@ -15,6 +16,13 @@ import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 type PositionType = Database['public']['Enums']['position_type']
 type SortKey = 'avg_rating' | 'appearances' | 'goals' | 'assists' | 'motm_count'
+
+const STAT_COLUMNS = [
+  { key: 'appearances', label: 'Apps' },
+  { key: 'goals', label: 'G' },
+  { key: 'assists', label: 'A' },
+  { key: 'motm_count', label: 'MOTM' },
+] as const
 
 const POSITION_FILTERS: Array<{ label: string; value: PositionType | 'ALL' }> = [
   { label: 'All', value: 'ALL' },
@@ -68,6 +76,8 @@ function PlayerRankings() {
   const { data: rankings = [], isLoading, isError, refetch } = useRankings()
   const [position, setPosition] = useState<PositionType | 'ALL'>('ALL')
   const [sort, setSort] = useState<SortKey>('avg_rating')
+  // Phones show one stat column: the one being sorted by, or appearances when sorting by rating.
+  const mobileStat = sort === 'avg_rating' ? 'appearances' : sort
   const [page, setPage] = useState(0)
 
   const filtered = useMemo(() => {
@@ -117,16 +127,17 @@ function PlayerRankings() {
 
       <div className="astro-card overflow-hidden">
         <div
-          className="grid gap-3 px-5 py-3.5 text-[10.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim"
-          style={{ gridTemplateColumns: '52px minmax(0,2.2fr) 96px repeat(4,minmax(0,1fr)) minmax(0,1.6fr)', background: '#182448' }}
+          className="grid grid-cols-[28px_minmax(0,1fr)_44px_auto] md:grid-cols-[52px_minmax(0,2.2fr)_96px_repeat(4,minmax(0,1fr))_minmax(0,1.6fr)] gap-3 px-4 py-3.5 text-[10.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim md:px-5"
+          style={{ background: '#182448' }}
         >
           <div>#</div>
           <div>Player</div>
-          <div className="text-center">Pos</div>
-          <div className="text-center">Apps</div>
-          <div className="text-center">G</div>
-          <div className="text-center">A</div>
-          <div className="text-center">MOTM</div>
+          <div className="hidden text-center md:block">Pos</div>
+          {STAT_COLUMNS.map((c) => (
+            <div key={c.key} className={cn('text-center', c.key !== mobileStat && 'hidden md:block')}>
+              {c.label}
+            </div>
+          ))}
           <div className="text-right">Rating</div>
         </div>
         {pageItems.length === 0 ? (
@@ -137,10 +148,9 @@ function PlayerRankings() {
             return (
               <div
                 key={r.id}
-                className="grid items-center gap-3 border-t border-border px-5 py-[13px]"
-                style={{ gridTemplateColumns: '52px minmax(0,2.2fr) 96px repeat(4,minmax(0,1fr)) minmax(0,1.6fr)' }}
+                className="grid grid-cols-[28px_minmax(0,1fr)_44px_auto] md:grid-cols-[52px_minmax(0,2.2fr)_96px_repeat(4,minmax(0,1fr))_minmax(0,1.6fr)] items-center gap-3 border-t border-border px-4 py-[13px] md:px-5"
               >
-                <div className="font-display text-2xl leading-none text-astro-text">
+                <div className="font-display text-xl leading-none text-astro-text md:text-2xl">
                   {clampedPage * PER_PAGE + i + 1}
                 </div>
                 <div className="flex min-w-0 items-center gap-2.5">
@@ -150,18 +160,22 @@ function PlayerRankings() {
                   </div>
                   <div className="min-w-0">
                     <div className="truncate text-[13.5px] font-extrabold text-astro-text">{r.nickname}</div>
-                    <div className="truncate text-[11px] text-astro-text-dim">{r.full_name}</div>
+                    <div className="truncate text-[11px] text-astro-text-dim">
+                      <span className="md:hidden">{r.positions.join('/') || '—'} &middot; </span>
+                      {r.full_name}
+                    </div>
                   </div>
                 </div>
-                <div className="flex justify-center">
+                <div className="hidden justify-center md:flex">
                   <div className="whitespace-nowrap rounded-[7px] border border-border bg-astro-surface-sunken px-2 py-1 text-[10.5px] font-extrabold tracking-[0.03em] text-astro-text-muted">
                     {r.positions.join('/') || '—'}
                   </div>
                 </div>
-                <div className="text-center text-[13px] text-astro-text-muted">{r.appearances}</div>
-                <div className="text-center text-[13px] text-astro-text-muted">{r.goals}</div>
-                <div className="text-center text-[13px] text-astro-text-muted">{r.assists}</div>
-                <div className="text-center text-[13px] text-astro-text-muted">{r.motm_count}</div>
+                {STAT_COLUMNS.map((c) => (
+                  <div key={c.key} className={cn('text-center text-[13px] text-astro-text-muted', c.key !== mobileStat && 'hidden md:block')}>
+                    {r[c.key]}
+                  </div>
+                ))}
                 <div className="flex justify-end">
                   <div
                     className="font-display rounded-[9px] border px-3 py-[5px] text-[23px] leading-none"

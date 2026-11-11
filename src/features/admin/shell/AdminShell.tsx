@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
 import {
@@ -64,6 +64,7 @@ function RailItem({ item, active, attention }: { item: AdminNavItem; active: boo
   return (
     <Link
       to={item.to}
+      data-active={active || undefined}
       className={
         active
           ? `${base} border-astro-cyan bg-[rgba(56,189,248,0.14)] font-extrabold text-astro-text`
@@ -116,6 +117,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const attentionFor = (id: string) => attention.find((a) => a.section === id)
   const isActive = (item: AdminNavItem) => !!item.to && pathname.startsWith(item.to)
   const statusLabel = matchday ? MATCHDAY_STATUS[matchday.status] : undefined
+  const strip = useRef<HTMLElement>(null)
+  useEffect(() => {
+    strip.current?.querySelector('[data-active]')?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  }, [pathname])
 
   return (
     <div className="flex min-h-screen flex-col bg-astro-admin-bg text-astro-text">
@@ -219,7 +224,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </nav>
 
-        <nav className="flex gap-1 overflow-x-auto border-b border-[rgba(255,255,255,0.09)] bg-astro-admin-chrome px-3 py-2 md:hidden">
+        <nav ref={strip} className="flex gap-1 overflow-x-auto border-b border-[rgba(255,255,255,0.09)] bg-astro-admin-chrome px-3 py-2 [scrollbar-width:none] md:hidden">
           {ADMIN_NAV.flatMap((g) => g.items)
             .filter((item) => item.to)
             .map((item) => (
