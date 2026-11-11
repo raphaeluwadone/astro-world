@@ -94,6 +94,13 @@ export async function fetchGoalsAndAssists(
 }
 
 /** How many matchdays this player has actually won MOTM (most nominations). */
+export async function fetchCardCounts(playerId: string): Promise<{ yellows: number; reds: number }> {
+  const { data, error } = await supabase.from('cards').select('kind').eq('player_id', playerId)
+  if (error) throw error
+  const rows = data ?? []
+  return { yellows: rows.filter((r) => r.kind === 'yellow').length, reds: rows.filter((r) => r.kind === 'red').length }
+}
+
 export async function fetchMotmCount(playerId: string): Promise<number> {
   const { data, error } = await supabase.rpc('matchday_motm_summary')
   if (error) throw error

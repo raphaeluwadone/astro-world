@@ -744,6 +744,39 @@ Object.assign(AWARD_COPY, {
       },
     ],
   },
+  'fair-play': {
+    recognition: 'Most appearances of the year without a card',
+    personality: 'Composure, respect, clean tackling and keeping a cool head when everyone else loses theirs.',
+    variations: [
+      {
+        title: 'Clean Record',
+        paragraphs: [
+          'Game after game this year, you were out there, and not once did the referee need to reach for a pocket.',
+          'That is harder than it sounds. Sunday football has a way of testing anyone\'s patience.',
+          'You competed for every ball and still kept it fair. Nobody played more without a booking.',
+          'Congratulations, Fair Play. The game is better with players like you in it.',
+        ],
+      },
+      {
+        title: 'Cool Head',
+        paragraphs: [
+          'There was always a moment. A late challenge, a disputed throw, a decision that went the wrong way.',
+          'Others bit. You didn\'t.',
+          'Plenty of appearances, not a single card. That is a season of keeping your temper while still caring about the result.',
+          'Congratulations, Fair Play. Calm is a skill too.',
+        ],
+      },
+      {
+        title: 'The Gentleman\'s Game',
+        paragraphs: [
+          'Every Sunday needs someone who reminds everyone why we turn up: to play, to enjoy it and to shake hands after.',
+          'This year that was you, more often than anyone.',
+          'Hard but fair, every single time.',
+          'Congratulations, Fair Play.',
+        ],
+      },
+    ],
+  },
   silverware: {
     recognition: 'Won the Salami Cup',
     personality: 'Teamwork, nerve, belief and finishing the job when it matters most.',
@@ -1172,6 +1205,36 @@ Object.assign(AWARD_COPY, {
           "That's a record built on focus, positioning and refusing to accept that any shot is unsavable.",
           'Clean sheets like these are the foundation of winning football.',
           'Congratulations, Golden Glove. Safe hands indeed.',
+        ],
+      },
+    ],
+  },
+  'month-most-booked': {
+    recognition: 'Most cards of the month',
+    personality: 'Full commitment, strong opinions and a loose relationship with the timing of a tackle.',
+    variations: [
+      {
+        title: 'In the Book',
+        paragraphs: [
+          'Nobody saw more of the referee\'s notebook this month than you.',
+          'Every challenge came with full intent. Some of them even came with the ball.',
+          'Congratulations, Most Booked. Next month, maybe count to three first.',
+        ],
+      },
+      {
+        title: 'Colourful Month',
+        paragraphs: [
+          'Yellow, possibly red, definitely memorable.',
+          'This month you went into everything like it was a cup final, and the cards followed.',
+          'Congratulations, Most Booked. Commitment was never the problem.',
+        ],
+      },
+      {
+        title: 'Name Taken',
+        paragraphs: [
+          'When the whistle went this month, there was a good chance your name was the next one written down.',
+          'Passion like that is hard to teach. Restraint, apparently, is harder.',
+          'Congratulations, Most Booked. The slate is clean from tomorrow.',
         ],
       },
     ],

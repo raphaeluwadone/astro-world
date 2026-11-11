@@ -232,7 +232,7 @@ function CheckIn({ teams, checkedIn, act, matchdayId }: { teams: TeamWithMembers
 
 /* ---------------- Goal picker ---------------- */
 
-function PlayerGrid({ players, onPick, extra }: { players: PlayerSummary[]; onPick: (id: string | null) => void; extra: { label: string; value: null } }) {
+function PlayerGrid({ players, onPick, extra }: { players: PlayerSummary[]; onPick: (id: string | null) => void; extra?: { label: string; value: null } }) {
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {players.map((p) => (
@@ -246,13 +246,15 @@ function PlayerGrid({ players, onPick, extra }: { players: PlayerSummary[]; onPi
           <span className="truncate text-[13.5px] font-bold text-astro-text">{p.nickname}</span>
         </button>
       ))}
-      <button
-        type="button"
-        onClick={() => onPick(extra.value)}
-        className="min-h-12 rounded-[10px] border border-dashed border-white/[0.16] px-2.5 text-[13px] font-bold text-astro-text-muted hover:text-astro-text"
-      >
-        {extra.label}
-      </button>
+      {extra && (
+        <button
+          type="button"
+          onClick={() => onPick(extra.value)}
+          className="min-h-12 rounded-[10px] border border-dashed border-white/[0.16] px-2.5 text-[13px] font-bold text-astro-text-muted hover:text-astro-text"
+        >
+          {extra.label}
+        </button>
+      )}
     </div>
   )
 }
@@ -261,6 +263,30 @@ type Picking =
   | { teamId: string; step: 'scorer' }
   | { teamId: string; step: 'fix-scorer'; goalId: string; assistId: string | null }
   | { teamId: string; step: 'assist'; goalId: string; scorerId: string | null; assistId: string | null }
+  | { teamId: string; step: 'card'; kind: 'yellow' | 'red' }
+
+const CARD_COLOUR = { yellow: '#facc15', red: '#ef4444' } as const
+
+function CardMark({ kind }: { kind: 'yellow' | 'red' }) {
+  return <span className="inline-block h-3.5 w-2.5 shrink-0 rounded-[2px]" style={{ background: CARD_COLOUR[kind] }} aria-label={`${kind} card`} />
+}
+
+function CardPicker({ team, kind, players, onPick, onClose }: { team: TeamWithMembers; kind: 'yellow' | 'red'; players: PlayerSummary[]; onPick: (id: string) => void; onClose: () => void }) {
+  return (
+    <div className="rounded-[14px] border-2 bg-astro-admin-card p-3.5" style={{ borderColor: CARD_COLOUR[kind] }}>
+      <div className="mb-3 flex items-center gap-2">
+        <CardMark kind={kind} />
+        <span className="text-[14px] font-extrabold text-astro-text">
+          {kind === 'yellow' ? 'Yellow' : 'Red'} card, {team.greek_name}. Who?
+        </span>
+        <button type="button" onClick={onClose} className="ml-auto text-xs font-bold text-astro-text-dim hover:text-astro-text">
+          Cancel
+        </button>
+      </div>
+      <PlayerGrid players={players} onPick={(id) => id && onPick(id)} />
+    </div>
+  )
+}
 
 function GoalPicker({
   team,
@@ -272,7 +298,7 @@ function GoalPicker({
 }: {
   team: TeamWithMembers
   players: PlayerSummary[]
-  picking: Picking
+  picking: Exclude<Picking, { step: 'card' }>
   onScorer: (id: string | null) => void
   onAssist: (id: string | null) => void
   onClose: () => void
@@ -379,9 +405,19 @@ function GoalEditor({
   const side = (id: string) => teams.find((t) => t.id === id)!
   const nameOf = (id: string | null) => teams.flatMap((t) => t.members).find((m) => m.id === id)?.nickname
   // Checked-in players first; if nobody's checked in, the whole drawn side.
+  const off = api.sentOff(game)
   const playersFor = (t: TeamWithMembers) => {
     const here = t.members.filter((m) => checkedIn.has(m.id))
-    return here.length ? here : t.members
+    const squad = here.length ? here : t.members
+    return game.ended_at ? squad : squad.filter((m) => !off.has(m.id))
+  }
+  const book = (teamId: string, playerId: string, kind: 'yellow' | 'red') => {
+    const yellows = game.cards.filter((c) => c.player_id === playerId && c.kind === 'yellow').length
+    act.mutate((by) => api.addCard(game, teamId, playerId, kind, by), {
+      onSuccess: () => toast(kind === 'yellow' && yellows === 1 ? `Second yellow for ${nameOf(playerId)}. That's a red.` : `${kind === 'yellow' ? 'Yellow' : 'Red'} card for ${nameOf(playerId)}.`),
+      onError: fail('save that card'),
+    })
+    setPicking(null)
   }
   const scorer = (teamId: string, scorerId: string | null) => {
     if (!game.ended_at) navigator.vibrate?.(40)
@@ -394,7 +430,16 @@ function GoalEditor({
 
   return (
     <>
-      {picking && (
+      {picking?.step === 'card' && (
+        <CardPicker
+          team={side(picking.teamId)}
+          kind={picking.kind}
+          players={playersFor(side(picking.teamId))}
+          onPick={(id) => book(picking.teamId, id, picking.kind)}
+          onClose={() => setPicking(null)}
+        />
+      )}
+      {picking && picking.step !== 'card' && (
         <GoalPicker
           team={side(picking.teamId)}
           players={playersFor(side(picking.teamId))}
@@ -413,71 +458,107 @@ function GoalEditor({
         />
       )}
 
-      {game.goals.length > 0 && (
-        <section className="grid gap-2 sm:grid-cols-2">
-          {[side(game.team_a_id), side(game.team_b_id)].map((t) => {
-            const goals = game.goals.filter((g) => g.team_id === t.id)
-            return (
-              <div key={t.id} className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card px-3.5 py-2">
-                <div className="flex items-center gap-2 border-b border-white/[0.06] pb-2 pt-1">
-                  <TeamDot team={t} />
-                  <span className="text-[12px] font-extrabold uppercase tracking-[0.1em] text-astro-text">{t.greek_name}</span>
-                  <span className="ml-auto font-display text-[20px] leading-none text-astro-text">{goals.length}</span>
-                </div>
-                {goals.length === 0 ? (
-                  <p className="py-2 text-[12.5px] text-astro-text-dim">No goals yet.</p>
-                ) : (
-                  <ul className="divide-y divide-white/[0.06]">
-                    {goals.map((g) => (
-                      <li key={g.id} className="flex items-center gap-2.5 py-2">
-                        <GoalTime goal={g} lengthMin={game.length_min} act={act} />
-                        <span className="min-w-0 flex-1 truncate text-[13.5px] text-astro-text">
-                          <button
-                            type="button"
-                            onClick={() => setPicking({ teamId: g.team_id, step: 'fix-scorer', goalId: g.id, assistId: g.assist_id })}
-                            className={cn('font-extrabold underline decoration-white/20 decoration-dotted underline-offset-4 hover:decoration-current', !g.scorer_id && 'text-astro-amber')}
-                          >
-                            {nameOf(g.scorer_id) ?? 'Scorer to add'}
-                          </button>
-                          {g.assist_id && (
-                            <>
-                              <span className="text-astro-text-muted"> · </span>
-                              <button
-                                type="button"
-                                onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: g.assist_id })}
-                                className="text-astro-text-muted underline decoration-white/20 decoration-dotted underline-offset-4 hover:text-astro-text"
-                              >
-                                {nameOf(g.assist_id)}
-                              </button>
-                            </>
-                          )}
-                        </span>
-                        {!g.assist_id && g.scorer_id && (
-                          <button
-                            type="button"
-                            onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: null })}
-                            className="text-[11.5px] font-bold text-astro-cyan hover:underline"
-                          >
-                            + Assist
-                          </button>
-                        )}
+      <section className="grid gap-2 sm:grid-cols-2">
+        {[side(game.team_a_id), side(game.team_b_id)].map((t) => {
+          const goals = game.goals.filter((g) => g.team_id === t.id)
+          const cards = game.cards.filter((c) => c.team_id === t.id)
+          return (
+            <div key={t.id} className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card px-3.5 py-2">
+              <div className="flex items-center gap-2 border-b border-white/[0.06] pb-2 pt-1">
+                <TeamDot team={t} />
+                <span className="text-[12px] font-extrabold uppercase tracking-[0.1em] text-astro-text">{t.greek_name}</span>
+                <span className="ml-auto font-display text-[20px] leading-none text-astro-text">{goals.length}</span>
+              </div>
+              {goals.length === 0 ? (
+                <p className="py-2 text-[12.5px] text-astro-text-dim">No goals{game.ended_at ? '' : ' yet'}.</p>
+              ) : (
+                <ul className="divide-y divide-white/[0.06]">
+                  {goals.map((g) => (
+                    <li key={g.id} className="flex items-center gap-2.5 py-2">
+                      <GoalTime goal={g} lengthMin={game.length_min} act={act} />
+                      <span className="min-w-0 flex-1 truncate text-[13.5px] text-astro-text">
                         <button
                           type="button"
-                          aria-label="Undo goal"
-                          onClick={() => act.mutate(() => api.deleteGoal(g.id), { onSuccess: () => toast('Goal removed.'), onError: fail('remove that goal') })}
+                          onClick={() => setPicking({ teamId: g.team_id, step: 'fix-scorer', goalId: g.id, assistId: g.assist_id })}
+                          className={cn('font-extrabold underline decoration-white/20 decoration-dotted underline-offset-4 hover:decoration-current', !g.scorer_id && 'text-astro-amber')}
+                        >
+                          {nameOf(g.scorer_id) ?? 'Scorer to add'}
+                        </button>
+                        {g.assist_id && (
+                          <>
+                            <span className="text-astro-text-muted"> · </span>
+                            <button
+                              type="button"
+                              onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: g.assist_id })}
+                              className="text-astro-text-muted underline decoration-white/20 decoration-dotted underline-offset-4 hover:text-astro-text"
+                            >
+                              {nameOf(g.assist_id)}
+                            </button>
+                          </>
+                        )}
+                      </span>
+                      {!g.assist_id && g.scorer_id && (
+                        <button
+                          type="button"
+                          onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: null })}
+                          className="text-[11.5px] font-bold text-astro-cyan hover:underline"
+                        >
+                          + Assist
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        aria-label="Undo goal"
+                        onClick={() => act.mutate(() => api.deleteGoal(g.id), { onSuccess: () => toast('Goal removed.'), onError: fail('remove that goal') })}
+                        className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
+                      >
+                        &times;
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {cards.length > 0 && (
+                <ul className="divide-y divide-white/[0.06] border-t border-white/[0.06]">
+                  {cards.map((c) => (
+                    <li key={c.id} className="flex items-center gap-2.5 py-2">
+                      <span className="w-9 shrink-0 text-[12px] font-bold tabular-nums text-astro-text-dim">{c.minute != null ? `${c.minute}′` : ''}</span>
+                      <CardMark kind={c.kind} />
+                      <span className="min-w-0 flex-1 truncate text-[13.5px] font-bold text-astro-text">
+                        {nameOf(c.player_id)}
+                        {c.second_yellow && <span className="font-normal text-astro-text-muted"> · second yellow</span>}
+                      </span>
+                      {!c.second_yellow && (
+                        <button
+                          type="button"
+                          aria-label="Undo card"
+                          onClick={() => act.mutate(() => api.deleteCard(c.id), { onSuccess: () => toast('Card removed.'), onError: fail('remove that card') })}
                           className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
                         >
                           &times;
                         </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex gap-2 border-t border-white/[0.06] pb-1 pt-2">
+                {(['yellow', 'red'] as const).map((kind) => (
+                  <button
+                    key={kind}
+                    type="button"
+                    disabled={act.isPending}
+                    onClick={() => setPicking({ teamId: t.id, step: 'card', kind })}
+                    className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-[9px] border border-white/[0.12] text-[12.5px] font-extrabold text-astro-text-muted hover:text-astro-text disabled:opacity-60"
+                  >
+                    <CardMark kind={kind} />+ {kind === 'yellow' ? 'Yellow' : 'Red'}
+                  </button>
+                ))}
               </div>
-            )
-          })}
-        </section>
-      )}
+            </div>
+          )
+        })}
+      </section>
     </>
   )
 }

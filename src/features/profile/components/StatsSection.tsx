@@ -12,7 +12,7 @@ export function StatsSection({
   careerStats,
 }: {
   matchRatings: MatchRatingRow[]
-  careerStats: { appearances: number; goals: number; assists: number; motm: number }
+  careerStats: { appearances: number; goals: number; assists: number; motm: number; yellows: number; reds: number }
 }) {
   const [mode, setMode] = useState<'career' | 'season'>('career')
 
@@ -37,6 +37,8 @@ export function StatsSection({
           { label: 'Assists', value: careerStats.assists },
           { label: 'Avg Rating', value: avgRating ?? '—' },
           { label: 'MOTM', value: careerStats.motm },
+          { label: 'Yellow cards', value: careerStats.yellows },
+          { label: 'Red cards', value: careerStats.reds },
         ]
       : [
           { label: 'Appearances', value: seasonRatings.length },

@@ -55,6 +55,8 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
     goals: careerStats.goals + player.legacy_goals,
     assists: careerStats.assists + player.legacy_assists,
     motm: careerStats.motm,
+    yellows: careerStats.yellows + player.legacy_yellow_cards,
+    reds: careerStats.reds + player.legacy_red_cards,
   }
 
   return (

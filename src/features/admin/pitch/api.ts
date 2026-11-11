@@ -10,6 +10,17 @@ export interface PitchGoal {
   created_at: string
 }
 
+export interface PitchCard {
+  id: string
+  game_id: string
+  team_id: string
+  player_id: string
+  kind: 'yellow' | 'red'
+  minute: number | null
+  second_yellow: boolean
+  created_at: string
+}
+
 export interface PitchGame {
   id: string
   team_a_id: string
@@ -22,6 +33,7 @@ export interface PitchGame {
   report: string | null
   created_at: string
   goals: PitchGoal[]
+  cards: PitchCard[]
 }
 
 export interface PitchSession {
@@ -41,7 +53,7 @@ export async function fetchPitch(matchdayId: string): Promise<PitchState> {
     supabase.from('pitch_checkins').select('player_id').eq('matchday_id', matchdayId),
     supabase
       .from('pitch_games')
-      .select('id, team_a_id, team_b_id, length_min, goal_target, elapsed_ms, running_since, ended_at, report, created_at, goals:pitch_goals(id, game_id, team_id, scorer_id, assist_id, minute, created_at)')
+      .select('id, team_a_id, team_b_id, length_min, goal_target, elapsed_ms, running_since, ended_at, report, created_at, goals:pitch_goals(id, game_id, team_id, scorer_id, assist_id, minute, created_at), cards:pitch_cards(id, game_id, team_id, player_id, kind, minute, second_yellow, created_at)')
       .eq('matchday_id', matchdayId)
       .order('created_at'),
     supabase.from('pitch_sessions').select('team_order, goal_target, length_min').eq('matchday_id', matchdayId).maybeSingle(),
@@ -52,7 +64,11 @@ export async function fetchPitch(matchdayId: string): Promise<PitchState> {
   return {
     session: session.data,
     checkedIn: new Set((checkins.data ?? []).map((c) => c.player_id)),
-    games: (games.data ?? []).map((g) => ({ ...g, goals: [...g.goals].sort((a, b) => a.created_at.localeCompare(b.created_at)) })),
+    games: (games.data ?? []).map((g) => ({
+      ...g,
+      goals: [...g.goals].sort((a, b) => a.created_at.localeCompare(b.created_at)),
+      cards: [...g.cards].sort((a, b) => a.created_at.localeCompare(b.created_at) || Number(a.second_yellow) - Number(b.second_yellow)) as PitchCard[],
+    })),
   }
 }
 
@@ -160,4 +176,22 @@ export async function swapPlayer(matchdayId: string, teamId: string, outId: stri
   if (error) throw error
   await setCheckins(matchdayId, [outId], false, by)
   await setCheckins(matchdayId, [inId], true, by)
+}
+
+/** A second yellow also records a red; the database adds and removes that red itself. */
+export async function addCard(game: PitchGame, teamId: string, playerId: string, kind: 'yellow' | 'red', by: string) {
+  const { error } = await supabase
+    .from('pitch_cards')
+    .insert({ game_id: game.id, team_id: teamId, player_id: playerId, kind, minute: game.ended_at ? null : minuteOf(clockMs(game)), created_by: by })
+  if (error) throw error
+}
+
+export async function deleteCard(cardId: string) {
+  const { error } = await supabase.from('pitch_cards').delete().eq('id', cardId)
+  if (error) throw error
+}
+
+/** Players sent off in this game: a straight red or a second yellow. */
+export function sentOff(game: Pick<PitchGame, 'cards'>) {
+  return new Set(game.cards.filter((c) => c.kind === 'red').map((c) => c.player_id))
 }

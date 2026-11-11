@@ -22,6 +22,7 @@ function Scoreboard({ game, teams, myTeamId }: { game: PitchGame; teams: TeamWit
     <div className="grid grid-cols-[1fr_auto_1fr] gap-x-2 py-2">
       {[side(game.team_a_id), side(game.team_b_id)].map((t, i) => {
         const goals = game.goals.filter((g) => g.team_id === t.id)
+        const cards = game.cards.filter((c) => c.team_id === t.id)
         return (
           <div key={t.id} className={cn('row-start-1 flex min-w-0 flex-col items-center gap-1', i === 1 && 'col-start-3')}>
             <span className="flex items-center gap-1.5 text-[13px] font-extrabold text-astro-text">
@@ -42,6 +43,17 @@ function Scoreboard({ game, teams, myTeamId }: { game: PitchGame; teams: TeamWit
                       </span>
                     )}
                     {g.assist_id && <span className="block truncate text-[11px] text-astro-text-muted">assist {nameOf(g.assist_id)}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {cards.length > 0 && (
+              <ul className="mt-1 flex w-full flex-col items-center gap-0.5 text-center" aria-label={`${t.greek_name} cards`}>
+                {cards.map((c) => (
+                  <li key={c.id} className="flex max-w-full items-center gap-1.5 text-[12px] leading-tight text-astro-text-muted">
+                    <span className="inline-block h-3 w-2 shrink-0 rounded-[2px]" style={{ background: c.kind === 'yellow' ? '#facc15' : '#ef4444' }} aria-label={`${c.kind} card`} />
+                    <span className="truncate font-bold text-astro-text">{nameOf(c.player_id)}</span>
+                    {c.minute != null && <span className="text-[11px] font-extrabold text-astro-text-dim">{fmtMinute(c.minute, game.length_min)}</span>}
                   </li>
                 ))}
               </ul>

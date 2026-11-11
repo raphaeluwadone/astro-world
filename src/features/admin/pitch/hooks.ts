@@ -17,12 +17,13 @@ export function usePitch(matchdayId: string | undefined) {
       refresh()
       void qc.invalidateQueries({ queryKey: ['community-feed'] })
     }
-    // pitch_goals has no matchday column to filter on, so any goal change refreshes; there's only one live matchday.
+    // pitch_goals and pitch_cards have no matchday column to filter on, so any goal change refreshes; there's only one live matchday.
     const channel = supabase
       .channel(`pitch:${matchdayId}:${instance}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_checkins', filter: `matchday_id=eq.${matchdayId}` }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_games', filter: `matchday_id=eq.${matchdayId}` }, refreshGames)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_goals' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_cards' }, refresh)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pitch_sessions', filter: `matchday_id=eq.${matchdayId}` }, refresh)
       .subscribe()
     return () => {

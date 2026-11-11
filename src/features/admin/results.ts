@@ -6,12 +6,21 @@ export interface GoalInput {
   assistId: string | null
 }
 
+export interface CardInput {
+  teamId: string
+  playerId: string
+  kind: 'yellow' | 'red'
+  minute: number | null
+}
+
 export interface FixtureInput {
   teamAId: string
   teamBId: string
   scoreA: number
   scoreB: number
   goals: GoalInput[]
+  /** Yellows and straight reds; the red for a second yellow is added by the database. */
+  cards: CardInput[]
 }
 
 /** Records whatever fixtures actually happened. Each side's drawn members count as having played,
@@ -55,6 +64,13 @@ export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureI
         })),
       )
       if (goalsError) throw goalsError
+    }
+
+    if (fixture.cards.length > 0) {
+      const { error: cardsError } = await supabase.from('cards').insert(
+        fixture.cards.map((c) => ({ match_id: match.id, team_id: c.teamId, player_id: c.playerId, kind: c.kind, minute: c.minute })),
+      )
+      if (cardsError) throw cardsError
     }
   }
 

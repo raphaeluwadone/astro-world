@@ -19,16 +19,24 @@ interface GoalDraft {
   assistId: string
 }
 
+interface CardDraft {
+  teamId: string
+  playerId: string
+  kind: 'yellow' | 'red'
+  minute: number | null
+}
+
 interface FixtureDraft {
   teamAId: string
   teamBId: string
   scoreA: string
   scoreB: string
   goals: GoalDraft[]
+  cards: CardDraft[]
 }
 
 function emptyFixture(teams: TeamWithMembers[]): FixtureDraft {
-  return { teamAId: teams[0]?.id ?? '', teamBId: teams[1]?.id ?? '', scoreA: '', scoreB: '', goals: [] }
+  return { teamAId: teams[0]?.id ?? '', teamBId: teams[1]?.id ?? '', scoreA: '', scoreB: '', goals: [], cards: [] }
 }
 
 function fromPitch(pitch: PitchState | undefined): FixtureDraft[] | null {
@@ -40,6 +48,8 @@ function fromPitch(pitch: PitchState | undefined): FixtureDraft[] | null {
     scoreA: String(g.goals.filter((x) => x.team_id === g.team_a_id).length),
     scoreB: String(g.goals.filter((x) => x.team_id === g.team_b_id).length),
     goals: g.goals.map((x) => ({ teamId: x.team_id, scorerId: x.scorer_id ?? '', assistId: x.assist_id ?? '' })),
+    // The database re-adds the red for a second yellow when the cards are filed.
+    cards: g.cards.filter((c) => !c.second_yellow).map((c) => ({ teamId: c.team_id, playerId: c.player_id, kind: c.kind, minute: c.minute })),
   }))
 }
 
@@ -47,18 +57,28 @@ function emptyGoal(teamId: string): GoalDraft {
   return { teamId, scorerId: '', assistId: '' }
 }
 
+const CARD_COLOUR = { yellow: '#facc15', red: '#ef4444' } as const
+
 function TeamGoals({
   team,
   goals,
   onAdd,
   onChange,
   onRemove,
+  cards,
+  onAddCard,
+  onChangeCard,
+  onRemoveCard,
 }: {
   team: TeamWithMembers | undefined
   goals: { g: GoalDraft; gi: number }[]
   onAdd: () => void
   onChange: (goalIndex: number, patch: Partial<GoalDraft>) => void
   onRemove: (goalIndex: number) => void
+  cards: { c: CardDraft; ci: number }[]
+  onAddCard: () => void
+  onChangeCard: (cardIndex: number, patch: Partial<CardDraft>) => void
+  onRemoveCard: (cardIndex: number) => void
 }) {
   if (!team) return null
   const members: PlayerSummary[] = team.members
@@ -113,6 +133,43 @@ function TeamGoals({
         style={{ color: team.colour }}
       >
         + Goal for {team.greek_name}
+      </button>
+      {cards.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2 border-t border-white/[0.06] pt-3">
+          {cards.map(({ c, ci }) => (
+            <div key={ci} className="flex items-center gap-1.5">
+              {(['yellow', 'red'] as const).map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  aria-label={`${kind} card`}
+                  aria-pressed={c.kind === kind}
+                  onClick={() => onChangeCard(ci, { kind })}
+                  className="h-7 w-5 shrink-0 rounded-[3px] border-2"
+                  style={{ background: c.kind === kind ? CARD_COLOUR[kind] : 'transparent', borderColor: CARD_COLOUR[kind] }}
+                />
+              ))}
+              <AstroSelect
+                size="sm"
+                placeholder="Player"
+                aria-label={`${team.greek_name} card`}
+                value={c.playerId}
+                onValueChange={(v) => onChangeCard(ci, { playerId: v })}
+                options={members.map((p) => ({ value: p.id, label: p.nickname }))}
+                className="min-w-0 flex-1"
+              />
+              <button type="button" aria-label="Remove card" onClick={() => onRemoveCard(ci)} className="px-1 text-sm font-bold text-astro-text-dim hover:text-astro-red">
+                &times;
+              </button>
+            </div>
+          ))}
+          {cards.some(({ c }) => c.kind === 'yellow' && c.playerId && cards.filter(({ c: o }) => o.kind === 'yellow' && o.playerId === c.playerId).length >= 2) && (
+            <p className="text-[11.5px] text-astro-text-dim">Two yellows for one player also records a red when you file.</p>
+          )}
+        </div>
+      )}
+      <button type="button" onClick={onAddCard} className="mt-2 block text-xs font-bold text-astro-text-muted hover:text-astro-text hover:underline">
+        + Card
       </button>
     </div>
   )
@@ -199,6 +256,21 @@ export function ResultsPage() {
     updateFixture(fixtureIndex, { goals: f.goals.filter((_, i) => i !== goalIndex) })
   }
 
+  function addCard(fixtureIndex: number, teamId: string) {
+    const f = draft[fixtureIndex]
+    updateFixture(fixtureIndex, { cards: [...f.cards, { teamId, playerId: '', kind: 'yellow', minute: null }] })
+  }
+
+  function updateCard(fixtureIndex: number, cardIndex: number, patch: Partial<CardDraft>) {
+    const f = draft[fixtureIndex]
+    updateFixture(fixtureIndex, { cards: f.cards.map((c, i) => (i === cardIndex ? { ...c, ...patch } : c)) })
+  }
+
+  function removeCard(fixtureIndex: number, cardIndex: number) {
+    const f = draft[fixtureIndex]
+    updateFixture(fixtureIndex, { cards: f.cards.filter((_, i) => i !== cardIndex) })
+  }
+
   async function submit() {
     setError(null)
     for (const f of draft) {
@@ -223,6 +295,10 @@ export function ResultsPage() {
           return
         }
       }
+      if (f.cards.some((c) => !c.playerId)) {
+        setError('Every card needs a player.')
+        return
+      }
     }
 
     const fixtures: FixtureInput[] = draft.map((f) => ({
@@ -237,6 +313,7 @@ export function ResultsPage() {
           assistId: g.assistId || null,
         }),
       ),
+      cards: f.cards.filter((c) => c.teamId === f.teamAId || c.teamId === f.teamBId),
     }))
 
     try {
@@ -280,7 +357,7 @@ export function ResultsPage() {
                 <AstroSelect
                   aria-label="Home team"
                   value={fixture.teamAId}
-                  onValueChange={(v) => updateFixture(fi, { teamAId: v, goals: fixture.goals.filter((g) => g.teamId !== fixture.teamAId) })}
+                  onValueChange={(v) => updateFixture(fi, { teamAId: v, goals: fixture.goals.filter((g) => g.teamId !== fixture.teamAId), cards: fixture.cards.filter((c) => c.teamId !== fixture.teamAId) })}
                   options={teams.map((t) => ({ value: t.id, label: t.greek_name }))}
                   className="flex-1"
                 />
@@ -302,7 +379,7 @@ export function ResultsPage() {
                 <AstroSelect
                   aria-label="Away team"
                   value={fixture.teamBId}
-                  onValueChange={(v) => updateFixture(fi, { teamBId: v, goals: fixture.goals.filter((g) => g.teamId !== fixture.teamBId) })}
+                  onValueChange={(v) => updateFixture(fi, { teamBId: v, goals: fixture.goals.filter((g) => g.teamId !== fixture.teamBId), cards: fixture.cards.filter((c) => c.teamId !== fixture.teamBId) })}
                   options={teams.map((t) => ({ value: t.id, label: t.greek_name }))}
                   className="flex-1"
                 />
@@ -317,6 +394,10 @@ export function ResultsPage() {
                     onAdd={() => addGoal(fi, teamId)}
                     onChange={(gi, patch) => updateGoal(fi, gi, patch)}
                     onRemove={(gi) => removeGoal(fi, gi)}
+                    cards={fixture.cards.map((c, ci) => ({ c, ci })).filter(({ c }) => c.teamId === teamId)}
+                    onAddCard={() => addCard(fi, teamId)}
+                    onChangeCard={(ci, patch) => updateCard(fi, ci, patch)}
+                    onRemoveCard={(ci) => removeCard(fi, ci)}
                   />
                 ))}
               </div>

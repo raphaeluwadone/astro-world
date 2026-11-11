@@ -76,8 +76,8 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   'good-standing': { name: 'Good Standing', tier: 'year', icon: 'coin', for: 'Paid every quarter on time' },
   trending: { name: 'Trending', tier: 'year', icon: 'chat', for: 'Most tagged in the group chat' },
   'heart-of-the-team': { name: 'Heart of the Team', tier: 'year', icon: 'heart', for: 'Chosen by the admins for team spirit', manual: true },
-  // TODO(DATA): cards are only stored as career totals, so this can't be worked out per year yet.
-  'card-collector': { name: 'Card Collector', tier: 'year', icon: 'cards', for: 'Most cards of the year', manual: true },
+  'card-collector': { name: 'Card Collector', tier: 'year', icon: 'cards', for: 'Most cards of the year' },
+  'fair-play': { name: 'Fair Play', tier: 'year', icon: 'heart', for: 'Most appearances of the year without a card' },
 
   silverware: { name: 'Silverware', tier: 'cup', icon: 'trophy', for: 'Won the Salami Cup' },
   // TODO(DATA): cup matches don't record scorers yet.
@@ -95,6 +95,7 @@ export const MONTHLY_DEFS: Record<string, BadgeDef> = {
   'month-golden-boot': { name: 'Golden Boot', tier: 'month', icon: 'boot', for: 'Most goals of the month' },
   'month-playmaker': { name: 'Playmaker', tier: 'month', icon: 'assist', for: 'Most assists of the month' },
   'month-golden-glove': { name: 'Golden Glove', tier: 'month', icon: 'glove', for: 'Most clean sheets of the month' },
+  'month-most-booked': { name: 'Most Booked', tier: 'month', icon: 'cards', for: 'Most cards of the month' },
 }
 
 export function badgeDef(key: string, title: string | null): BadgeDef {

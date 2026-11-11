@@ -10,6 +10,7 @@ import {
   fetchLastDropped,
   fetchMatchHistory,
   fetchMatchRatings,
+  fetchCardCounts,
   fetchMotmCount,
   fetchPlayer,
   fetchPlayerAwards,
@@ -47,12 +48,13 @@ export function useCareerStats(playerId: string | undefined) {
   return useQuery({
     queryKey: ['player-career-stats', playerId],
     queryFn: async () => {
-      const [appearances, goalsAssists, motm] = await Promise.all([
+      const [appearances, goalsAssists, motm, cards] = await Promise.all([
         fetchAppearanceCount(playerId!),
         fetchGoalsAndAssists(playerId!),
         fetchMotmCount(playerId!),
+        fetchCardCounts(playerId!),
       ])
-      return { appearances, ...goalsAssists, motm }
+      return { appearances, ...goalsAssists, motm, ...cards }
     },
     enabled: !!playerId,
   })

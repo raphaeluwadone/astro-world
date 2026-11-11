@@ -162,6 +162,61 @@ export type Database = {
           },
         ]
       }
+      cards: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          match_id: string
+          minute: number | null
+          player_id: string
+          second_yellow: boolean
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          match_id: string
+          minute?: number | null
+          player_id: string
+          second_yellow?: boolean
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          match_id?: string
+          minute?: number | null
+          player_id?: string
+          second_yellow?: boolean
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cards_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cards_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cards_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cause_contributions: {
         Row: {
           amount: number
@@ -1132,6 +1187,71 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_cards: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          game_id: string
+          id: string
+          kind: string
+          minute: number | null
+          player_id: string
+          second_yellow: boolean
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          game_id: string
+          id?: string
+          kind: string
+          minute?: number | null
+          player_id: string
+          second_yellow?: boolean
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          game_id?: string
+          id?: string
+          kind?: string
+          minute?: number | null
+          player_id?: string
+          second_yellow?: boolean
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_cards_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_cards_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "pitch_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_cards_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_cards_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -2456,6 +2576,8 @@ export type Database = {
           goals: number
           motm_count: number
           player_id: string
+          red_cards: number
+          yellow_cards: number
         }[]
       }
       player_is_monthly_member_for: {
