@@ -87,8 +87,8 @@ export function NotificationsPage() {
       ) : (
         groups.map((g) => (
           <section key={g.label}>
-            <div className="mb-1.5 px-1 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">{g.label}</div>
-            <div className="astro-card flex flex-col gap-0.5 p-1.5">
+            <div className="mb-2.5 px-1 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">{g.label}</div>
+            <div className="flex flex-col gap-2.5">
               {g.items.map((n) => (
                 <NotificationItem key={n.id} n={n} onOpen={(item) => !item.read_at && markRead.mutate([item.id])} />
               ))}

@@ -5,6 +5,9 @@ import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
+import { LiveMatchday } from '@/features/matchday/components/LiveMatchday'
+import { DayTableCard } from '@/features/matchday/components/DayTableCard'
+import { CupTableCard } from '@/features/salami-cup/components/CupTableCard'
 import { MostMentioned } from './components/MostMentioned'
 import { PostCard } from './components/PostCard'
 import { PostComposer } from './components/PostComposer'
@@ -54,8 +57,9 @@ export function CommunityPage() {
       </h1>
       <p className="mb-6.5 text-sm text-astro-text-muted">Where the excuses live.</p>
 
-      <div className="grid items-start gap-5" style={{ gridTemplateColumns: 'minmax(0,1.6fr) minmax(0,1fr)' }}>
+      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-3.5">
+          <LiveMatchday showTable={false} />
           <PostComposer
             disabled={!playerId}
             isSubmitting={createPost.isPending}
@@ -88,7 +92,11 @@ export function CommunityPage() {
 
         <div className="flex min-w-0 flex-col gap-5">
           <MostMentioned mentioned={mentioned} />
+          <DayTableCard phase="during" />
+          <CupTableCard phase="during" />
           <TagPool tags={tags} />
+          <DayTableCard phase="after" />
+          <CupTableCard phase="after" />
         </div>
       </div>
     </div>

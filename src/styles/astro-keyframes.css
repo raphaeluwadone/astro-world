@@ -265,3 +265,15 @@
 @media (prefers-reduced-motion: reduce) {
   .astro-drawer-top, [data-slot='sheet-content'] { animation-duration: 1ms !important; }
 }
+
+/* Live card while a game is paused: stopwatch blink, pause bars, amber glow. */
+@keyframes astro-paused-blink { 0%, 55% { opacity: 1; } 62%, 93% { opacity: 0.2; } 100% { opacity: 1; } }
+@keyframes astro-paused-bar { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.5); } }
+@keyframes astro-paused-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(242, 169, 59, 0); border-color: rgba(242, 169, 59, 0.25); } 50% { box-shadow: 0 0 0 4px rgba(242, 169, 59, 0.16); border-color: rgba(242, 169, 59, 0.6); } }
+.astro-paused-blink { animation: astro-paused-blink 1.4s ease-in-out infinite; }
+.astro-paused-bar { transform-origin: center; animation: astro-paused-bar 1.4s ease-in-out infinite; }
+.astro-paused-bar + .astro-paused-bar { animation-delay: 0.2s; }
+.astro-paused-glow { animation: astro-paused-glow 2.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .astro-paused-blink, .astro-paused-bar, .astro-paused-glow { animation: none; }
+}

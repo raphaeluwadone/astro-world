@@ -16,6 +16,7 @@ export function AdminConfirmDialog({
   confirmLabel,
   onConfirm,
   isPending,
+  children,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -26,6 +27,7 @@ export function AdminConfirmDialog({
   confirmLabel: string
   onConfirm: () => void
   isPending?: boolean
+  children?: ReactNode
 }) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -47,6 +49,7 @@ export function AdminConfirmDialog({
           <DialogPrimitive.Description className="mb-4 text-[13.5px] leading-[1.6] text-astro-text [text-wrap:pretty]">
             {body}
           </DialogPrimitive.Description>
+          {children}
           <div className="flex flex-wrap items-center gap-[9px]">
             <DialogPrimitive.Close asChild>
               <button

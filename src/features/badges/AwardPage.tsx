@@ -7,6 +7,7 @@ import { Timeline, TimelineItem } from '@/components/timeline/Timeline'
 import { PageLoader } from '@/components/states/PageLoader'
 import { dropDate } from '@/features/honours/feed'
 import { useCupQuarters } from '@/features/honours/hooks'
+import { useCurrentPlayer } from '@/features/auth/useSession'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 import type { Badge } from './api'
 import { AWARD_COPY, pickVariation, type AwardCopy } from './awardCopy'
@@ -218,94 +219,56 @@ function holderPhoto(b: Badge) {
   return b.photo_url ?? TEST_HOLDER_PHOTO?.src ?? null
 }
 
+/** One holder fills the image: for a joint award, the viewer if they share it, otherwise one of the others. */
 function HolderVisual({ holders, color, accent, wonOn }: { holders: Badge[]; color: string; accent: string; wonOn: number | null }) {
+  const { player } = useCurrentPlayer()
+  const [pick] = useState(() => Math.floor(Math.random() * holders.length))
+  const joint = holders.length > 1
+  const b = holders.find((h) => h.player_id === player?.id) ?? holders[pick] ?? holders[0]
+  const others = holders.length - 1
   const eyebrow = (
     <div className="text-[10px] font-extrabold uppercase tracking-[0.16em]" style={{ color: accent }}>
-      {holders.length > 1 ? 'Current holders' : 'Current holder'}
+      {joint ? `Joint holder · with ${others} other${others === 1 ? '' : 's'}` : 'Current holder'}
     </div>
   )
 
-  if (holders.length === 1) {
-    const b = holders[0]
-    const photo = holderPhoto(b)
-    if (photo) {
-      return (
-        <Link to="/players/$playerId" params={{ playerId: b.player_id }} className="group absolute inset-0 block">
-          <img src={photo} alt={b.nickname} className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
-          <div className="absolute inset-x-0 bottom-0 h-2/5 bg-[linear-gradient(transparent,rgba(10,15,31,0.94))]" />
-          <div className="absolute bottom-3 left-4 right-4">
-            {eyebrow}
-            <div className="font-display text-[30px] leading-none text-white group-hover:underline">{b.nickname}</div>
-            {b.stat && <div className="mt-1 text-xs text-white/70">{b.stat}</div>}
-          </div>
-        </Link>
-      )
-    }
+  const photo = holderPhoto(b)
+  if (photo) {
     return (
-      <Link
-        to="/players/$playerId"
-        params={{ playerId: b.player_id }}
-        className="group flex size-full flex-col justify-between p-5 no-underline"
-        style={{ background: `radial-gradient(130% 90% at 50% 0%, color-mix(in srgb, ${color} 34%, transparent), #0f1730 72%)` }}
-      >
-        {eyebrow}
-        <div className="flex flex-col items-center text-center">
-          <span
-            className="flex size-24 items-center justify-center rounded-full font-display text-[40px] transition-transform group-hover:scale-105"
-            style={{ background: color, color: '#0a0f1f', boxShadow: `0 0 0 6px color-mix(in srgb, ${color} 22%, transparent)` }}
-          >
-            {initials(b.nickname)}
-          </span>
-          <div className="mt-4 font-display text-[36px] leading-none text-white group-hover:underline">{b.nickname}</div>
-          {b.stat && <div className="mt-2 font-display text-[22px] leading-none" style={{ color: accent }}>{b.stat}</div>}
-        </div>
-        <div className="border-t border-white/10 pt-3 text-xs text-astro-text-muted">
-          {b.detail ?? b.def.for}
-          {wonOn ? ` · Won ${longDate(wonOn)}` : ''}
+      <Link to="/players/$playerId" params={{ playerId: b.player_id }} className="group absolute inset-0 block">
+        <img src={photo} alt={b.nickname} className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
+        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-[linear-gradient(transparent,rgba(10,15,31,0.94))]" />
+        <div className="absolute bottom-3 left-4 right-4">
+          {eyebrow}
+          <div className="font-display text-[30px] leading-none text-white group-hover:underline">{b.nickname}</div>
+          {b.stat && <div className="mt-1 text-xs text-white/70">{b.stat}</div>}
         </div>
       </Link>
     )
   }
-
-  const shown = holders.slice(0, 4)
-  const extra = holders.length - shown.length
   return (
-    <div
-      className="flex size-full flex-col gap-3 p-4"
-      style={{ background: `radial-gradient(130% 90% at 50% 0%, color-mix(in srgb, ${color} 28%, transparent), #0f1730 72%)` }}
+    <Link
+      to="/players/$playerId"
+      params={{ playerId: b.player_id }}
+      className="group flex size-full flex-col justify-between p-5 no-underline"
+      style={{ background: `radial-gradient(130% 90% at 50% 0%, color-mix(in srgb, ${color} 34%, transparent), #0f1730 72%)` }}
     >
       {eyebrow}
-      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-2">
-        {shown.map((b) => {
-          const photo = holderPhoto(b)
-          return (
-            <Link
-              key={b.id}
-              to="/players/$playerId"
-              params={{ playerId: b.player_id }}
-              className="group relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-astro-bg/50 p-2 text-center no-underline transition-colors hover:border-white/25"
-            >
-              {photo ? (
-                <>
-                  <img src={photo} alt={b.nickname} className="absolute inset-0 size-full object-cover object-top" />
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(transparent,rgba(10,15,31,0.92))]" />
-                  <span className="relative mt-auto truncate text-sm font-extrabold text-white">{b.nickname}</span>
-                </>
-              ) : (
-                <>
-                  <span className="flex size-11 items-center justify-center rounded-full font-display text-[18px]" style={{ background: color, color: '#0a0f1f' }}>
-                    {initials(b.nickname)}
-                  </span>
-                  <span className="mt-2 w-full truncate text-sm font-extrabold text-astro-text group-hover:underline">{b.nickname}</span>
-                  {b.stat && <span className="w-full truncate text-[11px] text-astro-text-muted">{b.stat}</span>}
-                </>
-              )}
-            </Link>
-          )
-        })}
+      <div className="flex flex-col items-center text-center">
+        <span
+          className="flex size-24 items-center justify-center rounded-full font-display text-[40px] transition-transform group-hover:scale-105"
+          style={{ background: color, color: '#0a0f1f', boxShadow: `0 0 0 6px color-mix(in srgb, ${color} 22%, transparent)` }}
+        >
+          {initials(b.nickname)}
+        </span>
+        <div className="mt-4 font-display text-[36px] leading-none text-white group-hover:underline">{b.nickname}</div>
+        {b.stat && <div className="mt-2 font-display text-[22px] leading-none" style={{ color: accent }}>{b.stat}</div>}
       </div>
-      {extra > 0 && <div className="text-center text-xs font-bold text-astro-text-muted">and {extra} more</div>}
-    </div>
+      <div className="border-t border-white/10 pt-3 text-xs text-astro-text-muted">
+        {b.detail ?? b.def.for}
+        {wonOn ? ` · Won ${longDate(wonOn)}` : ''}
+      </div>
+    </Link>
   )
 }
 

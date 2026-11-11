@@ -3,6 +3,7 @@ export type AdminSectionId =
   | 'results'
   | 'cup'
   | 'pitch'
+  | 'draw'
   | 'kit'
   | 'dues'
   | 'causes'
@@ -55,8 +56,15 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       {
         id: 'pitch',
         label: 'Pitch-side',
+        to: '/admin/pitch',
         icon: 'M9.2 1.6h5.6v2.5H9.2ZM12 4.9a8.7 8.7 0 1 0 0 17.4 8.7 8.7 0 0 0 0-17.4Zm1.2 3.5v5h3.9v2.3h-6.2V8.4Z',
         iconEvenOdd: true,
+      },
+      {
+        id: 'draw',
+        label: 'Draw rules',
+        to: '/admin/draw',
+        icon: 'M3 5.8h4.6l8.2 10.2h2.4v-2.6L22 17.1l-3.8 3.7v-2.6h-3.4L6.6 8H3Zm15.2-3.9L22 5.6l-3.8 3.7V6.7h-2.4l-2.3 2.9-1.4-1.8 2.7-3.3h3.4ZM3 15.8h3.6l2.2-2.7 1.4 1.8L7.7 18H3Z',
       },
       {
         id: 'kit',

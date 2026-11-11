@@ -13,9 +13,9 @@ export function NotificationItem({ n, onOpen, compact }: { n: NotificationRow; o
       to={n.link ?? '/'}
       onClick={() => onOpen(n)}
       className={cn(
-        'group flex items-start gap-3 rounded-xl px-3 no-underline transition-colors hover:bg-white/[0.05]',
-        compact ? 'py-2.5' : 'py-3',
-        unread && 'bg-astro-accent/[0.06]',
+        'group flex items-start gap-3 rounded-xl border px-3 no-underline transition-colors hover:bg-white/[0.05]',
+        compact ? 'py-3' : 'px-4 py-4',
+        unread ? 'border-astro-accent/25 bg-astro-accent/[0.06]' : compact ? 'border-transparent' : 'border-white/[0.07] bg-astro-surface',
       )}
     >
       <span

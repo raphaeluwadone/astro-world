@@ -474,6 +474,78 @@ export type Database = {
           },
         ]
       }
+      draw_never_pairs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          player_a: string
+          player_b: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          player_a: string
+          player_b: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          player_a?: string
+          player_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draw_never_pairs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_never_pairs_player_a_fkey"
+            columns: ["player_a"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_never_pairs_player_b_fkey"
+            columns: ["player_b"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draw_settings: {
+        Row: {
+          id: boolean
+          rules: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: boolean
+          rules?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: boolean
+          rules?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draw_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dues_payments: {
         Row: {
           dues_quarter_id: string
@@ -1064,6 +1136,217 @@ export type Database = {
           },
         ]
       }
+      pitch_checkins: {
+        Row: {
+          checked_in_at: string
+          checked_in_by: string | null
+          matchday_id: string
+          player_id: string
+        }
+        Insert: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          matchday_id: string
+          player_id: string
+        }
+        Update: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          matchday_id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_checkins_checked_in_by_fkey"
+            columns: ["checked_in_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_checkins_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_checkins_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_games: {
+        Row: {
+          created_at: string
+          edited_at: string | null
+          elapsed_ms: number
+          ended_at: string | null
+          goal_target: number
+          id: string
+          length_min: number
+          matchday_id: string
+          report: string | null
+          running_since: string | null
+          team_a_id: string
+          team_b_id: string
+        }
+        Insert: {
+          created_at?: string
+          edited_at?: string | null
+          elapsed_ms?: number
+          ended_at?: string | null
+          goal_target?: number
+          id?: string
+          length_min?: number
+          matchday_id: string
+          report?: string | null
+          running_since?: string | null
+          team_a_id: string
+          team_b_id: string
+        }
+        Update: {
+          created_at?: string
+          edited_at?: string | null
+          elapsed_ms?: number
+          ended_at?: string | null
+          goal_target?: number
+          id?: string
+          length_min?: number
+          matchday_id?: string
+          report?: string | null
+          running_since?: string | null
+          team_a_id?: string
+          team_b_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_games_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_games_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_games_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_goals: {
+        Row: {
+          assist_id: string | null
+          created_at: string
+          created_by: string | null
+          game_id: string
+          id: string
+          minute: number | null
+          scorer_id: string | null
+          team_id: string
+        }
+        Insert: {
+          assist_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          game_id: string
+          id?: string
+          minute?: number | null
+          scorer_id?: string | null
+          team_id: string
+        }
+        Update: {
+          assist_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          game_id?: string
+          id?: string
+          minute?: number | null
+          scorer_id?: string | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_goals_assist_id_fkey"
+            columns: ["assist_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "pitch_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_scorer_id_fkey"
+            columns: ["scorer_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_sessions: {
+        Row: {
+          goal_target: number
+          length_min: number
+          matchday_id: string
+          team_order: string[]
+          updated_at: string
+        }
+        Insert: {
+          goal_target?: number
+          length_min?: number
+          matchday_id: string
+          team_order: string[]
+          updated_at?: string
+        }
+        Update: {
+          goal_target?: number
+          length_min?: number
+          matchday_id?: string
+          team_order?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_sessions_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: true
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_badges: {
         Row: {
           auto_live_at: string
@@ -1569,18 +1852,27 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          kind: string | null
+          matchday_id: string | null
+          pitch_game_id: string | null
         }
         Insert: {
           author_id: string
           content: string
           created_at?: string
           id?: string
+          kind?: string | null
+          matchday_id?: string | null
+          pitch_game_id?: string | null
         }
         Update: {
           author_id?: string
           content?: string
           created_at?: string
           id?: string
+          kind?: string | null
+          matchday_id?: string | null
+          pitch_game_id?: string | null
         }
         Relationships: [
           {
@@ -1588,6 +1880,20 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_pitch_game_id_fkey"
+            columns: ["pitch_game_id"]
+            isOneToOne: true
+            referencedRelation: "pitch_games"
             referencedColumns: ["id"]
           },
         ]
@@ -1989,6 +2295,21 @@ export type Database = {
       }
       cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
       dispatch_emails: { Args: never; Returns: undefined }
+      draw_player_stats: {
+        Args: {
+          p_matchday?: string
+          p_players: string[]
+          p_season_start: string
+          p_since?: string
+        }
+        Returns: {
+          avg_rating: number
+          player_id: string
+          rating_count: number
+          season_goals: number
+          sundays: number
+        }[]
+      }
       dues_paid_count: { Args: { p_dues_quarter_id: string }; Returns: number }
       finish_email: {
         Args: { p_error?: string; p_id: string }
@@ -2026,6 +2347,8 @@ export type Database = {
           vote_count: number
         }[]
       }
+      matchday_post_author: { Args: never; Returns: string }
+      mention_token: { Args: { p_player: string }; Returns: string }
       motm_open_for: { Args: { p_matchday_id: string }; Returns: boolean }
       next_matchday_at: { Args: { after: string }; Returns: string }
       notifications_since: { Args: never; Returns: string }
@@ -2099,6 +2422,7 @@ export type Database = {
         Args: { p_pinned: boolean; p_post_id: string }
         Returns: undefined
       }
+      team_order: { Args: { p_name: string }; Returns: number }
       trait_hearts: { Args: { p_player: string }; Returns: number }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
       weekly_spots_remaining: {

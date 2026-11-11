@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { TEAM_ID } from '@/lib/teamId'
 import type { Database } from '@/types/database'
 
 type AvailabilityStatus = Database['public']['Enums']['availability_status']
@@ -180,8 +181,10 @@ export async function fetchDrawnTeams(matchdayId: string): Promise<TeamWithMembe
     greek_name: team.greek_name,
     colour: team.colour,
     members: team.team_members.map((tm) => tm.players),
-  }))
+  })).sort((a, b) => teamRank(a.greek_name) - teamRank(b.greek_name))
 }
+
+const teamRank = (name: string) => TEAM_ID.findIndex((t) => t.name === name)
 
 export async function fetchMatchResults(matchdayId: string): Promise<MatchResultRow[]> {
   const { data, error } = await supabase

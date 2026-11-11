@@ -69,7 +69,7 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   'ramos-energy': { name: 'The Ramos Protocol', tier: 'year', icon: 'shield', for: 'Best-rated defender or keeper of the year' },
   'messi-ah': { name: 'La Pulga Supreme', tier: 'year', icon: 'crown', for: 'Best average rating of the year' },
   'main-character': { name: 'Main Character', tier: 'year', icon: 'star', for: 'Most Man of the Match wins' },
-  'new-month-same-me': { name: 'New month, same me', tier: 'year', icon: 'calendar', for: 'Won a monthly award this year' },
+  'new-month-same-me': { name: 'New month, same me', tier: 'year', icon: 'calendar', for: 'Won the same monthly award two months running' },
   'sunday-disciple': { name: 'Sunday Disciple', tier: 'year', icon: 'calendar', for: 'Played every matchday of the year' },
   'most-capped': { name: 'Most Capped', tier: 'year', icon: 'shirt', for: 'Most appearances of the year' },
   'early-bird': { name: 'Early Bird', tier: 'year', icon: 'clock', for: 'First to claim a weekly spot most often' },

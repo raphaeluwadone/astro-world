@@ -9,6 +9,8 @@ import { PageLoader } from '@/components/states/PageLoader'
 import { useDrawnTeams, useNextMatchday } from '@/features/matchday/hooks'
 import type { PlayerSummary, TeamWithMembers } from '@/features/matchday/api'
 import { useFileMatchdayResults } from './hooks'
+import type { PitchState } from './pitch/api'
+import { usePitch } from './pitch/hooks'
 import type { FixtureInput, GoalInput } from './results'
 
 interface GoalDraft {
@@ -27,6 +29,18 @@ interface FixtureDraft {
 
 function emptyFixture(teams: TeamWithMembers[]): FixtureDraft {
   return { teamAId: teams[0]?.id ?? '', teamBId: teams[1]?.id ?? '', scoreA: '', scoreB: '', goals: [] }
+}
+
+function fromPitch(pitch: PitchState | undefined): FixtureDraft[] | null {
+  const done = pitch?.games.filter((g) => g.ended_at) ?? []
+  if (done.length === 0) return null
+  return done.map((g) => ({
+    teamAId: g.team_a_id,
+    teamBId: g.team_b_id,
+    scoreA: String(g.goals.filter((x) => x.team_id === g.team_a_id).length),
+    scoreB: String(g.goals.filter((x) => x.team_id === g.team_b_id).length),
+    goals: g.goals.map((x) => ({ teamId: x.team_id, scorerId: x.scorer_id ?? '', assistId: x.assist_id ?? '' })),
+  }))
 }
 
 function emptyGoal(teamId: string): GoalDraft {
@@ -108,11 +122,12 @@ export function ResultsPage() {
   const { data: matchday, isLoading: matchdayLoading, isError: matchdayError, refetch: refetchMatchday } = useNextMatchday()
   const { data: teams = [], isLoading: teamsLoading, isError: teamsError, refetch: refetchTeams } = useDrawnTeams(matchday?.id)
   const fileResults = useFileMatchdayResults(matchday?.id)
+  const { data: pitch, isLoading: pitchLoading } = usePitch(matchday?.status === 'drawn' ? matchday.id : undefined)
 
   const [fixtures, setFixtures] = useState<FixtureDraft[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  if (matchdayLoading || teamsLoading) return <PageLoader />
+  if (matchdayLoading || teamsLoading || pitchLoading) return <PageLoader />
   if (matchdayError) return <ErrorState onRetry={() => refetchMatchday()} />
   if (teamsError) return <ErrorState onRetry={() => refetchTeams()} />
 
@@ -151,7 +166,9 @@ export function ResultsPage() {
     )
   }
 
-  const draft = fixtures ?? [emptyFixture(teams)]
+  const pitchDraft = fromPitch(pitch)
+  const draft = fixtures ?? pitchDraft ?? [emptyFixture(teams)]
+  const checkedIn = [...(pitch?.checkedIn ?? [])]
 
   function updateFixture(index: number, patch: Partial<FixtureDraft>) {
     setFixtures(draft.map((f, i) => (i === index ? { ...f, ...patch } : f)))
@@ -223,7 +240,7 @@ export function ResultsPage() {
     }))
 
     try {
-      await fileResults.mutateAsync(fixtures)
+      await fileResults.mutateAsync({ fixtures, checkedIn })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     }
@@ -237,6 +254,12 @@ export function ResultsPage() {
       <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
         File results
       </h1>
+      {pitchDraft && (
+        <p className="mb-5 max-w-2xl rounded-xl border border-astro-cyan/35 bg-astro-cyan/[0.07] px-4 py-3 text-[13px] text-astro-text-muted">
+          <span className="font-bold text-astro-text">Filled in from Pitch-side.</span> Check it over, add any missing scorers, then file.
+          {checkedIn.length > 0 && ` Only the ${checkedIn.length} players checked in will be recorded as playing.`}
+        </p>
+      )}
 
       <div className="flex flex-col gap-4">
         {draft.map((fixture, fi) => {

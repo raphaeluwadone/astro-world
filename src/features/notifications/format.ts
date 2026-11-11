@@ -1,4 +1,4 @@
-import { AtSign, MessageCircle, Award, Camera, ClipboardList, DoorOpen, Hourglass, Shirt, Star, Ticket, TrendingDown, UserCheck, UserX, Wallet, type LucideIcon } from 'lucide-react'
+import { AtSign, Flag, MessageCircle, Award, Camera, ClipboardList, DoorOpen, Hourglass, Shirt, Star, Ticket, TrendingDown, UserCheck, UserX, Wallet, type LucideIcon } from 'lucide-react'
 import { BADGE_DEFS, MONTHLY_DEFS, TIER_COLOR } from '@/features/badges/definitions'
 import type { NotificationRow } from './api'
 
@@ -40,6 +40,10 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
       return { title: `A spot just opened for ${sunday(d.played_at)}`, body: 'First to claim it gets it.', icon: DoorOpen, color: PURPLE }
     case 'teams_drawn':
       return { title: 'Teams are out', body: `You're on ${d.team} for ${sunday(d.played_at)}.`, icon: Shirt, color: PURPLE }
+    case 'pitch_result': {
+      const result = d.for > d.against ? 'won' : d.for < d.against ? 'lost' : 'drew'
+      return { title: `Full time: ${d.team} ${result}`, body: `${d.team} ${d.for}–${d.against} ${d.opponent}, game ${d.game_no}. The match report is up.`, icon: Flag, color: PURPLE }
+    }
     case 'rate':
       return { title: 'Rate your teammates', body: `Votes for ${sunday(d.played_at)} are open.`, icon: Star, color: PURPLE }
     case 'badge_won': {

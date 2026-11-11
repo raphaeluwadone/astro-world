@@ -4,7 +4,6 @@ import { useState, type ReactNode } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
-import { DrumLoader } from '@/components/states/DrumLoader'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyPitchIcon } from '@/components/states/icons'
@@ -13,10 +12,12 @@ import { useCancelMatchday } from '@/features/admin/hooks'
 import { monthOf } from './api'
 import { AvailabilityCard } from './components/AvailabilityCard'
 import { DrawnTeams } from './components/DrawnTeams'
+import { MyMatchdayCard } from './components/MyMatchdayCard'
 import { LastResults } from './components/LastResults'
 import { MonthlySlots } from './components/MonthlySlots'
 import { StandbyQueue } from './components/StandbyQueue'
-import { useRunTeamDraw } from './draw/hooks'
+import { RULE_COPY, RULE_ORDER } from './draw/components/DrawRulesForm'
+import { useDrawRules } from './draw/hooks'
 import {
   useAvailability,
   useClaimMonthlySlot,
@@ -55,7 +56,7 @@ export function MatchdayPage() {
   const { data: weeklyClaims = [] } = useWeeklyClaims(matchday?.id)
   const { data: standbyEntries = [] } = useStandbyEntries(matchday?.id)
   const { data: spotsRemaining = 0 } = useWeeklySpotsRemaining(matchday?.id)
-  const runDraw = useRunTeamDraw(matchday?.id)
+  const { data: drawRules } = useDrawRules()
   const updateCapacity = useUpdateMatchdayCapacity(matchday?.id)
   const cancelMatchday = useCancelMatchday(matchday?.id)
   const month = matchday ? monthOf(matchday.played_at) : undefined
@@ -143,6 +144,8 @@ export function MatchdayPage() {
         }}
       />
 
+      {matchday.status === 'drawn' && <MyMatchdayCard matchdayId={matchday.id} teams={teams} playerId={player?.id} />}
+
       <AvailabilityCard
         matchdayId={matchday.id}
         playerId={player?.id ?? null}
@@ -223,9 +226,9 @@ export function MatchdayPage() {
                     : `${confirmedCount} confirmed, ${standbyEntries.length} on standby.`}
                 </p>
               </div>
-              {player?.is_admin && matchday.status === 'open' && teams.length === 0 && !runDraw.isPending && (
-                <Button onClick={() => runDraw.mutate()} disabled={runDraw.isPending}>
-                  Run the Draw
+              {player?.is_admin && matchday.status === 'open' && teams.length === 0 && (
+                <Button asChild>
+                  <Link to="/admin/pitch">Run the draw on Pitch-side</Link>
                 </Button>
               )}
             </div>
@@ -251,30 +254,18 @@ export function MatchdayPage() {
               </div>
             )}
 
-            {runDraw.isPending ? (
-              <DrumLoader label="Drawing the sides…" />
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                <InfoPill color="#4ade80" icon="check">No repeat pairings from last Sunday</InfoPill>
-                <InfoPill color="#4ade80" icon="check">
-                  Teams of 6 &middot; {matchday.capacity / 6} sides
-                </InfoPill>
-                <InfoPill color="#38bdf8" icon="info">First to pay, never a lottery</InfoPill>
-                <InfoPill color="#38bdf8" icon="info">Rating is not used to balance sides</InfoPill>
-              </div>
-            )}
-
-            {runDraw.isSuccess && (
-              <p className="mt-3 text-xs text-astro-text-muted">
-                Drawn: {runDraw.data.repeatPairingsCount} repeat pairing
-                {runDraw.data.repeatPairingsCount === 1 ? '' : 's'} from last week.
-              </p>
-            )}
-            {runDraw.isError && (
-              <p className="mt-3 text-xs text-astro-red">
-                {runDraw.error instanceof Error ? runDraw.error.message : 'Something went wrong.'}
-              </p>
-            )}
+            <div className="flex flex-wrap gap-2">
+              <InfoPill color="#4ade80" icon="check">
+                Teams of 6 &middot; {matchday.capacity / 6} sides
+              </InfoPill>
+              <InfoPill color="#38bdf8" icon="info">First to pay, never a lottery</InfoPill>
+              {drawRules &&
+                RULE_ORDER.filter((k) => drawRules[k]).map((k) => (
+                  <InfoPill key={k} color="#4ade80" icon="check">
+                    {RULE_COPY[k].label}
+                  </InfoPill>
+                ))}
+            </div>
           </div>
 
           {teams.length > 0 && <DrawnTeams teams={teams} />}

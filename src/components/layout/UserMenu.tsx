@@ -1,6 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -11,11 +12,13 @@ import { signOut } from '@/features/auth/api'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { NotificationBell } from '@/features/notifications/NotificationBell'
 import { useUnreadCount } from '@/features/notifications/hooks'
+import { setHoverCards, useHoverCards } from '@/lib/hoverCards'
 
 export function UserMenu() {
   const { player } = useCurrentPlayer()
   const navigate = useNavigate()
   const unread = useUnreadCount()
+  const hoverCards = useHoverCards()
 
   const handleSignOut = async () => {
     await signOut()
@@ -53,6 +56,19 @@ export function UserMenu() {
               )}
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuCheckboxItem checked={hoverCards} onCheckedChange={setHoverCards} onSelect={(e) => e.preventDefault()}>
+            Hover cards
+          </DropdownMenuCheckboxItem>
+          {player?.is_admin && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/admin" className="font-bold text-astro-cyan">
+                  Switch to admin
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
         </DropdownMenuContent>

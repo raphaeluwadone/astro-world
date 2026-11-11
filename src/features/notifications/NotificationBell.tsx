@@ -49,7 +49,7 @@ export function NotificationBell() {
             </button>
           )}
         </div>
-        <div className="max-h-[420px] overflow-y-auto p-1.5">
+        <div className="flex max-h-[420px] flex-col gap-1.5 overflow-y-auto p-2">
           {latest.length === 0 ? (
             <p className="px-4 py-8 text-center text-sm text-astro-text-dim">Nothing yet. Badges, matchday news and mentions land here.</p>
           ) : (

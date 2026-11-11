@@ -9,6 +9,7 @@ import { RichEditor } from '@/components/editor/RichEditor'
 import { RichText } from '@/components/editor/RichText'
 import { BUBBLE, HEART, THUMB_DOWN } from './reactionIcons'
 import { PlayerHoverCard } from '@/components/hover/InfoCards'
+import { AstroAvatar } from '@/components/icons/AstroAvatar'
 
 function relativeTime(iso: string) {
   const ms = Date.now() - new Date(iso).getTime()
@@ -167,6 +168,17 @@ export function PostCard({
       id={`post-${post.id}`}
       className={`astro-card scroll-mt-24 p-5 transition-[box-shadow,border-color] duration-700 ${highlighted ? 'border-astro-accent/70 shadow-[0_0_0_3px_rgba(166,63,255,0.25)]' : ''}`}
     >
+      {post.kind ? (
+        <div className="mb-3 flex items-center gap-3">
+          <AstroAvatar className="size-10 shrink-0" />
+          <div className="min-w-0">
+            <div className="text-sm font-extrabold text-astro-text">Astro</div>
+            <div className="text-[11.5px] text-astro-text-dim">
+              {post.kind === 'teams' ? 'The draw' : 'Match report'} &middot; {relativeTime(post.created_at)}
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="mb-3 flex items-center gap-3">
         <PlayerPhoto playerId={post.author.id} alt="" className="size-10 rounded-[10px]" />
         <div className="min-w-0">
@@ -181,6 +193,7 @@ export function PostCard({
           </div>
         </div>
       </div>
+      )}
       <RichText content={post.content} className="mb-3.5 text-[14.5px] leading-[1.5] text-astro-text [text-wrap:pretty]" />
       <div className="flex flex-wrap gap-[9px]">
         <ReactionButton active={post.likedByMe} color="#38bdf8" disabled={!canLike} onClick={onToggleLike} label={`Like, ${post.likeCount}`}>

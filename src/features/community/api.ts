@@ -8,6 +8,7 @@ export interface PostRow {
   content: string
   created_at: string
   author: { id: string; nickname: string; full_name: string }
+  kind: 'teams' | 'report' | null
   likeCount: number
   likedByMe: boolean
   dislikeCount: number
@@ -34,9 +35,9 @@ export interface TagPoolRow {
   label: string
 }
 
-const POST_SELECT = 'id, content, created_at, players!posts_author_id_fkey (id, nickname, full_name)'
+const POST_SELECT = 'id, content, created_at, kind, players!posts_author_id_fkey (id, nickname, full_name)'
 
-type RawPost = { id: string; content: string; created_at: string; players: unknown }
+type RawPost = { id: string; content: string; created_at: string; kind: string | null; players: unknown }
 
 function groupBy(rows: { post_id: string; player_id?: string }[]) {
   const map = new Map<string, string[]>()
@@ -67,6 +68,7 @@ async function withLikes(posts: RawPost[], currentPlayerId: string | null): Prom
       content: p.content,
       created_at: p.created_at,
       author: p.players as PostRow['author'],
+      kind: p.kind as PostRow['kind'],
       likeCount: likers.length,
       likedByMe: currentPlayerId ? likers.includes(currentPlayerId) : false,
       dislikeCount: dislikers.length,

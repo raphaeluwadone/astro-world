@@ -13,6 +13,8 @@ import {
 } from '@/features/matchday/hooks'
 import { monthOf } from '@/features/matchday/api'
 import { useMatchRatings } from '@/features/profile/hooks'
+import { LiveMatchday } from '@/features/matchday/components/LiveMatchday'
+import { CupTableCard } from '@/features/salami-cup/components/CupTableCard'
 import { RecentForm } from '@/features/profile/components/RecentForm'
 import type { MatchRatingRow } from '@/features/profile/api'
 import { useRankings } from '@/features/rankings/hooks'
@@ -121,6 +123,7 @@ export function HomePage() {
       </div>
 
       <PlayerSearchBar className="md:hidden max-md:order-2" />
+      <LiveMatchday className="max-md:order-2" />
 
       <div className="md:hidden max-md:order-5">
         <HomeNotices honour={latestHonour} cup={shouldShowCupBanner(cup) ? cup : null} rulesChanged={isRuleChangeRecent()} />
@@ -148,6 +151,7 @@ export function HomePage() {
       )}
 
       <div className="grid grid-cols-1 items-start gap-5 @3xl:grid-cols-2 @[78rem]:grid-cols-4 max-md:contents">
+        <CupTableCard className="astro-card p-4 max-md:order-3" />
         {!matchdayLoading && matchday && (
           <div className="max-md:order-3">
             <NextMatchdayCard

@@ -14,14 +14,10 @@ export interface FixtureInput {
   goals: GoalInput[]
 }
 
-/** Nothing has ever actually filed a matchday's results before: matches,
- * goals and match_players were only ever created by hand via SQL for
- * testing. This is the real admin action, not a queue/fixture generator
- * (the winner-stays-on queue format was deliberately left unmodelled
- * early in this project) — the admin just records whatever fixtures
- * actually happened. Everyone drawn into either side is recorded as
- * having played; there's no pitch-side substitution flow yet. */
-export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureInput[]) {
+/** Records whatever fixtures actually happened. Each side's drawn members count as having played,
+ * narrowed to those checked in on Pitch-side when anyone was. */
+export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureInput[], checkedIn: string[] = []) {
+  const here = new Set(checkedIn)
   for (const fixture of fixtures) {
     const { data: match, error: matchError } = await supabase
       .from('matches')
@@ -43,7 +39,9 @@ export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureI
     if (membersError) throw membersError
 
     const { error: playersError } = await supabase.from('match_players').insert(
-      (members ?? []).map((m) => ({ match_id: match.id, player_id: m.player_id, team_id: m.team_id })),
+      (members ?? [])
+        .filter((m) => here.size === 0 || here.has(m.player_id))
+        .map((m) => ({ match_id: match.id, player_id: m.player_id, team_id: m.team_id })),
     )
     if (playersError) throw playersError
 
