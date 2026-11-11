@@ -44,6 +44,8 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
       const result = d.for > d.against ? 'won' : d.for < d.against ? 'lost' : 'drew'
       return { title: `Full time: ${d.team} ${result}`, body: `${d.team} ${d.for}–${d.against} ${d.opponent}, game ${d.game_no}. The match report is up.`, icon: Flag, color: PURPLE }
     }
+    case 'team_champion':
+      return { title: `${d.team} are the ${d.cycle} champions`, body: `The shirt finished top of the table and wins Shirt of the Year.`, icon: Award, color: AMBER }
     case 'rate':
       return { title: 'Rate your teammates', body: `Votes for ${sunday(d.played_at)} are open.`, icon: Star, color: PURPLE }
     case 'badge_won': {

@@ -6,7 +6,10 @@ import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import type { RankingRow } from './api'
 import { TeamStandingsTable } from './components/TeamStandingsTable'
-import { useRankings, useSeasonTeamStandings } from './hooks'
+import { useRankings } from './hooks'
+import { cycleLastDay } from '@/features/teams/cycles'
+import { RollOfChampions } from '@/features/teams/components/RollOfChampions'
+import { useCurrentCycle, useCycleStandings } from '@/features/teams/hooks'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
@@ -205,10 +208,22 @@ function PlayerRankings() {
 }
 
 function TeamStandings() {
-  const { data: standings = [], isLoading, isError, refetch } = useSeasonTeamStandings()
-  if (isLoading) return <PageLoader />
+  const { data: cycle, isLoading: cycleLoading } = useCurrentCycle()
+  const { data: standings = [], isLoading, isError, refetch } = useCycleStandings(cycle)
+  if (cycleLoading || isLoading) return <PageLoader />
   if (isError) return <ErrorState onRetry={() => refetch()} />
-  return <TeamStandingsTable standings={standings} />
+  const ends = cycle && cycleLastDay(cycle.ends_at)
+  return (
+    <div className="flex flex-col gap-5">
+      {cycle && (
+        <p className="-mt-2 text-[12.5px] font-bold text-astro-text-dim">
+          {cycle.label} race &middot; runs to {ends}. Level on points? Goal difference, goals scored, fewest conceded, then head-to-head.
+        </p>
+      )}
+      <TeamStandingsTable standings={standings} />
+      <RollOfChampions />
+    </div>
+  )
 }
 
 export function RankingsPage() {
@@ -222,7 +237,7 @@ export function RankingsPage() {
       <p className="mb-5 text-sm text-astro-text-muted">
         {view === 'players'
           ? 'Season average, voted by everyone who had to play with you. Minimum 5 appearances.'
-          : "Three points a win, one for a draw. The sides run all season even though the ballot fills them with different people every Sunday, you play for whoever you're drawn into, and the points stay with the shirt."}
+          : "Three points a win, one for a draw. The ballot fills the sides with different people every Sunday, but the points stay with the shirt, and the shirt on top at the end of the year is crowned champion."}
       </p>
 
       <div className="mb-5 flex gap-2">

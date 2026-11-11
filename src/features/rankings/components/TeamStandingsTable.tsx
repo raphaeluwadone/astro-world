@@ -1,3 +1,4 @@
+import { ChampionStars } from '@/features/teams/components/ChampionStars'
 import type { MatchResult, TeamStandingRow } from '../api'
 
 const GRID = '44px minmax(0,2fr) repeat(6,minmax(0,0.6fr)) minmax(0,0.9fr) minmax(0,1.2fr)'
@@ -44,6 +45,7 @@ export function TeamStandingsTable({ standings }: { standings: TeamStandingRow[]
                 </span>
               </div>
               <div className="truncate text-[13.5px] font-extrabold text-astro-text">{t.name}</div>
+              <ChampionStars team={t.name} />
             </div>
             <div className="text-center text-[13px] text-astro-text-muted">{t.played}</div>
             <div className="text-center text-[13px] font-bold text-astro-text">{t.wins}</div>

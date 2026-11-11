@@ -174,7 +174,7 @@ export function PostCard({
           <div className="min-w-0">
             <div className="text-sm font-extrabold text-astro-text">Astro</div>
             <div className="text-[11.5px] text-astro-text-dim">
-              {post.kind === 'teams' ? 'The draw' : 'Match report'} &middot; {relativeTime(post.created_at)}
+              {post.kind === 'teams' ? 'The draw' : post.kind === 'champion' ? 'Champions' : 'Match report'} &middot; {relativeTime(post.created_at)}
             </div>
           </div>
         </div>

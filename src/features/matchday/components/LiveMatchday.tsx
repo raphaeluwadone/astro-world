@@ -7,6 +7,7 @@ import { rotation } from '@/features/admin/pitch/rotation'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import type { TeamWithMembers } from '../api'
 import { useDrawnTeams, useNextMatchday } from '../hooks'
+import { ChampionStars } from '@/features/teams/components/ChampionStars'
 
 const dot = (t: TeamWithMembers) => <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: t.colour }} aria-hidden />
 
@@ -26,6 +27,7 @@ function Scoreboard({ game, teams, myTeamId }: { game: PitchGame; teams: TeamWit
             <span className="flex items-center gap-1.5 text-[13px] font-extrabold text-astro-text">
               {dot(t)}
               {t.greek_name}
+              <ChampionStars team={t.greek_name} />
               {t.id === myTeamId && <span className="rounded-[4px] bg-astro-accent/25 px-1 text-[9.5px] uppercase tracking-[0.08em] text-astro-accent-soft">You</span>}
             </span>
             <span className="font-display text-[52px] leading-none tabular-nums text-astro-text">{goals.length}</span>

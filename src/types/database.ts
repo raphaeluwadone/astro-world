@@ -1855,6 +1855,7 @@ export type Database = {
           kind: string | null
           matchday_id: string | null
           pitch_game_id: string | null
+          team_cycle_id: string | null
         }
         Insert: {
           author_id: string
@@ -1864,6 +1865,7 @@ export type Database = {
           kind?: string | null
           matchday_id?: string | null
           pitch_game_id?: string | null
+          team_cycle_id?: string | null
         }
         Update: {
           author_id?: string
@@ -1873,6 +1875,7 @@ export type Database = {
           kind?: string | null
           matchday_id?: string | null
           pitch_game_id?: string | null
+          team_cycle_id?: string | null
         }
         Relationships: [
           {
@@ -1894,6 +1897,13 @@ export type Database = {
             columns: ["pitch_game_id"]
             isOneToOne: true
             referencedRelation: "pitch_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_team_cycle_id_fkey"
+            columns: ["team_cycle_id"]
+            isOneToOne: true
+            referencedRelation: "team_cycles"
             referencedColumns: ["id"]
           },
         ]
@@ -2075,6 +2085,50 @@ export type Database = {
           {
             foreignKeyName: "tags_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_cycles: {
+        Row: {
+          champion: string | null
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          ends_at: string
+          final_table: Json | null
+          id: string
+          label: string
+          starts_at: string
+        }
+        Insert: {
+          champion?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          ends_at: string
+          final_table?: Json | null
+          id?: string
+          label: string
+          starts_at: string
+        }
+        Update: {
+          champion?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          ends_at?: string
+          final_table?: Json | null
+          id?: string
+          label?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_cycles_closed_by_fkey"
+            columns: ["closed_by"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
@@ -2273,6 +2327,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      close_team_cycle: {
+        Args: {
+          p_champion: string
+          p_final_table: Json
+          p_next_ends_at: string
+          p_next_label: string
+        }
+        Returns: string
+      }
       club_moments: {
         Args: never
         Returns: {
@@ -2421,6 +2484,16 @@ export type Database = {
       set_honours_pin: {
         Args: { p_pinned: boolean; p_post_id: string }
         Returns: undefined
+      }
+      team_matches_between: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          goals_against: number
+          goals_for: number
+          greek_name: string
+          opponent: string
+          played_at: string
+        }[]
       }
       team_order: { Args: { p_name: string }; Returns: number }
       trait_hearts: { Args: { p_player: string }; Returns: number }

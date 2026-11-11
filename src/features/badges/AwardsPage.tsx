@@ -1,3 +1,4 @@
+import { ShirtAwardCard } from '@/features/teams/components/ShirtAwardCard'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { useMemo, useState } from 'react'
@@ -94,6 +95,8 @@ export function AwardsPage() {
           ))}
         </div>
       )}
+
+      {filter === 'all' && <ShirtAwardCard />}
 
       {TIERS.map((tier) => {
         const list = shown.filter((a) => a.def.tier === tier)

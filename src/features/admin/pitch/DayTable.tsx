@@ -2,6 +2,7 @@ import { StandingsTable } from '@/components/tables/StandingsTable'
 import type { TeamWithMembers } from '@/features/matchday/api'
 import type { PitchState } from './api'
 import { dayTable } from './rotation'
+import { ChampionStars } from '@/features/teams/components/ChampionStars'
 
 /** A matchday's points: 3 a win, 1 a draw. */
 export function DayTable({ teams, pitch, myTeamId, title = 'Today’s table', className }: { teams: TeamWithMembers[]; pitch: PitchState; myTeamId?: string; title?: string; className?: string }) {
@@ -16,7 +17,7 @@ export function DayTable({ teams, pitch, myTeamId, title = 'Today’s table', cl
       <StandingsTable
         rows={rows.flatMap((r) => {
           const t = byId.get(r.teamId)
-          return t ? [{ id: t.id, name: t.greek_name, colour: t.colour, played: r.played, won: r.won, drawn: r.drawn, lost: r.lost, goalDifference: r.goalsFor - r.goalsAgainst, points: r.points, mine: t.id === myTeamId }] : []
+          return t ? [{ id: t.id, name: t.greek_name, colour: t.colour, played: r.played, won: r.won, drawn: r.drawn, lost: r.lost, goalDifference: r.goalsFor - r.goalsAgainst, points: r.points, mine: t.id === myTeamId, after: <ChampionStars team={t.greek_name} /> }] : []
         })}
       />
     </section>

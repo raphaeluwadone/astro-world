@@ -1,5 +1,6 @@
 import type { TeamWithMembers } from '../api'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
+import { ChampionStars } from '@/features/teams/components/ChampionStars'
 
 export function DrawnTeams({ teams }: { teams: TeamWithMembers[] }) {
   return (
@@ -18,6 +19,7 @@ export function DrawnTeams({ teams }: { teams: TeamWithMembers[] }) {
           <div className="mb-3.5 flex items-center gap-[9px]">
             <span className="size-3 shrink-0 rounded" style={{ background: team.colour }} />
             <span className="font-display text-2xl leading-none text-astro-text">{team.greek_name}</span>
+            <ChampionStars team={team.greek_name} />
           </div>
           <div className="flex flex-col gap-1.5">
             {team.members.map((m) => (

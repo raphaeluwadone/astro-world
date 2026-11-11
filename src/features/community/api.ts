@@ -8,7 +8,7 @@ export interface PostRow {
   content: string
   created_at: string
   author: { id: string; nickname: string; full_name: string }
-  kind: 'teams' | 'report' | null
+  kind: 'teams' | 'report' | 'champion' | null
   likeCount: number
   likedByMe: boolean
   dislikeCount: number

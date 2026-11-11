@@ -1,4 +1,5 @@
 import { cn } from 'cn'
+import type { ReactNode } from 'react'
 
 export interface StandingsRow {
   id: string
@@ -11,6 +12,8 @@ export interface StandingsRow {
   goalDifference: number
   points: number
   mine?: boolean
+  /** Shown after the name, e.g. champion stars. */
+  after?: ReactNode
 }
 
 /** Narrow containers drop W/D/L/GD and keep the team, games played and points. */
@@ -38,6 +41,7 @@ export function StandingsTable({ rows, className }: { rows: StandingsRow[]; clas
               <span className="flex min-w-0 items-center gap-1.5">
                 <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: r.colour }} aria-hidden />
                 <span className="truncate">{r.name}</span>
+                {r.after}
               </span>
             </td>
             <td className="text-right tabular-nums">{r.played}</td>

@@ -6,6 +6,7 @@ import type { PitchGame } from '@/features/admin/pitch/api'
 import { dayTable, resultOf, rotation, score } from '@/features/admin/pitch/rotation'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 import type { TeamWithMembers } from '../api'
+import { ChampionStars } from '@/features/teams/components/ChampionStars'
 
 function ordinal(n: number) {
   const s = ['th', 'st', 'nd', 'rd']
@@ -84,6 +85,7 @@ export function MyMatchdayCard({ matchdayId, teams, playerId }: { matchdayId: st
         <h2 className="mb-2 flex items-center gap-2 font-display text-[34px] leading-none text-astro-text">
           <span className="size-3.5 rounded-full" style={{ background: mine.colour }} aria-hidden />
           {mine.greek_name}
+          <ChampionStars team={mine.greek_name} />
         </h2>
         {status}
 

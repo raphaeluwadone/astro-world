@@ -4,6 +4,7 @@ export type AdminSectionId =
   | 'cup'
   | 'pitch'
   | 'draw'
+  | 'cycle'
   | 'kit'
   | 'dues'
   | 'causes'
@@ -65,6 +66,12 @@ export const ADMIN_NAV: AdminNavGroup[] = [
         label: 'Draw rules',
         to: '/admin/draw',
         icon: 'M3 5.8h4.6l8.2 10.2h2.4v-2.6L22 17.1l-3.8 3.7v-2.6h-3.4L6.6 8H3Zm15.2-3.9L22 5.6l-3.8 3.7V6.7h-2.4l-2.3 2.9-1.4-1.8 2.7-3.3h3.4ZM3 15.8h3.6l2.2-2.7 1.4 1.8L7.7 18H3Z',
+      },
+      {
+        id: 'cycle',
+        label: 'Team year',
+        to: '/admin/cycle',
+        icon: 'm12 2 3 6.6 7.2.7-5.4 4.8 1.6 7.1L12 17.5l-6.4 3.7 1.6-7.1L1.8 9.3 9 8.6Z',
       },
       {
         id: 'kit',
