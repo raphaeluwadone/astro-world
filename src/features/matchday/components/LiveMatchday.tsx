@@ -37,6 +37,7 @@ function Scoreboard({ game, teams, myTeamId }: { game: PitchGame; teams: TeamWit
                 {goals.map((g) => (
                   <li key={g.id} className="max-w-full text-[12.5px] leading-tight text-astro-text">
                     <span className="font-extrabold">{nameOf(g.scorer_id) ?? 'Goal'}</span>
+                    {g.own_goal && <span className="ml-1 text-[11px] font-extrabold text-astro-text-dim">OG</span>}
                     {g.minute != null && (
                       <span className={cn('ml-1 text-[11px] font-extrabold', g.minute > game.length_min ? 'text-astro-red' : 'text-astro-text-dim')}>
                         {fmtMinute(g.minute, game.length_min)}

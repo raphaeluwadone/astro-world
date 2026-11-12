@@ -23,6 +23,7 @@ export type BadgeIconName =
   | 'repeat'
   | 'spoon'
   | 'medal'
+  | 'goal'
 
 export interface BadgeDef {
   name: string
@@ -80,8 +81,7 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   'fair-play': { name: 'Fair Play', tier: 'year', icon: 'heart', for: 'Most appearances of the year without a card' },
 
   silverware: { name: 'Silverware', tier: 'cup', icon: 'trophy', for: 'Won the Salami Cup' },
-  // TODO(DATA): cup matches don't record scorers yet.
-  'cup-hero': { name: 'Cup Hero', tier: 'cup', icon: 'boot', for: 'Top scorer across the Salami Cup', manual: true },
+  'cup-hero': { name: 'Cup Hero', tier: 'cup', icon: 'goal', for: 'Top scorer across the Salami Cup' },
   'cup-mvp': { name: 'Cup MVP', tier: 'cup', icon: 'medal', for: 'Chosen by the admins as the best player of the Salami Cup', manual: true },
   'iron-curtain': { name: 'Iron Curtain', tier: 'cup', icon: 'wall', for: 'In the squad that conceded the fewest at the Salami Cup' },
   firepower: { name: 'Firepower', tier: 'cup', icon: 'flame', for: 'In the squad that scored the most at the Salami Cup' },

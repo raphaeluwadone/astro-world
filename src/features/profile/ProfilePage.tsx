@@ -55,6 +55,7 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
     goals: careerStats.goals + player.legacy_goals,
     assists: careerStats.assists + player.legacy_assists,
     motm: careerStats.motm,
+    ownGoals: careerStats.ownGoals,
     yellows: careerStats.yellows + player.legacy_yellow_cards,
     reds: careerStats.reds + player.legacy_red_cards,
   }
@@ -82,6 +83,15 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
               <path d="M2.8 17.4 14.9 5.3l3.8 3.8L6.6 21.2H2.8ZM16.2 4 17.9 2.3l3.8 3.8L20 7.8Z" />
             </svg>
             Edit profile
+          </Link>
+        )}
+        {!isOwnProfile && currentPlayer && (
+          <Link
+            to="/compare"
+            search={{ ids: `${currentPlayer.id},${player.id}` }}
+            className="rounded-[11px] border border-[rgba(166,63,255,0.4)] bg-astro-surface-2 px-[18px] py-3 text-[13px] font-extrabold text-astro-accent-soft hover:bg-astro-accent/10"
+          >
+            Compare with me
           </Link>
         )}
         {!isOwnProfile && currentPlayer?.is_admin && (

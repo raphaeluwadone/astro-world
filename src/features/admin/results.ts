@@ -4,6 +4,7 @@ export interface GoalInput {
   teamId: string
   scorerId: string
   assistId: string | null
+  ownGoal: boolean
 }
 
 export interface CardInput {
@@ -61,6 +62,7 @@ export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureI
           team_id: g.teamId,
           scorer_id: g.scorerId,
           assist_id: g.assistId,
+          own_goal: g.ownGoal,
         })),
       )
       if (goalsError) throw goalsError

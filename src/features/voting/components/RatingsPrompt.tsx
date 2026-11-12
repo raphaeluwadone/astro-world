@@ -1,14 +1,28 @@
 import { Link } from '@tanstack/react-router'
+import { useCurrentPlayer } from '@/features/auth/useSession'
+import { usePendingRatings } from '../hooks'
 
-/** Mirrors voting_closes_at() in the database: the London date of the match plus six days, at 23:59. */
-function closesLabel(playedAt: string) {
-  const londonDate = new Date(playedAt).toLocaleDateString('en-CA', { timeZone: 'Europe/London' })
-  const [y, m, d] = londonDate.split('-').map(Number)
-  const closes = new Date(Date.UTC(y, m - 1, d + 6))
-  return `${closes.toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' })} 23:59`
+function closesLabel(closesAt: string) {
+  return new Date(closesAt).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' }).replace(',', '')
 }
 
-export function RatingsPrompt({ pending, playedAt }: { pending: number; playedAt: string }) {
+function dayName(playedAt: string) {
+  return new Date(playedAt).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'Europe/London' })
+}
+
+/** The "go and rate" banner, shown while the signed-in player still has players to rate. */
+export function RatingsBanner({ className }: { className?: string }) {
+  const { player } = useCurrentPlayer()
+  const pending = usePendingRatings(player?.id)
+  if (!pending) return null
+  return (
+    <div className={className}>
+      <RatingsPrompt pending={pending.pending} playedAt={pending.matchday.playedAt} closesAt={pending.matchday.closesAt} />
+    </div>
+  )
+}
+
+export function RatingsPrompt({ pending, playedAt, closesAt }: { pending: number; playedAt: string; closesAt: string }) {
   return (
     <div
       className="relative overflow-hidden rounded-[18px] border-[1.5px] border-[rgba(166,63,255,0.4)] px-[26px] py-6"
@@ -27,10 +41,10 @@ export function RatingsPrompt({ pending, playedAt }: { pending: number; playedAt
       <div className="relative flex flex-wrap items-center justify-between gap-5">
         <div className="min-w-0">
           <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-accent-soft">
-            Ratings open &middot; closes {closesLabel(playedAt)}
+            Ratings open &middot; closes {closesLabel(closesAt)}
           </div>
           <div className="font-display mb-1.5 text-[34px] leading-none text-astro-text">
-            Rate Sunday&rsquo;s Lot
+            Rate {dayName(playedAt)}&rsquo;s Lot
           </div>
           <p className="max-w-[52ch] text-sm text-astro-text-muted [text-wrap:pretty]">
             {pending} player{pending === 1 ? '' : 's'} still waiting on your verdict. Be honest,

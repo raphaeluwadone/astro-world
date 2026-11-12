@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import { ScorerList } from '@/features/match/components/ScorerList'
 import { useGoalsByMatch } from '@/features/match/hooks'
@@ -7,7 +8,7 @@ import type { MatchResultRow } from '../api'
 export function LastResults({ results }: { results: MatchResultRow[] }) {
   const goals = useGoalsByMatch(results.map((m) => m.id))
   if (results.length === 0) {
-    return <NothingHere compact body="No results recorded yet." />
+    return <NothingHere compact icon={<Scene kind="whistle" />} body="No results recorded yet." />
   }
 
   return (

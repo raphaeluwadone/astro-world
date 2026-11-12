@@ -1,7 +1,7 @@
 import { cn } from 'cn'
 import type { GoalRow } from '../api'
 
-/** One side's goals as "Deza (Segsy), Bal", the assister in brackets. */
+/** One side's goals as "Deza (Segsy), Bal (OG)", the assister in brackets. */
 export function ScorerList({
   goals,
   teamId,
@@ -18,6 +18,7 @@ export function ScorerList({
   const label = (g: GoalRow) => (
     <>
       <span className="font-bold text-astro-text-muted">{g.scorer.nickname}</span>
+      {g.own_goal && <span className="text-astro-text-dim"> (OG)</span>}
       {g.assist && <span className="text-astro-text-dim"> ({g.assist.nickname})</span>}
     </>
   )

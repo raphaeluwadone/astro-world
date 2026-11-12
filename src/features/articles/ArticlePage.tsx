@@ -1,8 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router'
+import { Scene } from '@/components/states/Scene'
 import { BackLink as BackToArticles } from '@/components/navigation/BackLink'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { RichText } from '@/components/editor/RichText'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -25,7 +25,7 @@ export function ArticlePage({ articleId }: { articleId: string }) {
       <div className="mx-auto max-w-[680px]">
           <BackLink />
         <EmptyState
-          icon={<EmptyPitchIcon />}
+          icon={<Scene kind="notebook" />}
           title="That article isn't here."
           body="It may have been taken down, or the link is wrong."
           action={{ label: 'See all articles', onClick: () => navigate({ to: '/articles' }) }}

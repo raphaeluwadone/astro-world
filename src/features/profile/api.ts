@@ -83,14 +83,19 @@ export async function fetchAppearanceCount(playerId: string): Promise<number> {
 
 export async function fetchGoalsAndAssists(
   playerId: string,
-): Promise<{ goals: number; assists: number }> {
-  const [goals, assists] = await Promise.all([
-    supabase.from('goals').select('*', { count: 'exact', head: true }).eq('scorer_id', playerId),
+): Promise<{ goals: number; assists: number; ownGoals: number }> {
+  const [goals, cupGoals, assists] = await Promise.all([
+    supabase.from('goals').select('own_goal').eq('scorer_id', playerId),
+    supabase.from('cup_goals').select('own_goal').eq('scorer_id', playerId),
     supabase.from('goals').select('*', { count: 'exact', head: true }).eq('assist_id', playerId),
   ])
   if (goals.error) throw goals.error
+  if (cupGoals.error) throw cupGoals.error
   if (assists.error) throw assists.error
-  return { goals: goals.count ?? 0, assists: assists.count ?? 0 }
+  const all = [...(goals.data ?? []), ...(cupGoals.data ?? [])]
+  const ownGoals = all.filter((g) => g.own_goal).length
+  // An own goal comes off the scorer's tally.
+  return { goals: all.length - 2 * ownGoals, assists: assists.count ?? 0, ownGoals }
 }
 
 /** How many matchdays this player has actually won MOTM (most nominations). */

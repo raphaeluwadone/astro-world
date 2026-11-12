@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { Scene } from '@/components/states/Scene'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import {
   useAllPlayers,
@@ -157,7 +157,7 @@ export function KittyPage() {
         </div>
 
         {!duesQuarter ? (
-          <EmptyState icon={<EmptyPitchIcon />} title="No dues quarter open yet." body="Check back once an admin opens one." />
+          <EmptyState icon={<Scene kind="kitty" />} title="No dues quarter open yet." body="Check back once an admin opens one." />
         ) : (
           <div
             className="overflow-hidden rounded-[18px] border-2 p-7"

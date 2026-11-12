@@ -3,14 +3,42 @@ import type { PlayerCardRow } from '../api'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
-export function PlayerCard({ player }: { player: PlayerCardRow }) {
+export function PlayerCard({
+  player,
+  pickColour,
+  onPick,
+}: {
+  player: PlayerCardRow
+  /** Set while it's on the compare shortlist. */
+  pickColour?: string
+  /** In compare mode a tap picks the card instead of opening the profile. */
+  onPick?: () => void
+}) {
   return (
     <Link
       to="/players/$playerId"
       params={{ playerId: player.id }}
       className="astro-card--special relative block p-4"
+      aria-pressed={onPick ? Boolean(pickColour) : undefined}
+      style={pickColour ? { outline: `2.5px solid ${pickColour}`, outlineOffset: 2 } : undefined}
+      onClick={
+        onPick
+          ? (e) => {
+              e.preventDefault()
+              onPick()
+            }
+          : undefined
+      }
     >
       <div className="astro-foil" />
+      {onPick && (
+        <div
+          className="absolute right-3 top-3 z-10 flex size-6 items-center justify-center rounded-full border-2 text-[11px] font-extrabold"
+          style={pickColour ? { background: pickColour, borderColor: pickColour, color: '#000' } : { borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(10,15,31,0.6)' }}
+        >
+          {pickColour ? '✓' : ''}
+        </div>
+      )}
       {player.favourite_number != null && (
         <div className="astro-ghost -right-1.5 top-[26px] text-[118px]">{player.favourite_number}</div>
       )}

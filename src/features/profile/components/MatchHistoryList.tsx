@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import { ScorerList } from '@/features/match/components/ScorerList'
 import { useGoalsByMatch } from '@/features/match/hooks'
@@ -15,7 +16,7 @@ export function MatchHistoryList({ history }: { history: MatchHistoryRow[] }) {
     <div className="astro-card p-6">
       <h2 className="mb-4 font-display text-[30px] leading-none text-astro-text">Match History</h2>
       {history.length === 0 ? (
-        <NothingHere compact body="No matches recorded yet." />
+        <NothingHere compact icon={<Scene kind="whistle" />} body="No matches recorded yet." />
       ) : (
         <div className="grid gap-[9px]" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))' }}>
           {history.slice(0, 6).map((h) => {

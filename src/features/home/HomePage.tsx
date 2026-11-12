@@ -34,10 +34,10 @@ import { ArticlesPreview } from './components/ArticlesPreview'
 import { GroupChatPreview } from './components/GroupChatPreview'
 import { NextMatchdayCard } from './components/NextMatchdayCard'
 import { QuickLinks } from './components/QuickLinks'
-import { RatingsPrompt } from './components/RatingsPrompt'
+import { RatingsBanner } from '@/features/voting/components/RatingsPrompt'
 import { TopOfThePile } from './components/TopOfThePile'
 import { HeartCount } from './components/HeartCount'
-import { useAwardRace, useMyCommunityLikes, usePendingRatings } from './hooks'
+import { useAwardRace, useMyCommunityLikes } from './hooks'
 
 /** "Averaging 7.6 over 5", plus a note when the latest game beats the rest of the run. */
 function formSummary(ratings: MatchRatingRow[]) {
@@ -78,7 +78,6 @@ export function HomePage() {
   const { data: feed = [] } = useFeed(playerId)
   const { data: articles = [] } = useArticles()
   const { data: likes, isSuccess: likesLoaded } = useMyCommunityLikes(playerId ?? undefined)
-  const { data: pendingRatings } = usePendingRatings(playerId ?? undefined, lastComplete?.id)
   const { data: cup } = useCurrentCup()
   const { data: race = [] } = useAwardRace(!!playerId)
   const { data: honoursPosts = [] } = useHonoursPosts(playerId)
@@ -144,11 +143,7 @@ export function HomePage() {
         </div>
       )}
 
-      {!!pendingRatings && pendingRatings.pending > 0 && (
-        <div className="max-md:order-4">
-          <RatingsPrompt pending={pendingRatings.pending} playedAt={lastComplete!.played_at} />
-        </div>
-      )}
+      <RatingsBanner className="max-md:order-4" />
 
       <div className="grid grid-cols-1 items-start gap-5 @3xl:grid-cols-2 @[78rem]:grid-cols-4 max-md:contents">
         <CupTableCard className="astro-card p-4 max-md:order-3" />

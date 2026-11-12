@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import type { GoalRow, MatchDetail } from '../api'
 
 function Side({ team, goals }: { team: MatchDetail['team_a']; goals: GoalRow[] }) {
@@ -22,7 +23,10 @@ function Side({ team, goals }: { team: MatchDetail['team_a']; goals: GoalRow[] }
                 <path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor" />
               </svg>
               <div>
-                <div className="text-[13px] font-extrabold text-astro-text">{g.scorer.nickname}</div>
+                <div className="text-[13px] font-extrabold text-astro-text">
+                  {g.scorer.nickname}
+                  {g.own_goal && <span className="ml-1.5 text-[11px] text-astro-text-dim">own goal</span>}
+                </div>
                 {g.assist && <div className="text-[11.5px] text-astro-text-dim">assist {g.assist.nickname}</div>}
               </div>
             </li>
@@ -35,7 +39,7 @@ function Side({ team, goals }: { team: MatchDetail['team_a']; goals: GoalRow[] }
 
 export function GoalTimeline({ match, goals }: { match: MatchDetail; goals: GoalRow[] }) {
   if (goals.length === 0) {
-    return <NothingHere compact body="No goals recorded." />
+    return <NothingHere compact icon={<Scene kind="goals" />} body="No goals recorded." />
   }
   return (
     <div className="grid gap-3 sm:grid-cols-2">

@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import { useState, type ReactNode } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -6,11 +7,11 @@ import { Button } from '@/components/ui/button'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useCancelMatchday } from '@/features/admin/hooks'
 import { monthOf } from './api'
 import { AvailabilityCard } from './components/AvailabilityCard'
+import { RatingsBanner } from '@/features/voting/components/RatingsPrompt'
 import { DrawnTeams } from './components/DrawnTeams'
 import { MyMatchdayCard } from './components/MyMatchdayCard'
 import { LastResults } from './components/LastResults'
@@ -84,8 +85,9 @@ export function MatchdayPage() {
         <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
           Matchday
         </h1>
+        <RatingsBanner className="mb-5" />
         <EmptyState
-          icon={<EmptyPitchIcon />}
+          icon={<Scene kind="calendar" />}
           title="Nobody's said yes yet."
           body="There's no upcoming matchday on the books. Check back once the admin opens one."
         />
@@ -143,6 +145,8 @@ export function MatchdayPage() {
           setConfirmingCancel(false)
         }}
       />
+
+      <RatingsBanner />
 
       {matchday.status === 'drawn' && <MyMatchdayCard matchdayId={matchday.id} teams={teams} playerId={player?.id} />}
 

@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { useMemo, useState, type ReactNode } from 'react'
@@ -32,7 +33,7 @@ function Item({ item, playerId, isAdmin, names }: { item: FeedItem; playerId: st
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <NothingHere compact body={children} />
+  return <NothingHere compact icon={<Scene kind="trophy" />} body={children} />
 }
 
 interface ViewProps {

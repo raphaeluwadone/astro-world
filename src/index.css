@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "./styles/astro-keyframes.css";
+@import "./styles/astro-scenes.css";
 @import "./styles/astro-primitives.css";
 
 @custom-variant dark (&:is(.dark *));

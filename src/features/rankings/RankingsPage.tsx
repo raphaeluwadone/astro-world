@@ -1,10 +1,11 @@
 import { cn } from '@/lib/utils'
-import { useMemo, useState, type ReactNode } from 'react'
+import { Scene } from '@/components/states/Scene'
+import { useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import type { Database } from '@/types/database'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Pager } from '@/components/ui/pager'
 import type { RankingRow } from './api'
 import { TeamStandingsTable } from './components/TeamStandingsTable'
 import { useRankings } from './hooks'
@@ -13,6 +14,8 @@ import { RollOfChampions } from '@/features/teams/components/RollOfChampions'
 import { useCurrentCycle, useCycleStandings } from '@/features/teams/hooks'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
+import { nextPicks, PICK_COLOURS } from '@/features/compare/metrics'
+import { CompareBar, CompareToggle } from '@/features/compare/components/CompareMode'
 
 type PositionType = Database['public']['Enums']['position_type']
 type SortKey = 'avg_rating' | 'appearances' | 'goals' | 'assists' | 'motm_count'
@@ -79,6 +82,13 @@ function PlayerRankings() {
   // Phones show one stat column: the one being sorted by, or appearances when sorting by rating.
   const mobileStat = sort === 'avg_rating' ? 'appearances' : sort
   const [page, setPage] = useState(0)
+  const [comparing, setComparing] = useState(false)
+  const [picks, setPicks] = useState<string[]>([])
+  const togglePick = (id: string) => setPicks((p) => nextPicks(p, id))
+  function toggleComparing() {
+    setComparing((c) => !c)
+    setPicks([])
+  }
 
   const filtered = useMemo(() => {
     const base = position === 'ALL' ? rankings : rankings.filter((r) => r.positions.includes(position))
@@ -123,6 +133,7 @@ function PlayerRankings() {
             </FilterPill>
           ))}
         </div>
+        <CompareToggle on={comparing} onClick={toggleComparing} />
       </div>
 
       <div className="astro-card overflow-hidden">
@@ -141,18 +152,46 @@ function PlayerRankings() {
           <div className="text-right">Rating</div>
         </div>
         {pageItems.length === 0 ? (
-          <EmptyState icon={<OutOfPlayIcon />} title="Nobody fits that." body="Loosen a filter and we'll find someone." />
+          <EmptyState icon={<Scene kind="search" />} title="Nobody fits that." body="Loosen a filter and we'll find someone." />
         ) : (
           pageItems.map((r: RankingRow, i) => {
             const badge = ratingBadgeColor(r.avg_rating)
+            const pick = picks.indexOf(r.id)
+            const colour = pick >= 0 ? PICK_COLOURS[pick] : undefined
             return (
               <div
                 key={r.id}
-                className="grid grid-cols-[28px_minmax(0,1fr)_44px_auto] md:grid-cols-[52px_minmax(0,2.2fr)_96px_repeat(4,minmax(0,1fr))_minmax(0,1.6fr)] items-center gap-3 border-t border-border px-4 py-[13px] md:px-5"
+                {...(comparing && {
+                  role: 'button',
+                  tabIndex: 0,
+                  'aria-pressed': pick >= 0,
+                  onClick: () => togglePick(r.id),
+                  onKeyDown: (e: KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      togglePick(r.id)
+                    }
+                  },
+                })}
+                style={colour ? { boxShadow: `inset 0 0 0 2px ${colour}`, background: `${colour}14` } : undefined}
+                className={cn('grid grid-cols-[28px_minmax(0,1fr)_44px_auto] md:grid-cols-[52px_minmax(0,2.2fr)_96px_repeat(4,minmax(0,1fr))_minmax(0,1.6fr)] items-center gap-3 border-t border-border px-4 py-[13px] md:px-5', comparing && 'cursor-pointer hover:bg-white/[0.03]')}
               >
-                <div className="font-display text-xl leading-none text-astro-text md:text-2xl">
-                  {clampedPage * PER_PAGE + i + 1}
-                </div>
+                {comparing ? (
+                  <div
+                    className="grid size-[22px] place-items-center rounded-full border-2"
+                    style={colour ? { background: colour, borderColor: colour } : { borderColor: 'rgba(255,255,255,0.22)' }}
+                  >
+                    {colour && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0f1f" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12.5 10 17.5 19 7" />
+                      </svg>
+                    )}
+                  </div>
+                ) : (
+                  <div className="font-display text-xl leading-none text-astro-text md:text-2xl">
+                    {clampedPage * PER_PAGE + i + 1}
+                  </div>
+                )}
                 <div className="flex min-w-0 items-center gap-2.5">
                   <div className="relative shrink-0">
                     <PlayerPhoto playerId={r.id} alt="" className="size-[34px] rounded-[9px]" />
@@ -190,33 +229,23 @@ function PlayerRankings() {
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3.5">
-        <div className="text-[12.5px] text-astro-text-dim">
-          {filtered.length} &middot; Page {clampedPage + 1} of {pageCount}
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            disabled={clampedPage === 0}
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="flex size-9 items-center justify-center rounded-lg border border-border bg-astro-surface-2 text-astro-text-muted disabled:opacity-40"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15.6 3.6 7.2 12l8.4 8.4Z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            disabled={clampedPage >= pageCount - 1}
-            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-            className="flex size-9 items-center justify-center rounded-lg border border-border bg-astro-surface-2 text-astro-text-muted disabled:opacity-40"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8.4 3.6 16.8 12l-8.4 8.4Z" />
-            </svg>
-          </button>
-        </div>
-      </div>
+      <Pager
+        className="mt-4"
+        page={clampedPage + 1}
+        pageSize={PER_PAGE}
+        total={filtered.length}
+        onPageChange={(p) => setPage(p - 1)}
+        noun="players"
+      />
+
+      {comparing && (
+        <CompareBar
+          picks={picks}
+          nameOf={(id) => rankings.find((r) => r.id === id)?.nickname}
+          onRemove={togglePick}
+          hint="Tap the rows, two to four of them."
+        />
+      )}
     </>
   )
 }

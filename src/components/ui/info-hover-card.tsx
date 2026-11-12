@@ -29,7 +29,7 @@ export function InfoHoverCard({
   const cards = useHoverCards()
 
   return (
-    <HoverCard.Root open={cards && open} onOpenChange={setOpen} openDelay={400} closeDelay={80}>
+    <HoverCard.Root open={cards && open} onOpenChange={(o) => setOpen(cards && o)} openDelay={400} closeDelay={80}>
       <HoverCard.Trigger asChild>
         <span
           tabIndex={0}

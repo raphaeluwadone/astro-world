@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router'
+import { Scene } from '@/components/states/Scene'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useDrawnTeams, useNextMatchday } from '@/features/matchday/hooks'
 import type { PlayerSummary, TeamWithMembers } from '@/features/matchday/api'
@@ -17,6 +17,8 @@ interface GoalDraft {
   teamId: string
   scorerId: string
   assistId: string
+  /** Scored by someone on the other side; teamId is still the side that benefits. */
+  ownGoal: boolean
 }
 
 interface CardDraft {
@@ -47,20 +49,21 @@ function fromPitch(pitch: PitchState | undefined): FixtureDraft[] | null {
     teamBId: g.team_b_id,
     scoreA: String(g.goals.filter((x) => x.team_id === g.team_a_id).length),
     scoreB: String(g.goals.filter((x) => x.team_id === g.team_b_id).length),
-    goals: g.goals.map((x) => ({ teamId: x.team_id, scorerId: x.scorer_id ?? '', assistId: x.assist_id ?? '' })),
+    goals: g.goals.map((x) => ({ teamId: x.team_id, scorerId: x.scorer_id ?? '', assistId: x.assist_id ?? '', ownGoal: x.own_goal })),
     // The database re-adds the red for a second yellow when the cards are filed.
     cards: g.cards.filter((c) => !c.second_yellow).map((c) => ({ teamId: c.team_id, playerId: c.player_id, kind: c.kind, minute: c.minute })),
   }))
 }
 
 function emptyGoal(teamId: string): GoalDraft {
-  return { teamId, scorerId: '', assistId: '' }
+  return { teamId, scorerId: '', assistId: '', ownGoal: false }
 }
 
 const CARD_COLOUR = { yellow: '#facc15', red: '#ef4444' } as const
 
 function TeamGoals({
   team,
+  opponents,
   goals,
   onAdd,
   onChange,
@@ -71,6 +74,7 @@ function TeamGoals({
   onRemoveCard,
 }: {
   team: TeamWithMembers | undefined
+  opponents: PlayerSummary[]
   goals: { g: GoalDraft; gi: number }[]
   onAdd: () => void
   onChange: (goalIndex: number, patch: Partial<GoalDraft>) => void
@@ -94,27 +98,45 @@ function TeamGoals({
       <div className="flex flex-col gap-2">
         {goals.map(({ g, gi }) => (
           <div key={gi} className="flex items-center gap-1.5">
+            <button
+              type="button"
+              aria-pressed={g.ownGoal}
+              aria-label="Own goal"
+              title="Own goal"
+              onClick={() => onChange(gi, { ownGoal: !g.ownGoal, scorerId: '', assistId: '' })}
+              className={
+                g.ownGoal
+                  ? 'h-8 shrink-0 rounded-[7px] border border-astro-red/60 bg-astro-red/15 px-1.5 text-[10.5px] font-extrabold text-astro-red'
+                  : 'h-8 shrink-0 rounded-[7px] border border-white/[0.1] px-1.5 text-[10.5px] font-extrabold text-astro-text-dim hover:text-astro-text'
+              }
+            >
+              OG
+            </button>
             <AstroSelect
               size="sm"
-              placeholder="Scorer"
-              aria-label={`${team.greek_name} scorer`}
+              placeholder={g.ownGoal ? 'Who put it in?' : 'Scorer'}
+              aria-label={g.ownGoal ? `Own goal for ${team.greek_name}, by` : `${team.greek_name} scorer`}
               value={g.scorerId}
               onValueChange={(v) => onChange(gi, { scorerId: v, assistId: g.assistId === v ? '' : g.assistId })}
-              options={members.map((p) => ({ value: p.id, label: p.nickname }))}
+              options={(g.ownGoal ? opponents : members).map((p) => ({ value: p.id, label: p.nickname }))}
               className="min-w-0 flex-1"
             />
-            <AstroSelect
-              size="sm"
-              placeholder="No assist"
-              aria-label={`${team.greek_name} assist`}
-              value={g.assistId}
-              onValueChange={(v) => onChange(gi, { assistId: v })}
-              options={[
-                { value: '', label: 'No assist' },
-                ...members.filter((p) => p.id !== g.scorerId).map((p) => ({ value: p.id, label: p.nickname })),
-              ]}
-              className="min-w-0 flex-1"
-            />
+            {g.ownGoal ? (
+              <span className="min-w-0 flex-1 truncate px-1 text-[11.5px] font-bold text-astro-text-dim">Own goal, no assist</span>
+            ) : (
+              <AstroSelect
+                size="sm"
+                placeholder="No assist"
+                aria-label={`${team.greek_name} assist`}
+                value={g.assistId}
+                onValueChange={(v) => onChange(gi, { assistId: v })}
+                options={[
+                  { value: '', label: 'No assist' },
+                  ...members.filter((p) => p.id !== g.scorerId).map((p) => ({ value: p.id, label: p.nickname })),
+                ]}
+                className="min-w-0 flex-1"
+              />
+            )}
             <button
               type="button"
               aria-label="Remove goal"
@@ -215,7 +237,7 @@ export function ResultsPage() {
           File results
         </h1>
         <EmptyState
-          icon={<EmptyPitchIcon />}
+          icon={<Scene kind="whistle" />}
           title="Nothing to file."
           body="There's no drawn matchday waiting on results right now."
         />
@@ -310,7 +332,8 @@ export function ResultsPage() {
         (g): GoalInput => ({
           teamId: g.teamId,
           scorerId: g.scorerId,
-          assistId: g.assistId || null,
+          assistId: g.ownGoal ? null : g.assistId || null,
+          ownGoal: g.ownGoal,
         }),
       ),
       cards: f.cards.filter((c) => c.teamId === f.teamAId || c.teamId === f.teamBId),
@@ -390,6 +413,7 @@ export function ResultsPage() {
                   <TeamGoals
                     key={side}
                     team={teams.find((t) => t.id === teamId)}
+                    opponents={teams.find((t) => t.id === (side === 0 ? fixture.teamBId : fixture.teamAId))?.members ?? []}
                     goals={fixture.goals.map((g, gi) => ({ g, gi })).filter(({ g }) => g.teamId === teamId)}
                     onAdd={() => addGoal(fi, teamId)}
                     onChange={(gi, patch) => updateGoal(fi, gi, patch)}

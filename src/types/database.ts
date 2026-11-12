@@ -382,6 +382,55 @@ export type Database = {
           },
         ]
       }
+      cup_goals: {
+        Row: {
+          own_goal: boolean
+          created_at: string
+          cup_match_id: string
+          id: string
+          scorer_id: string
+          squad_id: string
+        }
+        Insert: {
+          own_goal?: boolean
+          created_at?: string
+          cup_match_id: string
+          id?: string
+          scorer_id: string
+          squad_id: string
+        }
+        Update: {
+          own_goal?: boolean
+          created_at?: string
+          cup_match_id?: string
+          id?: string
+          scorer_id?: string
+          squad_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cup_goals_cup_match_id_fkey"
+            columns: ["cup_match_id"]
+            isOneToOne: false
+            referencedRelation: "cup_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_goals_scorer_id_fkey"
+            columns: ["scorer_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_goals_squad_id_fkey"
+            columns: ["squad_id"]
+            isOneToOne: false
+            referencedRelation: "cup_squads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cup_matches: {
         Row: {
           created_at: string
@@ -715,6 +764,7 @@ export type Database = {
       }
       goals: {
         Row: {
+          own_goal: boolean
           assist_id: string | null
           created_at: string
           id: string
@@ -724,6 +774,7 @@ export type Database = {
           team_id: string
         }
         Insert: {
+          own_goal?: boolean
           assist_id?: string | null
           created_at?: string
           id?: string
@@ -733,6 +784,7 @@ export type Database = {
           team_id: string
         }
         Update: {
+          own_goal?: boolean
           assist_id?: string | null
           created_at?: string
           id?: string
@@ -1368,6 +1420,7 @@ export type Database = {
       }
       pitch_goals: {
         Row: {
+          own_goal: boolean
           assist_id: string | null
           created_at: string
           created_by: string | null
@@ -1378,6 +1431,7 @@ export type Database = {
           team_id: string
         }
         Insert: {
+          own_goal?: boolean
           assist_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -1388,6 +1442,7 @@ export type Database = {
           team_id: string
         }
         Update: {
+          own_goal?: boolean
           assist_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -2094,10 +2149,17 @@ export type Database = {
         }
         Relationships: []
       }
+      rating_settings: {
+        Row: { id: boolean; open_to_everyone: boolean; updated_at: string }
+        Insert: { id?: boolean; open_to_everyone?: boolean; updated_at?: string }
+        Update: { id?: boolean; open_to_everyone?: boolean; updated_at?: string }
+        Relationships: []
+      }
       ratings: {
         Row: {
           created_at: string
           match_id: string
+          matchday_id: string
           rater_id: string
           score: number
           subject_id: string
@@ -2106,6 +2168,7 @@ export type Database = {
         Insert: {
           created_at?: string
           match_id: string
+          matchday_id?: string
           rater_id: string
           score: number
           subject_id: string
@@ -2114,6 +2177,7 @@ export type Database = {
         Update: {
           created_at?: string
           match_id?: string
+          matchday_id?: string
           rater_id?: string
           score?: number
           subject_id?: string
@@ -2575,6 +2639,7 @@ export type Database = {
           avg_rating: number
           goals: number
           motm_count: number
+          own_goals: number
           player_id: string
           red_cards: number
           yellow_cards: number
@@ -2594,6 +2659,51 @@ export type Database = {
       }
       player_user: { Args: { p_player: string }; Returns: string }
       public_roster_size: { Args: never; Returns: number }
+      compare_stats: {
+        Args: { p_since?: string }
+        Returns: {
+          appearances: number
+          assists: number
+          avg_rating: number | null
+          clean_sheets: number
+          cup_clean_sheets: number
+          cup_games: number
+          cup_goals: number
+          cup_heroes: number
+          cup_wins: number
+          cups_played: number
+          cups_won: number
+          goals: number
+          motm: number
+          own_goals: number
+          cup_own_goals: number
+          player_id: string
+        }[]
+      }
+      matchday_rating_roster: {
+        Args: { p_matchday: string }
+        Returns: { colour: string; greek_name: string; player_id: string; team_id: string }[]
+      }
+      matchday_ratings_open: { Args: { p_matchday: string }; Returns: boolean }
+      part_of_matchday: { Args: { p_matchday: string; p_player: string }; Returns: boolean }
+      rate_player: {
+        Args: { p_matchday: string; p_score: number; p_subject: string }
+        Returns: undefined
+      }
+      rating_match_for: { Args: { p_matchday: string; p_subject: string }; Returns: string }
+      rating_matchday: {
+        Args: never
+        Returns: {
+          can_rate: boolean
+          closes_at: string
+          is_open: boolean
+          matchday_id: string
+          open_to_everyone: boolean
+          part_of: boolean
+          played_at: string
+          venue: string | null
+        }[]
+      }
       ratings_open_for: { Args: { p_match_id: string }; Returns: boolean }
       requesting_player_id: { Args: never; Returns: string }
       season_team_matches: {
@@ -2607,6 +2717,10 @@ export type Database = {
       }
       set_honours_pin: {
         Args: { p_pinned: boolean; p_post_id: string }
+        Returns: undefined
+      }
+      record_cup_result: {
+        Args: { p_goals: Json; p_match: string; p_score_a: number; p_score_b: number }
         Returns: undefined
       }
       swap_team_player: {

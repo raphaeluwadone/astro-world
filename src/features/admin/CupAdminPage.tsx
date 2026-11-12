@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { Button } from '@/components/ui/button'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
@@ -21,7 +22,7 @@ import {
   useRunCupDraw,
   useUpdateCupStatus,
 } from '@/features/salami-cup/hooks'
-import type { CupStatus } from '@/features/salami-cup/api'
+import type { CupGoal, CupMatch, CupSquad, CupStatus } from '@/features/salami-cup/api'
 
 function inDaysAt(days: number, time: string): string {
   const d = new Date()
@@ -195,6 +196,138 @@ function SquadsPanel({ cupId }: { cupId: string }) {
   )
 }
 
+const SCORE_INPUT = 'font-display w-12 shrink-0 rounded-lg border border-white/10 bg-astro-surface px-1 py-2 text-center text-lg text-astro-text'
+
+interface ScorerDraft {
+  id: string
+  ownGoal: boolean
+}
+
+function ScorerList({
+  squad,
+  opponent,
+  max,
+  scorers,
+  onChange,
+}: {
+  squad: CupSquad | undefined
+  opponent: CupSquad | undefined
+  max: number
+  scorers: ScorerDraft[]
+  onChange: (next: ScorerDraft[]) => void
+}) {
+  const options = (s: CupSquad | undefined) => (s?.members ?? []).map((p) => ({ value: p.id, label: p.nickname }))
+  const patch = (i: number, next: Partial<ScorerDraft>) => onChange(scorers.map((x, j) => (j === i ? { ...x, ...next } : x)))
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      {scorers.map((g, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <button
+            type="button"
+            aria-pressed={g.ownGoal}
+            aria-label="Own goal"
+            title="Own goal"
+            onClick={() => patch(i, { ownGoal: !g.ownGoal, id: '' })}
+            className={
+              g.ownGoal
+                ? 'h-8 shrink-0 rounded-[7px] border border-astro-red/60 bg-astro-red/15 px-1.5 text-[10.5px] font-extrabold text-astro-red'
+                : 'h-8 shrink-0 rounded-[7px] border border-white/[0.1] px-1.5 text-[10.5px] font-extrabold text-astro-text-dim hover:text-astro-text'
+            }
+          >
+            OG
+          </button>
+          <AstroSelect
+            size="sm"
+            placeholder={g.ownGoal ? `Which ${opponent?.name ?? 'opponent'} player?` : 'Scorer'}
+            value={g.id}
+            onValueChange={(v) => patch(i, { id: v })}
+            options={options(g.ownGoal ? opponent : squad)}
+            className="min-w-0 flex-1"
+          />
+          <button
+            type="button"
+            aria-label="Remove scorer"
+            onClick={() => onChange(scorers.filter((_, j) => j !== i))}
+            className="px-1 text-sm font-bold text-astro-text-dim hover:text-astro-red"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        disabled={scorers.length >= max}
+        onClick={() => onChange([...scorers, { id: '', ownGoal: false }])}
+        className="self-start text-[11px] font-bold text-astro-text-dim hover:text-astro-text disabled:opacity-40"
+      >
+        + Scorer
+      </button>
+    </div>
+  )
+}
+
+function FixtureRow({
+  match,
+  squads,
+  saving,
+  onSave,
+  onRemove,
+}: {
+  match: CupMatch
+  squads: CupSquad[]
+  saving: boolean
+  onSave: (scoreA: number, scoreB: number, goals: CupGoal[]) => void
+  onRemove: () => void
+}) {
+  const [a, setA] = useState(match.score_a?.toString() ?? '')
+  const [b, setB] = useState(match.score_b?.toString() ?? '')
+  const draft = (squadId: string) => match.goals.filter((g) => g.squad_id === squadId).map((g) => ({ id: g.scorer_id, ownGoal: g.own_goal }))
+  const [scorersA, setScorersA] = useState(() => draft(match.squad_a_id))
+  const [scorersB, setScorersB] = useState(() => draft(match.squad_b_id))
+
+  const squadA = squads.find((s) => s.id === match.squad_a_id)
+  const squadB = squads.find((s) => s.id === match.squad_b_id)
+  const scoreA = Number(a)
+  const scoreB = Number(b)
+  const tooMany = scorersA.length > scoreA || scorersB.length > scoreB
+  const unpicked = [...scorersA, ...scorersB].some((g) => !g.id)
+
+  return (
+    <div className="rounded-[11px] bg-astro-surface-2 px-3.5 py-3">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div className="min-w-0 flex-1 text-right text-[13px] font-bold text-astro-text">{match.squad_a_name}</div>
+        <input type="number" min={0} value={a} onChange={(e) => setA(e.target.value)} aria-label={`${match.squad_a_name} goals`} className={SCORE_INPUT} />
+        <span className="text-astro-text-dim">&ndash;</span>
+        <input type="number" min={0} value={b} onChange={(e) => setB(e.target.value)} aria-label={`${match.squad_b_name} goals`} className={SCORE_INPUT} />
+        <div className="min-w-0 flex-1 text-[13px] font-bold text-astro-text">{match.squad_b_name}</div>
+        <button
+          type="button"
+          disabled={a === '' || b === '' || tooMany || unpicked || saving}
+          onClick={() =>
+            onSave(scoreA, scoreB, [
+              ...scorersA.map((g) => ({ squad_id: match.squad_a_id, scorer_id: g.id, own_goal: g.ownGoal })),
+              ...scorersB.map((g) => ({ squad_id: match.squad_b_id, scorer_id: g.id, own_goal: g.ownGoal })),
+            ])
+          }
+          className="rounded-lg border border-border bg-astro-surface px-2.5 py-1.5 text-[11px] font-bold text-astro-text-muted hover:text-astro-text disabled:opacity-50"
+        >
+          Save
+        </button>
+        <button type="button" onClick={onRemove} className="text-xs font-bold text-astro-text-dim hover:text-astro-red">
+          Remove
+        </button>
+      </div>
+      {a !== '' && b !== '' && scoreA + scoreB > 0 && (
+        <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-white/[0.06] pt-2.5">
+          <ScorerList squad={squadA} opponent={squadB} max={scoreA} scorers={scorersA} onChange={setScorersA} />
+          <ScorerList squad={squadB} opponent={squadA} max={scoreB} scorers={scorersB} onChange={setScorersB} />
+        </div>
+      )}
+      {tooMany && <div className="mt-2 text-[11.5px] font-bold text-astro-red">More scorers than goals. Remove one or fix the score.</div>}
+    </div>
+  )
+}
+
 function FixturesPanel({ cupId }: { cupId: string }) {
   const { data: squads = [] } = useCupSquads(cupId)
   const { data: matches = [] } = useCupMatches(cupId)
@@ -204,7 +337,6 @@ function FixturesPanel({ cupId }: { cupId: string }) {
 
   const [squadAId, setSquadAId] = useState('')
   const [squadBId, setSquadBId] = useState('')
-  const [scores, setScores] = useState<Record<string, { a: string; b: string }>>({})
 
   return (
     <div className="astro-card p-6">
@@ -242,41 +374,21 @@ function FixturesPanel({ cupId }: { cupId: string }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        {matches.map((m) => {
-          const draft = scores[m.id] ?? { a: m.score_a?.toString() ?? '', b: m.score_b?.toString() ?? '' }
-          return (
-            <div key={m.id} className="flex flex-wrap items-center gap-2.5 rounded-[11px] bg-astro-surface-2 px-3.5 py-3">
-              <div className="min-w-0 flex-1 text-right text-[13px] font-bold text-astro-text">{m.squad_a_name}</div>
-              <input
-                type="number"
-                min={0}
-                value={draft.a}
-                onChange={(e) => setScores({ ...scores, [m.id]: { ...draft, a: e.target.value } })}
-                className="font-display w-12 shrink-0 rounded-lg border border-white/10 bg-astro-surface px-1 py-2 text-center text-lg text-astro-text"
-              />
-              <span className="text-astro-text-dim">&ndash;</span>
-              <input
-                type="number"
-                min={0}
-                value={draft.b}
-                onChange={(e) => setScores({ ...scores, [m.id]: { ...draft, b: e.target.value } })}
-                className="font-display w-12 shrink-0 rounded-lg border border-white/10 bg-astro-surface px-1 py-2 text-center text-lg text-astro-text"
-              />
-              <div className="min-w-0 flex-1 text-[13px] font-bold text-astro-text">{m.squad_b_name}</div>
-              <button
-                type="button"
-                disabled={draft.a === '' || draft.b === '' || recordScore.isPending}
-                onClick={() => recordScore.mutate({ matchId: m.id, scoreA: Number(draft.a), scoreB: Number(draft.b) })}
-                className="rounded-lg border border-border bg-astro-surface px-2.5 py-1.5 text-[11px] font-bold text-astro-text-muted hover:text-astro-text"
-              >
-                Save
-              </button>
-              <button type="button" onClick={() => deleteMatch.mutate(m.id)} className="text-xs font-bold text-astro-text-dim hover:text-astro-red">
-                Remove
-              </button>
-            </div>
-          )
-        })}
+        {matches.map((m) => (
+          <FixtureRow
+            key={m.id}
+            match={m}
+            squads={squads}
+            saving={recordScore.isPending}
+            onSave={(scoreA, scoreB, goals) =>
+              recordScore.mutate(
+                { matchId: m.id, scoreA, scoreB, goals },
+                { onError: (err) => toast.error(err instanceof Error ? err.message : 'Couldn’t save that result.') },
+              )
+            }
+            onRemove={() => deleteMatch.mutate(m.id)}
+          />
+        ))}
       </div>
     </div>
   )

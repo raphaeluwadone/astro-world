@@ -1,3 +1,4 @@
+import { RatingSettingsCard } from '@/features/voting/components/RatingSettingsCard'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -119,6 +120,10 @@ export function ScheduleMatchdayPage() {
           </div>
         </div>
       )}
+
+      <div className="mt-5">
+        <RatingSettingsCard />
+      </div>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { StandingsTable } from '@/components/tables/StandingsTable'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -10,11 +11,12 @@ const SHOW_AFTER_MS = 14 * 864e5
 /** The Salami Cup table: the live cup while it's on, otherwise the last one played, for two weeks after. */
 export function CupTableCard({ phase, className }: { phase?: TablePhase; className?: string }) {
   const { player } = useCurrentPlayer()
+  const [now] = useState(Date.now)
   const { data: current } = useCurrentCup()
   const { data: past = [] } = usePastCups()
   const cup = current?.status === 'live' || current?.status === 'played' ? current : past[0]
   const cupPhase: TablePhase = cup?.status === 'live' ? 'during' : 'after'
-  const stale = !!cup && cupPhase === 'after' && Date.now() - new Date(cup.scheduled_at).getTime() > SHOW_AFTER_MS
+  const stale = !!cup && cupPhase === 'after' && now - new Date(cup.scheduled_at).getTime() > SHOW_AFTER_MS
   const show = !!cup && !stale && (!phase || phase === cupPhase)
   const { data: squads = [] } = useCupSquads(show ? cup.id : undefined)
   const { data: matches = [] } = useCupMatches(show ? cup.id : undefined)

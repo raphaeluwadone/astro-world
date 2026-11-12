@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useCastVote, useLastDropped, useRemoveComparison } from '../hooks'
@@ -211,7 +212,7 @@ function ComparisonSection({
       <p className="mb-[18px] text-[13px] text-astro-text-muted">{description}</p>
 
       {comparisons.length === 0 && emptySlots.length === 0 ? (
-        <NothingHere compact body="Nothing here yet." className="mb-4" />
+        <NothingHere compact icon={<Scene kind="search" />} body="Nothing here yet." className="mb-4" />
       ) : (
         <div className="mb-4 grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))' }}>
           {comparisons.map((c) => (

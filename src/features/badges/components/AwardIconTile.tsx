@@ -137,8 +137,9 @@ const ART: Record<string, () => ReactNode> = {
   ),
   'cup-hero': () => (
     <>
-      <Icon name="boot" style={run('ai-keepy-boot', 1000, '5px 18px', 0, 'ease-in-out')} />
-      <Ball cx={16} cy={11} style={run('ai-keepy-ball', 1000, undefined, 0, 'ease-in-out')} />
+      <path d="M6 7v13M10 7v13M14 7v13M18 7v13M4 11h16M4 15.5h16" stroke={DARK} strokeWidth={0.8} opacity={0.45} />
+      <path d={PATHS.goal.split('Z')[0] + 'Z'} fill={DARK} style={run('ai-impact', 900, '12px 12px', 250)} />
+      <Ball cx={12} cy={15} style={run('ai-shoot', 650, '12px 15px', 0, 'cubic-bezier(.2,.9,.3,1.2)')} />
     </>
   ),
   'cup-mvp': () => <Icon name="medal" style={run('ai-pendulum', 1100, '12px 1px')} />,
@@ -171,6 +172,7 @@ const BY_ICON: Record<BadgeIconName, string> = {
   trophy: 'silverware',
   boot: 'month-golden-boot',
   medal: 'cup-mvp',
+  goal: 'cup-hero',
   wall: 'iron-curtain',
   flame: 'firepower',
   repeat: 'back-to-back',

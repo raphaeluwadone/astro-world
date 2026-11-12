@@ -1,9 +1,9 @@
 import { useSearch } from '@tanstack/react-router'
+import { Scene } from '@/components/states/Scene'
 import { useEffect, useState } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { LiveMatchday } from '@/features/matchday/components/LiveMatchday'
 import { DayTableCard } from '@/features/matchday/components/DayTableCard'
@@ -60,11 +60,15 @@ export function CommunityPage() {
       <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-3.5">
           <LiveMatchday showTable={false} />
-          <PostComposer
-            disabled={!playerId}
-            isSubmitting={createPost.isPending}
-            onSubmit={(text, mentions) => createPost.mutate({ text, mentions })}
-          />
+          {/* From md up the composer and side column stay put; only the feed scrolls. */}
+          <div className="relative md:sticky md:top-0 md:z-10 md:-mt-3.5 md:bg-astro-bg md:pt-5">
+            <PostComposer
+              disabled={!playerId}
+              isSubmitting={createPost.isPending}
+              onSubmit={(text, mentions) => createPost.mutate({ text, mentions })}
+            />
+            <div className="pointer-events-none absolute inset-x-0 top-full hidden h-4 bg-gradient-to-b from-astro-bg to-transparent md:block" />
+          </div>
 
           {!inFeed && linkedPost && (
             <div className="flex flex-col gap-2">
@@ -84,13 +88,13 @@ export function CommunityPage() {
           ) : feedError ? (
             <ErrorState onRetry={() => refetchFeed()} />
           ) : feed.length === 0 ? (
-            <EmptyState icon={<EmptyPitchIcon />} title="Nobody's said anything yet." body="Be the keen one." />
+            <EmptyState icon={<Scene kind="chat" />} title="Nobody's said anything yet." body="Be the keen one." />
           ) : (
             feed.map(renderPost)
           )}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-5 md:sticky md:top-20 md:max-h-[calc(100vh-6rem)] md:overflow-y-auto md:[scrollbar-width:none]">
           <MostMentioned mentioned={mentioned} />
           <DayTableCard phase="during" />
           <CupTableCard phase="during" />

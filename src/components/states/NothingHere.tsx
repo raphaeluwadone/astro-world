@@ -7,16 +7,18 @@ import { EmptyPitchIcon } from './icons'
  * `compact` fits inside a card or table; the default suits a whole page section.
  */
 export function NothingHere({
-  title = 'Empty pitch',
+  title,
   body = 'Nothing here yet.',
   compact,
   action,
+  icon,
   className,
 }: {
   title?: string
   body?: ReactNode
   compact?: boolean
   action?: ReactNode
+  icon?: ReactNode
   className?: string
 }) {
   return (
@@ -28,10 +30,12 @@ export function NothingHere({
       )}
     >
       <div className={compact ? 'origin-center scale-[0.55] -my-6' : undefined}>
-        <EmptyPitchIcon />
+        {icon ?? <EmptyPitchIcon />}
       </div>
       <div>
-        <div className={cn('font-bold text-astro-text', compact ? 'text-[13.5px]' : 'mb-1.5 text-[15px]')}>{title}</div>
+        {(title ?? !icon) && (
+          <div className={cn('font-bold text-astro-text', compact ? 'text-[13.5px]' : 'mb-1.5 text-[15px]')}>{title ?? 'Empty pitch'}</div>
+        )}
         <p className={cn('mx-auto max-w-[36ch] text-astro-text-muted [text-wrap:pretty]', compact ? 'text-[12px]' : 'text-[13px] leading-[1.55]')}>
           {body}
         </p>

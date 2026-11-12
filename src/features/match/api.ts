@@ -24,6 +24,7 @@ export interface GoalRow {
   match_id: string
   team_id: string
   minute: number | null
+  own_goal: boolean
   scorer: PlayerSummary
   assist: PlayerSummary | null
 }
@@ -80,7 +81,7 @@ export async function fetchLineups(matchId: string): Promise<LineupRow[]> {
   }))
 }
 
-const GOAL_COLS = `id, match_id, team_id, minute,
+const GOAL_COLS = `id, match_id, team_id, minute, own_goal,
   scorer:players!goals_scorer_id_fkey (${PLAYER_SUMMARY_COLS}),
   assist:players!goals_assist_id_fkey (${PLAYER_SUMMARY_COLS})`
 

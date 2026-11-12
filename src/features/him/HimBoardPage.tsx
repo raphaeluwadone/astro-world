@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { Scene } from '@/components/states/Scene'
 import { cn } from 'cn'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -193,7 +194,8 @@ export function HimBoardPage() {
 
       {rows.length === 0 ? (
         <NothingHere
-          title={filter === 'unvoted' ? 'All caught up' : 'Empty pitch'}
+          icon={<Scene kind="rating" />}
+          title={filter === 'unvoted' ? 'All caught up' : 'No claims yet'}
           body={filter === 'unvoted' ? 'You’ve voted on every claim.' : filter === 'danger' ? 'Nobody’s close to being voted off.' : 'No claims yet.'}
         />
       ) : (

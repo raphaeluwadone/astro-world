@@ -54,9 +54,9 @@ export function MyMatchdayCard({ matchdayId, teams, playerId }: { matchdayId: st
   const place = table.findIndex((r) => r.teamId === mine.id) + 1
   const myGames = finished.filter((g) => g.team_a_id === mine.id || g.team_b_id === mine.id)
   const goals = pitch.games.flatMap((g) => g.goals)
-  const myGoals = goals.filter((g) => g.scorer_id === playerId).length
+  const myGoals = goals.filter((g) => g.scorer_id === playerId).reduce((n, g) => n + (g.own_goal ? -1 : 1), 0)
   const myAssists = goals.filter((g) => g.assist_id === playerId).length
-  const nameOf = (id: string | null) => mine.members.find((m) => m.id === id)?.nickname
+  const nameOf = (id: string | null) => teams.flatMap((t) => t.members).find((m) => m.id === id)?.nickname
 
   let status: ReactNode
   if (live && onPitch.includes(mine.id)) {
@@ -133,7 +133,7 @@ export function MyMatchdayCard({ matchdayId, teams, playerId }: { matchdayId: st
                 const opp = side(g.team_a_id === mine.id ? g.team_b_id : g.team_a_id)
                 const r = resultOf(g)
                 const outcome = 'draw' in r ? 'D' : r.winner === mine.id ? 'W' : 'L'
-                const scorers = g.goals.filter((x) => x.team_id === mine.id).map((x) => nameOf(x.scorer_id) ?? 'Unknown')
+                const scorers = g.goals.filter((x) => x.team_id === mine.id).map((x) => `${nameOf(x.scorer_id) ?? 'Unknown'}${x.own_goal ? ' (OG)' : ''}`)
                 return (
                   <li key={g.id} className="flex items-start gap-2.5 text-[13px]">
                     <span

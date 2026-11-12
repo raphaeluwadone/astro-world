@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import type { RankingRow } from '@/features/rankings/api'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
@@ -18,7 +19,7 @@ export function TopOfThePile({ rankings }: { rankings: RankingRow[] }) {
         </Link>
       </div>
       {topFour.length === 0 ? (
-        <NothingHere compact body="Nobody qualifies yet." />
+        <NothingHere compact icon={<Scene kind="trophy" />} body="Nobody qualifies yet." />
       ) : (
         <div className="flex flex-col gap-2">
           {topFour.map((r, i) => (

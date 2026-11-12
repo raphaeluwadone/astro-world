@@ -1,10 +1,10 @@
 import { useState } from 'react'
+import { Scene } from '@/components/states/Scene'
 import { toast } from 'sonner'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import type { PendingClaimRow } from './api'
 import { MembersTabs } from './members/MembersTabs'
@@ -39,7 +39,7 @@ export function AdminClaimsPage() {
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : claims.length === 0 ? (
-        <EmptyState icon={<EmptyPitchIcon />} title="Nothing to review." body="New claims will show up here." />
+        <EmptyState icon={<Scene kind="whistle" />} title="Nothing to review." body="New claims will show up here." />
       ) : (
         <div className="flex flex-col gap-3">
           {claims.map((c) => (

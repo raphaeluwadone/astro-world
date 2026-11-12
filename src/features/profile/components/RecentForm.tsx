@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { cn } from 'cn'
 import type { ReactNode } from 'react'
 import type { MatchRatingRow } from '../api'
@@ -47,7 +48,7 @@ export function RecentForm({
         {title}
       </h2>
       {recent.length === 0 ? (
-        <NothingHere compact body="No rated matches yet." />
+        <NothingHere compact icon={<Scene kind="rating" />} body="No rated matches yet." />
       ) : (
         // Always five slots, so a short run doesn't leave the row lopsided.
         <div className="flex flex-wrap items-center gap-x-10 gap-y-5">

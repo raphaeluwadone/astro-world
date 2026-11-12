@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import type { PostRow } from '@/features/community/api'
 import { BUBBLE, HEART, THUMB_DOWN } from '@/features/community/components/reactionIcons'
@@ -35,7 +36,7 @@ export function GroupChatPreview({ posts }: { posts: PostRow[] }) {
         </Link>
       </div>
       {recent.length === 0 ? (
-        <NothingHere compact body="Nobody's posted anything yet." />
+        <NothingHere compact icon={<Scene kind="chat" />} body="Nobody's posted anything yet." />
       ) : (
         <div className="flex flex-col gap-3">
           {recent.map((p, i) => (

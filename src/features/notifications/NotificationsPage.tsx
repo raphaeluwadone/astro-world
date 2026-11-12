@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { isToday, isYesterday } from 'date-fns'
@@ -81,7 +82,8 @@ export function NotificationsPage() {
       {groups.length === 0 ? (
         <NothingHere
           compact
-          title={onlyUnread ? 'All caught up' : 'Empty pitch'}
+          icon={<Scene kind="bell" />}
+          title={onlyUnread ? 'All caught up' : 'Nothing yet'}
           body={onlyUnread ? 'Nothing unread.' : 'Nothing yet. Badges, matchday news and mentions land here.'}
         />
       ) : (

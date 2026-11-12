@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
+import { Scene } from '@/components/states/Scene'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { toPlainText } from '@/components/editor/markdown'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -64,7 +64,7 @@ export function ArticlesPage() {
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : articles.length === 0 ? (
-        <EmptyState icon={<EmptyPitchIcon />} title="Nothing published yet." body="Match reports land here once someone writes one." />
+        <EmptyState icon={<Scene kind="notebook" />} title="Nothing published yet." body="Match reports land here once someone writes one." />
       ) : (
         <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))' }}>
           {articles.map((a) => (

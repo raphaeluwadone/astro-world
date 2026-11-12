@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Scene } from '@/components/states/Scene'
 import { useNavigate } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { useEffect, useMemo, useState } from 'react'
@@ -6,7 +7,6 @@ import { toast } from 'sonner'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import type { PlayerSummary, TeamWithMembers } from '@/features/matchday/api'
 import { useDrawnTeams, useNextMatchday } from '@/features/matchday/hooks'
@@ -261,7 +261,7 @@ function PlayerGrid({ players, onPick, extra }: { players: PlayerSummary[]; onPi
 
 type Picking =
   | { teamId: string; step: 'scorer' }
-  | { teamId: string; step: 'fix-scorer'; goalId: string; assistId: string | null }
+  | { teamId: string; step: 'fix-scorer'; goalId: string; assistId: string | null; ownGoal: boolean }
   | { teamId: string; step: 'assist'; goalId: string; scorerId: string | null; assistId: string | null }
   | { teamId: string; step: 'card'; kind: 'yellow' | 'red' }
 
@@ -290,35 +290,60 @@ function CardPicker({ team, kind, players, onPick, onClose }: { team: TeamWithMe
 
 function GoalPicker({
   team,
+  opponent,
   players,
+  opponents,
   picking,
   onScorer,
   onAssist,
   onClose,
 }: {
   team: TeamWithMembers
+  opponent: TeamWithMembers
   players: PlayerSummary[]
+  opponents: PlayerSummary[]
   picking: Exclude<Picking, { step: 'card' }>
-  onScorer: (id: string | null) => void
+  onScorer: (id: string | null, ownGoal: boolean) => void
   onAssist: (id: string | null) => void
   onClose: () => void
 }) {
   const assist = picking.step === 'assist'
+  const [own, setOwn] = useState(picking.step === 'fix-scorer' && picking.ownGoal)
+  const title = assist
+    ? 'Who set it up?'
+    : own
+      ? `Own goal for ${team.greek_name}. Which ${opponent.greek_name} player?`
+      : picking.step === 'fix-scorer'
+        ? `Who scored this ${team.greek_name} goal?`
+        : `Goal for ${team.greek_name}. Who scored?`
   return (
-    <div className="rounded-[14px] border-2 bg-astro-admin-card p-3.5" style={{ borderColor: team.colour }}>
+    <div className="rounded-[14px] border-2 bg-astro-admin-card p-3.5" style={{ borderColor: own ? opponent.colour : team.colour }}>
       <div className="mb-3 flex items-center gap-2">
-        <TeamDot team={team} />
-        <span className="text-[14px] font-extrabold text-astro-text">
-          {assist ? 'Who set it up?' : picking.step === 'fix-scorer' ? `Who scored this ${team.greek_name} goal?` : `Goal for ${team.greek_name}. Who scored?`}
-        </span>
-        <button type="button" onClick={onClose} className="ml-auto text-xs font-bold text-astro-text-dim hover:text-astro-text">
+        <TeamDot team={own ? opponent : team} />
+        <span className="text-[14px] font-extrabold text-astro-text">{title}</span>
+        {!assist && (
+          <button
+            type="button"
+            aria-pressed={own}
+            onClick={() => setOwn((o) => !o)}
+            className={cn(
+              'ml-auto shrink-0 rounded-[7px] border px-2 py-1 text-[11px] font-extrabold',
+              own ? 'border-astro-red/60 bg-astro-red/15 text-astro-red' : 'border-white/[0.12] text-astro-text-muted hover:text-astro-text',
+            )}
+          >
+            Own goal
+          </button>
+        )}
+        <button type="button" onClick={onClose} className={cn('text-xs font-bold text-astro-text-dim hover:text-astro-text', assist && 'ml-auto')}>
           {assist && !picking.assistId ? 'Skip' : 'Cancel'}
         </button>
       </div>
       {assist ? (
         <PlayerGrid players={players.filter((p) => p.id !== picking.scorerId)} onPick={onAssist} extra={{ label: 'No assist', value: null }} />
+      ) : own ? (
+        <PlayerGrid players={opponents} onPick={(id) => onScorer(id, true)} extra={{ label: 'Not sure yet', value: null }} />
       ) : (
-        <PlayerGrid players={players} onPick={onScorer} extra={{ label: 'Not sure yet', value: null }} />
+        <PlayerGrid players={players} onPick={(id) => onScorer(id, false)} extra={{ label: 'Not sure yet', value: null }} />
       )}
     </div>
   )
@@ -419,10 +444,11 @@ function GoalEditor({
     })
     setPicking(null)
   }
-  const scorer = (teamId: string, scorerId: string | null) => {
+  const opposite = (teamId: string) => side(teamId === game.team_a_id ? game.team_b_id : game.team_a_id)
+  const scorer = (teamId: string, scorerId: string | null, ownGoal: boolean) => {
     if (!game.ended_at) navigator.vibrate?.(40)
-    act.mutate((by) => api.addGoal(game, teamId, scorerId, by), {
-      onSuccess: (goalId) => setPicking({ teamId, step: 'assist', goalId: goalId as string, scorerId, assistId: null }),
+    act.mutate((by) => api.addGoal(game, teamId, scorerId, by, ownGoal), {
+      onSuccess: (goalId) => (ownGoal ? toast('Own goal recorded.') : setPicking({ teamId, step: 'assist', goalId: goalId as string, scorerId, assistId: null })),
       onError: fail('save that goal'),
     })
     setPicking(null)
@@ -441,13 +467,22 @@ function GoalEditor({
       )}
       {picking && picking.step !== 'card' && (
         <GoalPicker
+          key={`${picking.step}-${'goalId' in picking ? picking.goalId : picking.teamId}`}
           team={side(picking.teamId)}
+          opponent={opposite(picking.teamId)}
           players={playersFor(side(picking.teamId))}
+          opponents={playersFor(opposite(picking.teamId))}
           picking={picking}
-          onScorer={(id) => {
-            if (picking.step !== 'fix-scorer') return scorer(picking.teamId, id)
+          onScorer={(id, ownGoal) => {
+            if (picking.step !== 'fix-scorer') return scorer(picking.teamId, id, ownGoal)
+            if (ownGoal) {
+              act.mutate(() => api.updateGoal(picking.goalId, { scorer_id: id, own_goal: true, assist_id: null }), { onError: fail('change the scorer') })
+              return setPicking(null)
+            }
             const clash = !!id && id === picking.assistId
-            act.mutate(() => api.updateGoal(picking.goalId, clash ? { scorer_id: id, assist_id: null } : { scorer_id: id }), { onError: fail('change the scorer') })
+            act.mutate(() => api.updateGoal(picking.goalId, clash ? { scorer_id: id, own_goal: false, assist_id: null } : { scorer_id: id, own_goal: false }), {
+              onError: fail('change the scorer'),
+            })
             setPicking(id && (clash || !picking.assistId) ? { teamId: picking.teamId, step: 'assist', goalId: picking.goalId, scorerId: id, assistId: null } : null)
           }}
           onAssist={(id) => {
@@ -479,11 +514,12 @@ function GoalEditor({
                       <span className="min-w-0 flex-1 truncate text-[13.5px] text-astro-text">
                         <button
                           type="button"
-                          onClick={() => setPicking({ teamId: g.team_id, step: 'fix-scorer', goalId: g.id, assistId: g.assist_id })}
+                          onClick={() => setPicking({ teamId: g.team_id, step: 'fix-scorer', goalId: g.id, assistId: g.assist_id, ownGoal: g.own_goal })}
                           className={cn('font-extrabold underline decoration-white/20 decoration-dotted underline-offset-4 hover:decoration-current', !g.scorer_id && 'text-astro-amber')}
                         >
                           {nameOf(g.scorer_id) ?? 'Scorer to add'}
                         </button>
+                        {g.own_goal && <span className="ml-1.5 text-[11px] font-extrabold text-astro-red">OG</span>}
                         {g.assist_id && (
                           <>
                             <span className="text-astro-text-muted"> · </span>
@@ -497,7 +533,7 @@ function GoalEditor({
                           </>
                         )}
                       </span>
-                      {!g.assist_id && g.scorer_id && (
+                      {!g.assist_id && g.scorer_id && !g.own_goal && (
                         <button
                           type="button"
                           onClick={() => setPicking({ teamId: g.team_id, step: 'assist', goalId: g.id, scorerId: g.scorer_id, assistId: null })}
@@ -1099,7 +1135,7 @@ export function PitchSidePage() {
     return (
       <div>
         <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Pitch-side</h1>
-        <EmptyState icon={<EmptyPitchIcon />} title="No teams drawn yet." body="Pitch-side opens once the teams for the next matchday are drawn." />
+        <EmptyState icon={<Scene kind="bench" />} title="No teams drawn yet." body="Pitch-side opens once the teams for the next matchday are drawn." />
       </div>
     )
 

@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { useMemo } from 'react'
 import { Timeline, TimelineItem } from '@/components/timeline/Timeline'
@@ -6,7 +7,6 @@ import { useCurrentPlayer } from '@/features/auth/useSession'
 import { useBadgesByPlayer } from '@/features/badges/hooks'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import {
   useCupEntrants,
@@ -20,6 +20,7 @@ import {
 import { usePageIntro } from '@/features/intros/usePageIntro'
 import { CupIntro } from './components/CupIntro'
 import { computeCupStandings } from './standings'
+import type { CupGoal } from './api'
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -27,6 +28,22 @@ function formatDateTime(iso: string) {
 
 function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+}
+
+// "Ade 2, Tolu (OG)" style, in the order the goals were entered.
+function scorerLine(goals: CupGoal[], squadId: string, nicknames: Map<string, string>) {
+  const counts = new Map<string, number>()
+  for (const g of goals) {
+    if (g.squad_id !== squadId) continue
+    const key = `${g.scorer_id}:${g.own_goal}`
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return [...counts]
+    .map(([key, n]) => {
+      const [id, own] = key.split(':')
+      return `${nicknames.get(id) ?? 'Unknown'}${n > 1 ? ` ${n}` : ''}${own === 'true' ? ' (OG)' : ''}`
+    })
+    .join(', ')
 }
 
 export function SalamiCupPage() {
@@ -48,7 +65,7 @@ export function SalamiCupPage() {
       <div>
         <CupIntro open={intro.show} cup={null} onDone={intro.dismiss} />
         <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">THE SALAMI CUP</h1>
-        <EmptyState icon={<EmptyPitchIcon />} title="No cup on the calendar yet." body="Four times a year, in Ade's name. Nothing scheduled right now." />
+        <EmptyState icon={<Scene kind="trophy" />} title="No cup on the calendar yet." body="Four times a year, in Ade's name. Nothing scheduled right now." />
       </div>
     )
   }
@@ -56,6 +73,7 @@ export function SalamiCupPage() {
   const myEntry = entrants.find((e) => e.player_id === player?.id)
   const entriesOpen = cup.status === 'open' && new Date() < new Date(cup.entries_close_at)
   const standings = computeCupStandings(squads, matches)
+  const nicknames = new Map(squads.flatMap((sq) => sq.members.map((p) => [p.id, p.nickname] as const)))
 
   return (
     <div>
@@ -184,12 +202,21 @@ export function SalamiCupPage() {
               <div className="font-display mb-4.5 text-[28px] leading-none text-astro-text">FIXTURES</div>
               <div className="flex flex-col gap-2">
                 {matches.map((m) => (
-                  <div key={m.id} className="flex flex-wrap items-center gap-3 rounded-[11px] bg-astro-surface-2 px-4 py-3">
-                    <div className="min-w-0 flex-1 text-right text-[13px] font-bold text-astro-text">{m.squad_a_name}</div>
-                    <div className="font-display shrink-0 text-2xl text-astro-text">
-                      {m.score_a != null && m.score_b != null ? `${m.score_a}–${m.score_b}` : 'v'}
+                  <div key={m.id} className="rounded-[11px] bg-astro-surface-2 px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="min-w-0 flex-1 text-right text-[13px] font-bold text-astro-text">{m.squad_a_name}</div>
+                      <div className="font-display shrink-0 text-2xl text-astro-text">
+                        {m.score_a != null && m.score_b != null ? `${m.score_a}–${m.score_b}` : 'v'}
+                      </div>
+                      <div className="min-w-0 flex-1 text-[13px] font-bold text-astro-text">{m.squad_b_name}</div>
                     </div>
-                    <div className="min-w-0 flex-1 text-[13px] font-bold text-astro-text">{m.squad_b_name}</div>
+                    {m.goals.length > 0 && (
+                      <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] gap-3 text-[11.5px] text-astro-text-muted">
+                        <div className="text-right">{scorerLine(m.goals, m.squad_a_id, nicknames)}</div>
+                        <div className="w-[34px]" />
+                        <div>{scorerLine(m.goals, m.squad_b_id, nicknames)}</div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -231,7 +258,7 @@ export function SalamiCupPage() {
           <div className="astro-card p-6">
             <div className="font-display mb-4 text-[28px] leading-none text-astro-text">HONOURS</div>
             {honours.length === 0 ? (
-              <NothingHere compact body="No cup has been completed yet." />
+              <NothingHere compact icon={<Scene kind="trophy" />} body="No cup has been completed yet." />
             ) : (
               <Timeline>
                 {honours.map((h) => (

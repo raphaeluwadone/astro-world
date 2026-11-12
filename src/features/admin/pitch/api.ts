@@ -7,6 +7,7 @@ export interface PitchGoal {
   scorer_id: string | null
   assist_id: string | null
   minute: number | null
+  own_goal: boolean
   created_at: string
 }
 
@@ -53,7 +54,7 @@ export async function fetchPitch(matchdayId: string): Promise<PitchState> {
     supabase.from('pitch_checkins').select('player_id').eq('matchday_id', matchdayId),
     supabase
       .from('pitch_games')
-      .select('id, team_a_id, team_b_id, length_min, goal_target, elapsed_ms, running_since, ended_at, report, created_at, goals:pitch_goals(id, game_id, team_id, scorer_id, assist_id, minute, created_at), cards:pitch_cards(id, game_id, team_id, player_id, kind, minute, second_yellow, created_at)')
+      .select('id, team_a_id, team_b_id, length_min, goal_target, elapsed_ms, running_since, ended_at, report, created_at, goals:pitch_goals(id, game_id, team_id, scorer_id, assist_id, minute, own_goal, created_at), cards:pitch_cards(id, game_id, team_id, player_id, kind, minute, second_yellow, created_at)')
       .eq('matchday_id', matchdayId)
       .order('created_at'),
     supabase.from('pitch_sessions').select('team_order, goal_target, length_min').eq('matchday_id', matchdayId).maybeSingle(),
@@ -136,17 +137,17 @@ export async function deleteGame(gameId: string) {
 }
 
 /** Live goals take the clock's minute; goals added to a finished game have none until typed. */
-export async function addGoal(game: PitchGame, teamId: string, scorerId: string | null, by: string) {
+export async function addGoal(game: PitchGame, teamId: string, scorerId: string | null, by: string, ownGoal = false) {
   const { data, error } = await supabase
     .from('pitch_goals')
-    .insert({ game_id: game.id, team_id: teamId, scorer_id: scorerId, minute: game.ended_at ? null : minuteOf(clockMs(game)), created_by: by })
+    .insert({ game_id: game.id, team_id: teamId, scorer_id: scorerId, own_goal: ownGoal, minute: game.ended_at ? null : minuteOf(clockMs(game)), created_by: by })
     .select('id')
     .single()
   if (error) throw error
   return data.id
 }
 
-export async function updateGoal(goalId: string, patch: { scorer_id?: string | null; assist_id?: string | null; minute?: number | null }) {
+export async function updateGoal(goalId: string, patch: { scorer_id?: string | null; assist_id?: string | null; minute?: number | null; own_goal?: boolean }) {
   const { error } = await supabase.from('pitch_goals').update(patch).eq('id', goalId)
   if (error) throw error
 }

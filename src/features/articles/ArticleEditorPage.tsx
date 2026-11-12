@@ -1,4 +1,5 @@
 import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
+import { Scene } from '@/components/states/Scene'
 import { cn } from 'cn'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -249,10 +250,10 @@ export function ArticleEditorPage({ articleId }: { articleId?: string }) {
   const { data: article, isLoading, isError, refetch } = useArticle(articleId ?? null)
 
   if (checking || isLoading) return <PageLoader />
-  if (!canWrite) return <NothingHere title="Not on the masthead" body="Writing articles is by invite. Ask an admin if you’ve got something to say." />
+  if (!canWrite) return <NothingHere icon={<Scene kind="notebook" />} title="Not on the masthead" body="Writing articles is by invite. Ask an admin if you’ve got something to say." />
   if (isError) return <ErrorState onRetry={() => refetch()} />
   if (articleId && !article) return <NothingHere title="Article not found" body="It may have been deleted." />
   if (article && article.author?.id !== player?.id && !player?.is_admin)
-    return <NothingHere title="Not your article" body="Only its author or an admin can edit this one." />
+    return <NothingHere icon={<Scene kind="notebook" />} title="Not your article" body="Only its author or an admin can edit this one." />
   return <EditorForm key={article?.id ?? 'new'} article={article ?? null} />
 }

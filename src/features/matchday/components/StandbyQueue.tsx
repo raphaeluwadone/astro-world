@@ -1,4 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import type { StandbyEntryRow, WeeklyClaimRow } from '../api'
 
 export function StandbyQueue({
@@ -19,7 +20,7 @@ export function StandbyQueue({
             </div>
           ))}
           {weeklyClaims.length === 0 && (
-            <NothingHere compact body="Nobody&rsquo;s paid for a weekly spot yet." />
+            <NothingHere compact icon={<Scene kind="bench" />} body="Nobody&rsquo;s paid for a weekly spot yet." />
           )}
         </div>
       </div>
@@ -32,7 +33,7 @@ export function StandbyQueue({
               {e.players.nickname}
             </div>
           ))}
-          {standby.length === 0 && <NothingHere compact body="Nobody on standby." />}
+          {standby.length === 0 && <NothingHere compact icon={<Scene kind="bench" />} body="Nobody on standby." />}
         </div>
       </div>
     </div>
