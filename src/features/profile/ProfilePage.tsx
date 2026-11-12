@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { currentSeasonStart } from '@/lib/season'
 import { BadgeCabinet, BadgeRail, holdsCup, NewBadgeBanner } from '@/features/badges/components/ProfileBadges'
 import { usePlayerBadges } from '@/features/badges/hooks'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -33,6 +34,7 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
   const { data: matchRatings = [] } = useMatchRatings(playerId)
   const { data: matchHistory = [] } = useMatchHistory(playerId)
   const { data: careerStats } = useCareerStats(playerId)
+  const { data: seasonStats } = useCareerStats(playerId, currentSeasonStart().toISOString())
   const { data: tags = [] } = usePlayerTags(playerId)
   const { data: comparisons = [] } = useComparisons(playerId, currentPlayer?.id)
   const badges = usePlayerBadges(playerId)
@@ -109,7 +111,7 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
 
       <BadgeCabinet badges={badges} nickname={player.nickname} />
 
-      {combinedCareerStats && <StatsSection matchRatings={matchRatings} careerStats={combinedCareerStats} />}
+      {combinedCareerStats && <StatsSection matchRatings={matchRatings} careerStats={combinedCareerStats} seasonStats={seasonStats} />}
 
       <div className="grid gap-5 xl:grid-cols-2">
         <RecentForm matchRatings={matchRatings} compact showStats />

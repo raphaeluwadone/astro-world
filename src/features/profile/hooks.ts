@@ -44,15 +44,16 @@ export function useMatchHistory(playerId: string | undefined) {
   })
 }
 
-export function useCareerStats(playerId: string | undefined) {
+/** Pass `since` (ISO) for a season's totals; without it, the whole career. */
+export function useCareerStats(playerId: string | undefined, since?: string) {
   return useQuery({
-    queryKey: ['player-career-stats', playerId],
+    queryKey: ['player-career-stats', playerId, since ?? 'career'],
     queryFn: async () => {
       const [appearances, goalsAssists, motm, cards] = await Promise.all([
-        fetchAppearanceCount(playerId!),
-        fetchGoalsAndAssists(playerId!),
-        fetchMotmCount(playerId!),
-        fetchCardCounts(playerId!),
+        fetchAppearanceCount(playerId!, since),
+        fetchGoalsAndAssists(playerId!, since),
+        fetchMotmCount(playerId!, since),
+        fetchCardCounts(playerId!, since),
       ])
       return { appearances, ...goalsAssists, motm, ...cards }
     },

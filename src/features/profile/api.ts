@@ -72,23 +72,28 @@ export async function fetchMatchRatings(playerId: string): Promise<MatchRatingRo
   return data ?? []
 }
 
-export async function fetchAppearanceCount(playerId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from('match_players')
-    .select('*', { count: 'exact', head: true })
-    .eq('player_id', playerId)
+/** `since` (ISO) limits a count to matches played from then on. */
+export async function fetchAppearanceCount(playerId: string, since?: string): Promise<number> {
+  let q = supabase.from('match_players').select('match_id, matches!inner(played_at)', { count: 'exact', head: true }).eq('player_id', playerId)
+  if (since) q = q.gte('matches.played_at', since)
+  const { count, error } = await q
   if (error) throw error
   return count ?? 0
 }
 
 export async function fetchGoalsAndAssists(
   playerId: string,
+  since?: string,
 ): Promise<{ goals: number; assists: number; ownGoals: number }> {
-  const [goals, cupGoals, assists] = await Promise.all([
-    supabase.from('goals').select('own_goal').eq('scorer_id', playerId),
-    supabase.from('cup_goals').select('own_goal').eq('scorer_id', playerId),
-    supabase.from('goals').select('*', { count: 'exact', head: true }).eq('assist_id', playerId),
-  ])
+  let goalsQ = supabase.from('goals').select('own_goal, matches!inner(played_at)').eq('scorer_id', playerId)
+  let cupQ = supabase.from('cup_goals').select('own_goal, cup_matches!inner(played_at)').eq('scorer_id', playerId)
+  let assistsQ = supabase.from('goals').select('id, matches!inner(played_at)', { count: 'exact', head: true }).eq('assist_id', playerId)
+  if (since) {
+    goalsQ = goalsQ.gte('matches.played_at', since)
+    cupQ = cupQ.gte('cup_matches.played_at', since)
+    assistsQ = assistsQ.gte('matches.played_at', since)
+  }
+  const [goals, cupGoals, assists] = await Promise.all([goalsQ, cupQ, assistsQ])
   if (goals.error) throw goals.error
   if (cupGoals.error) throw cupGoals.error
   if (assists.error) throw assists.error
@@ -99,18 +104,26 @@ export async function fetchGoalsAndAssists(
 }
 
 /** How many matchdays this player has actually won MOTM (most nominations). */
-export async function fetchCardCounts(playerId: string): Promise<{ yellows: number; reds: number }> {
-  const { data, error } = await supabase.from('cards').select('kind').eq('player_id', playerId)
+export async function fetchCardCounts(playerId: string, since?: string): Promise<{ yellows: number; reds: number }> {
+  let q = supabase.from('cards').select('kind, matches!inner(played_at)').eq('player_id', playerId)
+  if (since) q = q.gte('matches.played_at', since)
+  const { data, error } = await q
   if (error) throw error
   const rows = data ?? []
   return { yellows: rows.filter((r) => r.kind === 'yellow').length, reds: rows.filter((r) => r.kind === 'red').length }
 }
 
-export async function fetchMotmCount(playerId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('matchday_motm_summary')
+export async function fetchMotmCount(playerId: string, since?: string): Promise<number> {
+  const [{ data, error }, days] = await Promise.all([
+    supabase.rpc('matchday_motm_summary'),
+    since ? supabase.from('matchdays').select('id').gte('played_at', since) : null,
+  ])
   if (error) throw error
+  if (days?.error) throw days.error
+  const inRange = days && new Set(days.data.map((d) => d.id))
   const byMatchday = new Map<string, { nominee_id: string; vote_count: number }>()
   for (const row of data ?? []) {
+    if (inRange && !inRange.has(row.matchday_id)) continue
     const current = byMatchday.get(row.matchday_id)
     if (!current || row.vote_count > current.vote_count) {
       byMatchday.set(row.matchday_id, row)
