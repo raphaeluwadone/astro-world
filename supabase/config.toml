@@ -438,3 +438,7 @@ enabled = true
 # Called by dispatch_emails() through pg_net, which sends no JWT. It only drains the outbox.
 [functions.send-emails]
 verify_jwt = false
+
+# Paystack signs its webhook with the secret key; it sends no JWT.
+[functions.paystack-webhook]
+verify_jwt = false

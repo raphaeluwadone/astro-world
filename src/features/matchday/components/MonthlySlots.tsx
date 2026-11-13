@@ -1,5 +1,6 @@
 import type { AvailabilityRow, MonthlyMemberRow } from '../api'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
+import { formatNaira } from '@/features/payments/api'
 
 const MAX_MONTHLY_SLOTS = 10
 
@@ -10,6 +11,11 @@ export function MonthlySlots({
   onClaim,
   isClaiming,
   availability = [],
+  price,
+  isPaid,
+  heldUntil,
+  onPay,
+  isPaying,
 }: {
   members: MonthlyMemberRow[]
   monthLabel: string
@@ -17,6 +23,11 @@ export function MonthlySlots({
   onClaim: () => void
   isClaiming: boolean
   availability?: AvailabilityRow[]
+  price: number | undefined
+  isPaid: boolean
+  heldUntil: string | null
+  onPay: () => void
+  isPaying: boolean
 }) {
   const alreadyClaimed = !!playerId && members.some((m) => m.player_id === playerId)
   const full = members.length >= MAX_MONTHLY_SLOTS
@@ -52,18 +63,72 @@ export function MonthlySlots({
         </div>
       )}
 
-      {playerId && !alreadyClaimed && !full && (
-        <button
-          type="button"
-          disabled={isClaiming}
-          onClick={onClaim}
-          className="w-full rounded-[11px] bg-astro-accent px-[18px] py-3 text-[13px] font-extrabold text-astro-on-accent disabled:opacity-60"
-        >
-          {isClaiming ? 'Claiming…' : `Claim your spot for ${monthLabel}`}
-        </button>
+      {playerId && !alreadyClaimed && heldUntil && price !== undefined ? (
+        <>
+          <button
+            type="button"
+            disabled={isPaying}
+            onClick={onPay}
+            className="w-full rounded-[11px] bg-astro-accent px-[18px] py-3 text-[13px] font-extrabold text-astro-on-accent disabled:opacity-60"
+          >
+            {isPaying ? 'Opening Paystack…' : `Finish paying ${formatNaira(price)}`}
+          </button>
+          <p className="mt-2 text-xs text-astro-text-dim">
+            Held for you until {new Date(heldUntil).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}.
+          </p>
+        </>
+      ) : (
+        playerId &&
+        !alreadyClaimed &&
+        !full && (
+          <div className="flex flex-col items-center gap-2">
+            <button
+              type="button"
+              disabled={price !== undefined ? isPaying : isClaiming}
+              onClick={price !== undefined ? onPay : onClaim}
+              className="w-full rounded-[11px] bg-astro-accent px-[18px] py-3 text-[13px] font-extrabold text-astro-on-accent disabled:opacity-60"
+            >
+              {price !== undefined
+                ? isPaying
+                  ? 'Opening Paystack…'
+                  : `Pay ${formatNaira(price)} for ${monthLabel}`
+                : isClaiming
+                  ? 'Claiming…'
+                  : `Claim your spot for ${monthLabel}`}
+            </button>
+            {price !== undefined && (
+              <button
+                type="button"
+                disabled={isClaiming}
+                onClick={onClaim}
+                className="text-xs font-bold text-astro-text-muted hover:text-astro-text disabled:opacity-60"
+              >
+                {isClaiming ? 'Claiming…' : 'Claim now, pay later'}
+              </button>
+            )}
+          </div>
+        )
       )}
       {alreadyClaimed && (
-        <div className="text-[12.5px] font-bold text-astro-green">You&rsquo;re in for {monthLabel}.</div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="text-[12.5px] font-bold text-astro-green">You&rsquo;re in for {monthLabel}.</div>
+          {isPaid ? (
+            <div className="rounded-full border border-[rgba(74,222,128,0.45)] px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.06em] text-[#4ade80]">
+              Paid
+            </div>
+          ) : (
+            price !== undefined && (
+              <button
+                type="button"
+                disabled={isPaying}
+                onClick={onPay}
+                className="rounded-[10px] bg-astro-accent px-3 py-1.5 text-xs font-extrabold text-astro-on-accent disabled:opacity-60"
+              >
+                {isPaying ? 'Opening Paystack…' : `Pay ${formatNaira(price)}`}
+              </button>
+            )
+          )}
+        </div>
       )}
       {!alreadyClaimed && full && (
         <div className="text-[12.5px] text-astro-text-dim">All {MAX_MONTHLY_SLOTS} monthly spots are taken.</div>

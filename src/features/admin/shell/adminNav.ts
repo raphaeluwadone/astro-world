@@ -8,6 +8,7 @@ export type AdminSectionId =
   | 'kit'
   | 'dues'
   | 'causes'
+  | 'payments'
   | 'articles'
   | 'members'
   | 'badges'
@@ -96,6 +97,13 @@ export const ADMIN_NAV: AdminNavGroup[] = [
         label: 'Causes',
         to: '/admin/causes',
         icon: 'M12 21.2 3.8 13a5.1 5.1 0 0 1 7.2-7.2l1 1 1-1A5.1 5.1 0 0 1 20.2 13Z',
+      },
+      {
+        id: 'payments',
+        label: 'Payments',
+        to: '/admin/payments',
+        icon: 'M2.6 5.2h18.8v13.6H2.6Zm2.2 2.2v1.8h14.4V7.4Zm0 4.6v4.6h14.4V12Zm1.6 2.4h4v1.4h-4Z',
+        iconEvenOdd: true,
       },
     ],
   },

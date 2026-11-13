@@ -1243,6 +1243,151 @@ export type Database = {
           },
         ]
       }
+      payment_prices: {
+        Row: {
+          amount: number
+          kind: Database["public"]["Enums"]["payment_kind"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount: number
+          kind: Database["public"]["Enums"]["payment_kind"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          kind?: Database["public"]["Enums"]["payment_kind"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_prices_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_kobo: number
+          created_at: string
+          dues_payment_id: string | null
+          dues_quarter_id: string | null
+          hold_until: string | null
+          id: string
+          kind: Database["public"]["Enums"]["payment_kind"]
+          matchday_id: string | null
+          month: string | null
+          monthly_membership_id: string | null
+          note: string | null
+          paid_at: string | null
+          player_id: string
+          provider_ref: string | null
+          reference: string
+          refunded_at: string | null
+          refunded_by: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          weekly_claim_id: string | null
+        }
+        Insert: {
+          amount_kobo: number
+          created_at?: string
+          dues_payment_id?: string | null
+          dues_quarter_id?: string | null
+          hold_until?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["payment_kind"]
+          matchday_id?: string | null
+          month?: string | null
+          monthly_membership_id?: string | null
+          note?: string | null
+          paid_at?: string | null
+          player_id: string
+          provider_ref?: string | null
+          reference?: string
+          refunded_at?: string | null
+          refunded_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          weekly_claim_id?: string | null
+        }
+        Update: {
+          amount_kobo?: number
+          created_at?: string
+          dues_payment_id?: string | null
+          dues_quarter_id?: string | null
+          hold_until?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["payment_kind"]
+          matchday_id?: string | null
+          month?: string | null
+          monthly_membership_id?: string | null
+          note?: string | null
+          paid_at?: string | null
+          player_id?: string
+          provider_ref?: string | null
+          reference?: string
+          refunded_at?: string | null
+          refunded_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          weekly_claim_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_dues_payment_id_fkey"
+            columns: ["dues_payment_id"]
+            isOneToOne: false
+            referencedRelation: "dues_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_dues_quarter_id_fkey"
+            columns: ["dues_quarter_id"]
+            isOneToOne: false
+            referencedRelation: "dues_quarters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_monthly_membership_id_fkey"
+            columns: ["monthly_membership_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_refunded_by_fkey"
+            columns: ["refunded_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_weekly_claim_id_fkey"
+            columns: ["weekly_claim_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pitch_cards: {
         Row: {
           created_at: string
@@ -2740,6 +2885,33 @@ export type Database = {
       team_order: { Args: { p_name: string }; Returns: number }
       trait_hearts: { Args: { p_player: string }; Returns: number }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
+      fail_payment: {
+        Args: { p_note: string; p_reference: string }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      mark_payment_refunded: {
+        Args: { p_payment_id: string }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      monthly_spots_remaining: { Args: { p_month: string }; Returns: number }
+      settle_payment: {
+        Args: {
+          p_amount_kobo: number
+          p_currency: string
+          p_provider_ref: string
+          p_reference: string
+        }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      start_payment: {
+        Args: {
+          p_dues_quarter_id?: string
+          p_kind: Database["public"]["Enums"]["payment_kind"]
+          p_matchday_id?: string
+          p_month?: string
+        }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
       weekly_spots_remaining: {
         Args: { p_matchday_id: string }
         Returns: number
@@ -2759,6 +2931,14 @@ export type Database = {
         | "complete"
         | "played"
         | "cancelled"
+      payment_kind: "weekly" | "monthly" | "dues"
+      payment_status:
+        | "pending"
+        | "paid"
+        | "failed"
+        | "cancelled"
+        | "refund_due"
+        | "refunded"
       player_claim_status: "pending" | "approved" | "rejected"
       position_type: "GK" | "DEF" | "ATT" | "UTIL"
       tag_source: "self" | "community"
@@ -2906,6 +3086,15 @@ export const Constants = {
         "complete",
         "played",
         "cancelled",
+      ],
+      payment_kind: ["weekly", "monthly", "dues"],
+      payment_status: [
+        "pending",
+        "paid",
+        "failed",
+        "cancelled",
+        "refund_due",
+        "refunded",
       ],
       player_claim_status: ["pending", "approved", "rejected"],
       position_type: ["GK", "DEF", "ATT", "UTIL"],

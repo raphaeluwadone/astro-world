@@ -19,6 +19,8 @@ import { MonthlySlots } from './components/MonthlySlots'
 import { StandbyQueue } from './components/StandbyQueue'
 import { RULE_COPY, RULE_ORDER } from './draw/components/DrawRulesForm'
 import { useDrawRules } from './draw/hooks'
+import { isActiveHold } from '@/features/payments/api'
+import { useMyPayments, usePrices, useStartPayment } from '@/features/payments/hooks'
 import {
   useAvailability,
   useClaimMonthlySlot,
@@ -67,6 +69,9 @@ export function MatchdayPage() {
   const withdrawWeeklyClaim = useWithdrawWeeklyClaim(matchday?.id)
   const joinStandby = useJoinStandby(matchday?.id)
   const leaveStandby = useLeaveStandby(matchday?.id)
+  const { data: prices = {} } = usePrices()
+  const { data: myPayments = [] } = useMyPayments(player?.id)
+  const startPayment = useStartPayment()
 
   if (matchdayLoading) {
     return <PageLoader />
@@ -106,6 +111,13 @@ export function MatchdayPage() {
   const optedOutIds = new Set(availability.filter((a) => a.status === 'out').map((a) => a.player_id))
   const monthlyInCount = monthlyMembers.filter((m) => !optedOutIds.has(m.player_id)).length
   const confirmedCount = weeklyClaims.length + monthlyInCount
+  const weeklyPayments = myPayments.filter((p) => p.kind === 'weekly' && p.matchday_id === matchday.id)
+  const monthlyPayments = myPayments.filter((p) => p.kind === 'monthly' && p.month === month)
+  const weeklyPaid = hasWeeklyClaim && weeklyPayments.some((p) => p.status === 'paid')
+  const monthlyPaid = isMonthlyMember && monthlyPayments.some((p) => p.status === 'paid')
+  const weeklyHold = weeklyPayments.find(isActiveHold)?.hold_until ?? null
+  const monthlyHold = monthlyPayments.find(isActiveHold)?.hold_until ?? null
+  const paying = startPayment.isPending || startPayment.isSuccess
 
   return (
     <div className="space-y-5">
@@ -182,6 +194,11 @@ export function MatchdayPage() {
           isWithdrawing={withdrawWeeklyClaim.isPending}
           isJoiningStandby={joinStandby.isPending}
           isLeavingStandby={leaveStandby.isPending}
+          weeklyPrice={prices.weekly}
+          isPaid={weeklyPaid}
+          heldUntil={weeklyHold}
+          onPay={() => startPayment.mutate({ kind: 'weekly', matchday_id: matchday.id })}
+          isPaying={paying && startPayment.variables?.kind === 'weekly'}
         />
       )}
 
@@ -195,6 +212,11 @@ export function MatchdayPage() {
               onClaim={() => player?.id && claimMonthlySlot.mutate(player.id)}
               isClaiming={claimMonthlySlot.isPending}
               availability={availability}
+              price={prices.monthly}
+              isPaid={monthlyPaid}
+              heldUntil={monthlyHold}
+              onPay={() => startPayment.mutate({ kind: 'monthly', month })}
+              isPaying={paying && startPayment.variables?.kind === 'monthly'}
             />
           )}
 

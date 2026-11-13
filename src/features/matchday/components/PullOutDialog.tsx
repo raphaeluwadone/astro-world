@@ -8,6 +8,13 @@ const COPY = {
     pending: 'Pulling out…',
     cancel: 'Stay in',
   },
+  paidClaim: {
+    title: 'Give up your paid spot?',
+    body: 'Your spot goes back up for anyone to claim, and an admin is told to refund you. Refunds are done by hand, so it can take a few days.',
+    confirm: 'Pull out',
+    pending: 'Pulling out…',
+    cancel: 'Stay in',
+  },
   standby: {
     title: 'Leave standby?',
     body: 'You lose your place in the queue. Join again later and you go to the back.',
