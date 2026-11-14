@@ -7,12 +7,16 @@ function average(nums: number[]) {
   return Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 10) / 10
 }
 
+type Totals = { appearances: number; goals: number; assists: number; motm: number; ownGoals: number; yellows: number; reds: number }
+
 export function StatsSection({
   matchRatings,
   careerStats,
+  seasonStats,
 }: {
   matchRatings: MatchRatingRow[]
-  careerStats: { appearances: number; goals: number; assists: number; motm: number }
+  careerStats: Totals
+  seasonStats: Totals | undefined
 }) {
   const [mode, setMode] = useState<'career' | 'season'>('career')
 
@@ -22,26 +26,20 @@ export function StatsSection({
     [matchRatings, seasonStart],
   )
 
-  const active = mode === 'career' ? matchRatings : seasonRatings
-  const avgRating = average(active.map((r) => r.avg_rating))
+  const avgRating = average((mode === 'career' ? matchRatings : seasonRatings).map((r) => r.avg_rating))
+  const totals = mode === 'career' ? careerStats : seasonStats
+  const show = (n: number | undefined) => n ?? '·'
 
-  // Career totals are exact (from dedicated queries); "this season" scopes
-  // appearances/goals/assists/MOTM to the same window using rated matches
-  // as the proxy, since those don't have their own season-filtered query
-  // yet — close enough for now, worth a real season-scoped query later.
-  const stats =
-    mode === 'career'
-      ? [
-          { label: 'Appearances', value: careerStats.appearances },
-          { label: 'Goals', value: careerStats.goals },
-          { label: 'Assists', value: careerStats.assists },
-          { label: 'Avg Rating', value: avgRating ?? '—' },
-          { label: 'MOTM', value: careerStats.motm },
-        ]
-      : [
-          { label: 'Appearances', value: seasonRatings.length },
-          { label: 'Avg Rating', value: avgRating ?? '—' },
-        ]
+  const stats = [
+    { label: 'Appearances', value: show(totals?.appearances) },
+    { label: 'Goals', value: show(totals?.goals) },
+    { label: 'Own goals', value: show(totals?.ownGoals) },
+    { label: 'Assists', value: show(totals?.assists) },
+    { label: 'Avg Rating', value: avgRating ?? '-' },
+    { label: 'MOTM', value: show(totals?.motm) },
+    { label: 'Yellow cards', value: show(totals?.yellows) },
+    { label: 'Red cards', value: show(totals?.reds) },
+  ]
 
   return (
     <div className="astro-card p-6">

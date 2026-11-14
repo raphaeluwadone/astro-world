@@ -25,8 +25,9 @@ export function useRejectClaim(reviewerPlayerId: string | undefined) {
 export function useFileMatchdayResults(matchdayId: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (fixtures: FixtureInput[]) => fileMatchdayResults(matchdayId!, fixtures),
+    mutationFn: ({ fixtures, checkedIn }: { fixtures: FixtureInput[]; checkedIn?: string[] }) => fileMatchdayResults(matchdayId!, fixtures, checkedIn),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pitch', matchdayId] })
       queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] })
       queryClient.invalidateQueries({ queryKey: ['matchday', 'last-complete'] })
     },

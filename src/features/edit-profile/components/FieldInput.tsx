@@ -1,3 +1,4 @@
+import { digitsOnly, withCommas } from '@/lib/numbers'
 import type { ReactNode } from 'react'
 
 export function FieldLabel({ children }: { children: ReactNode }) {
@@ -18,20 +19,26 @@ export function TextField({
   onChange,
   hint,
   type = 'text',
+  placeholder,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   hint?: string
-  type?: 'text' | 'number' | 'date' | 'time'
+  /** 'money' shows commas as you type and hands back digits only. */
+  type?: 'text' | 'number' | 'money' | 'date' | 'time'
+  placeholder?: string
 }) {
+  const money = type === 'money'
   return (
     <div>
       <FieldLabel>{label}</FieldLabel>
       <input
-        value={value}
-        type={type}
-        onChange={(e) => onChange(e.target.value)}
+        value={money ? withCommas(value) : value}
+        type={money ? 'text' : type}
+        inputMode={money || type === 'number' ? 'numeric' : undefined}
+        placeholder={placeholder}
+        onChange={(e) => onChange(money ? digitsOnly(e.target.value) : e.target.value)}
         className="flex min-h-[46px] w-full items-center rounded-[10px] border border-white/[0.12] bg-astro-surface-2 px-[15px] text-sm font-semibold text-astro-text focus:outline-none focus:ring-1 focus:ring-astro-accent"
       />
       {hint && <FieldHint>{hint}</FieldHint>}

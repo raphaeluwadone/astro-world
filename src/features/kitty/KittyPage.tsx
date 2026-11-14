@@ -1,8 +1,10 @@
+import { withConfirm } from '@/components/dialogs/confirm'
+import { confirmPay } from '@/features/matchday/confirmCopy'
 import { useState } from 'react'
+import { Scene } from '@/components/states/Scene'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import {
   useAllPlayers,
@@ -15,6 +17,7 @@ import {
   useSuggestCause,
 } from './hooks'
 import type { Cause } from './api'
+import { useStartPayment } from '@/features/payments/hooks'
 
 function formatNaira(amount: number) {
   return `₦${amount.toLocaleString('en-NG', { maximumFractionDigits: 0 })}`
@@ -111,9 +114,13 @@ function SuggestCauseForm({ suggestedBy }: { suggestedBy: string }) {
           type="button"
           disabled={!title.trim() || !description.trim() || suggest.isPending}
           onClick={() =>
-            suggest.mutate(
-              { title: title.trim(), description: description.trim(), suggestedBy },
-              { onSuccess: () => setOpen(false) },
+            withConfirm(
+              { title: 'Put this cause forward?', body: 'Everyone can see it. The admins set the target and the closing date.', confirmLabel: 'Send it' },
+              () =>
+                suggest.mutate(
+                  { title: title.trim(), description: description.trim(), suggestedBy },
+                  { onSuccess: () => setOpen(false) },
+                ),
             )
           }
           className="rounded-[10px] bg-astro-green px-4 py-2.5 text-[13px] font-extrabold text-[#08130c] disabled:opacity-60"
@@ -135,6 +142,7 @@ export function KittyPage() {
   const { data: paidCount = 0 } = useDuesPaidCount(duesQuarter?.id)
   const { data: causes = [], isLoading: causesLoading } = useCauses()
   const { data: allPlayers = [] } = useAllPlayers()
+  const startPayment = useStartPayment()
 
   if (duesLoading || causesLoading) return <PageLoader />
   if (duesError) return <ErrorState onRetry={() => refetchDues()} />
@@ -157,7 +165,7 @@ export function KittyPage() {
         </div>
 
         {!duesQuarter ? (
-          <EmptyState icon={<EmptyPitchIcon />} title="No dues quarter open yet." body="Check back once an admin opens one." />
+          <EmptyState icon={<Scene kind="kitty" />} title="No dues quarter open yet." body="Check back once an admin opens one." />
         ) : (
           <div
             className="overflow-hidden rounded-[18px] border-2 p-7"
@@ -174,9 +182,21 @@ export function KittyPage() {
                   You&rsquo;re paid up for Q{duesQuarter.quarter}
                 </div>
               ) : (
-                <div className="rounded-full border border-border bg-astro-surface-2 px-3.5 py-2 text-[12.5px] font-extrabold text-astro-text-muted">
-                  {daysUntil(duesQuarter.due_date) >= 0 ? `${daysUntil(duesQuarter.due_date)} days left` : 'Overdue'} &middot; pay an admin directly
-                </div>
+                <>
+                  {player && (
+                    <button
+                      type="button"
+                      disabled={startPayment.isPending || startPayment.isSuccess}
+                      onClick={() => withConfirm(confirmPay('dues', duesQuarter.amount), () => startPayment.mutate({ kind: 'dues', dues_quarter_id: duesQuarter.id }))}
+                      className="rounded-[11px] bg-astro-amber px-[18px] py-3 text-[13px] font-extrabold text-[#1c1405] disabled:opacity-60"
+                    >
+                      {startPayment.isPending || startPayment.isSuccess ? 'Opening Paystack…' : `Pay ${formatNaira(duesQuarter.amount)} now`}
+                    </button>
+                  )}
+                  <div className="rounded-full border border-border bg-astro-surface-2 px-3.5 py-2 text-[12.5px] font-extrabold text-astro-text-muted">
+                    {daysUntil(duesQuarter.due_date) >= 0 ? `${daysUntil(duesQuarter.due_date)} days left` : 'Overdue'} &middot; or pay an admin directly
+                  </div>
+                </>
               )}
             </div>
             <p className="mt-4 text-[12.5px] text-astro-text-dim">

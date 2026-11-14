@@ -1,5 +1,9 @@
+import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import type { RankingRow } from '@/features/rankings/api'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
 export function TopOfThePile({ rankings }: { rankings: RankingRow[] }) {
   const topFour = [...rankings]
@@ -15,22 +19,27 @@ export function TopOfThePile({ rankings }: { rankings: RankingRow[] }) {
         </Link>
       </div>
       {topFour.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">Nobody qualifies yet.</p>
+        <NothingHere compact icon={<Scene kind="trophy" />} body="Nobody qualifies yet." />
       ) : (
         <div className="flex flex-col gap-2">
           {topFour.map((r, i) => (
-            <div key={r.id} className="flex items-center gap-3 rounded-[10px] bg-astro-surface-2 px-3 py-2.5">
+            <Link
+              key={r.id}
+              to="/players/$playerId"
+              params={{ playerId: r.id }}
+              className="flex items-center gap-3 rounded-[10px] bg-astro-surface-2 px-3 py-2.5 no-underline transition-colors hover:bg-[#1e2c56]"
+            >
               <div className="font-display w-5 text-xl text-astro-text-dim">{i + 1}</div>
-              <div
-                className="size-[30px] shrink-0 rounded-lg"
-                style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
-              />
+              <PlayerPhoto playerId={r.id} alt="" className="size-[30px] rounded-lg" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-extrabold text-astro-text">{r.nickname}</div>
+                <div className="flex min-w-0 items-center gap-1.5 text-[13px] font-extrabold text-astro-text">
+                  <span className="truncate">{r.nickname}</span>
+                  <BadgeMark playerId={r.id} size={14} />
+                </div>
                 <div className="truncate text-[11px] text-astro-text-dim">{r.full_name}</div>
               </div>
-              <div className="font-display text-[22px] text-astro-accent">{r.avg_rating ?? '—'}</div>
-            </div>
+              <div className="font-display text-[22px] text-astro-accent">{r.avg_rating ?? 'NR'}</div>
+            </Link>
           ))}
         </div>
       )}

@@ -1,4 +1,9 @@
+import { digitsOnly, withCommas } from '@/lib/numbers'
+import { confirmAction, undoToast, withConfirm } from '@/components/dialogs/confirm'
+import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { useState } from 'react'
+import { AstroSelect } from '@/components/ui/astro-select'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/states/ErrorState'
@@ -52,6 +57,8 @@ function OpenQuarterForm({ lastAmount }: { lastAmount: number }) {
       return
     }
     setError(null)
+    const ok = await confirmAction({ tone: 'admin', eyebrow: 'Dues', title: `Open Q${quarter} ${year} dues?`, body: `${formatNaira(parsed)} each. Everyone sees it on the Kitty and can pay straight away.`, confirmLabel: 'Open dues' })
+    if (!ok) return
     try {
       await createQuarter.mutateAsync({ year, quarter, amount: parsed, dueDate })
     } catch (err) {
@@ -66,7 +73,7 @@ function OpenQuarterForm({ lastAmount }: { lastAmount: number }) {
         The design's own figure is an unconfirmed placeholder. Set the real amount whenever you have it.
       </p>
       <div className="flex flex-col gap-4">
-        <TextField label="Amount per player (₦)" type="number" value={amount} onChange={setAmount} />
+        <TextField label="Amount per player (₦)" type="money" placeholder="e.g. 5,000" value={amount} onChange={setAmount} />
         <div>
           <FieldLabel>Due date</FieldLabel>
           <input
@@ -117,7 +124,9 @@ function DuesRoster({ duesQuarterId, markedBy }: { duesQuarterId: string; marked
                 type="button"
                 disabled={markPaid.isPending || unmarkPaid.isPending}
                 onClick={() =>
-                  paid ? unmarkPaid.mutate(p.id) : markPaid.mutate({ playerId: p.id, markedBy })
+                  paid
+                    ? unmarkPaid.mutate(p.id, { onSuccess: () => undoToast(`${p.nickname} marked unpaid`, () => markPaid.mutate({ playerId: p.id, markedBy })) })
+                    : markPaid.mutate({ playerId: p.id, markedBy }, { onSuccess: () => undoToast(`${p.nickname} marked paid`, () => unmarkPaid.mutate(p.id)) })
                 }
                 className={
                   paid
@@ -160,7 +169,7 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
 
       {cause.status === 'suggested' ? (
         <div className="flex flex-wrap items-end gap-2.5">
-          <TextField label="Target (₦)" type="number" value={targetAmount} onChange={setTargetAmount} />
+          <TextField label="Target (₦)" type="money" placeholder="e.g. 150,000" value={targetAmount} onChange={setTargetAmount} />
           <div>
             <FieldLabel>Closing date</FieldLabel>
             <input
@@ -173,7 +182,7 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
           <button
             type="button"
             disabled={!targetAmount || !deadline || openCause.isPending}
-            onClick={() => openCause.mutate({ causeId: cause.id, targetAmount: Number(targetAmount), deadline })}
+            onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Causes', title: `Open ${cause.title}?`, body: `Target ${formatNaira(Number(targetAmount))}, closing ${new Date(deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. Everyone sees it on the Kitty.`, confirmLabel: 'Open it' }, () => openCause.mutate({ causeId: cause.id, targetAmount: Number(targetAmount), deadline }))}
             className="rounded-lg bg-astro-green px-4 py-3 text-xs font-extrabold text-[#08130c] disabled:opacity-60"
           >
             Open it
@@ -186,38 +195,37 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
           </p>
           {cause.status === 'open' && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <select
+              <AstroSelect
+                size="sm"
+                placeholder="Add a contribution…"
                 value={contributorId}
-                onChange={(e) => setContributorId(e.target.value)}
-                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text"
-              >
-                <option value="">Add a contribution…</option>
-                {players
+                onValueChange={setContributorId}
+                options={players
                   .filter((p) => !contributedIds.has(p.id))
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nickname}
-                    </option>
-                  ))}
-              </select>
+                  .map((p) => ({ value: p.id, label: p.nickname }))}
+                className="flex-1"
+              />
               <input
-                type="number"
-                placeholder="₦ amount"
-                value={contributionAmount}
-                onChange={(e) => setContributionAmount(e.target.value)}
+                inputMode="numeric"
+                placeholder="₦ e.g. 2,000"
+                value={withCommas(contributionAmount)}
+                onChange={(e) => setContributionAmount(digitsOnly(e.target.value))}
                 className="w-28 rounded-lg border border-white/10 bg-astro-surface-2 px-2.5 py-2 text-xs font-bold text-astro-text"
               />
               <button
                 type="button"
                 disabled={!contributorId || !contributionAmount || recordContribution.isPending}
                 onClick={() => {
-                  recordContribution.mutate({
-                    playerId: contributorId,
-                    amount: Number(contributionAmount),
-                    markedBy,
+                  const who = players.find((p) => p.id === contributorId)?.nickname ?? 'them'
+                  withConfirm({ tone: 'admin', eyebrow: 'Causes', title: `Record ${formatNaira(Number(contributionAmount))} from ${who}?`, body: 'It counts towards the target and shows on the cause.', confirmLabel: 'Record it' }, () => {
+                    recordContribution.mutate({
+                      playerId: contributorId,
+                      amount: Number(contributionAmount),
+                      markedBy,
+                    })
+                    setContributorId('')
+                    setContributionAmount('')
                   })
-                  setContributorId('')
-                  setContributionAmount('')
                 }}
                 className="rounded-lg border border-border bg-astro-surface px-3 py-2 text-xs font-bold text-astro-text-muted hover:text-astro-text"
               >
@@ -229,7 +237,7 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
             <button
               type="button"
               disabled={setStatus.isPending}
-              onClick={() => setStatus.mutate({ causeId: cause.id, status: 'met' })}
+              onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Causes', title: `Mark ${cause.title} met?`, body: 'It closes to new contributions and shows as met.', confirmLabel: 'Mark met' }, () => setStatus.mutate({ causeId: cause.id, status: 'met' }, { onSuccess: () => undoToast(`${cause.title} marked met`, () => setStatus.mutate({ causeId: cause.id, status: 'open' })) }))}
               className="text-xs font-bold text-astro-text-dim hover:text-astro-green"
             >
               Mark met
@@ -241,11 +249,10 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
   )
 }
 
-export function KittyAdminPage() {
+export function DuesAdminPage() {
   const { player } = useCurrentPlayer()
   const { data: duesQuarter, isLoading, isError, refetch } = useCurrentDuesQuarter()
   const { data: paidCount = 0 } = useDuesPaidCount(duesQuarter?.id)
-  const { data: causes = [] } = useCauses()
 
   if (isLoading) return <PageLoader />
   if (isError) return <ErrorState onRetry={() => refetch()} />
@@ -253,13 +260,10 @@ export function KittyAdminPage() {
 
   return (
     <div>
-      <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-        Dues and causes
-      </div>
-      <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Kitty</h1>
+      <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">Money</div>
+      <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Dues</h1>
 
-      <div className="mb-8 flex flex-col gap-5">
-        <div className="font-display text-2xl leading-none text-astro-text">Dues</div>
+      <div className="flex flex-col gap-5">
         {!duesQuarter ? (
           <OpenQuarterForm lastAmount={12000} />
         ) : (
@@ -280,10 +284,25 @@ export function KittyAdminPage() {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+export function CausesAdminPage() {
+  const { player } = useCurrentPlayer()
+  const { data: causes = [], isLoading, isError, refetch } = useCauses()
+
+  if (isLoading) return <PageLoader />
+  if (isError) return <ErrorState onRetry={() => refetch()} />
+  if (!player) return null
+
+  return (
+    <div>
+      <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">Money</div>
+      <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Causes</h1>
 
       <div className="flex flex-col gap-4">
-        <div className="font-display text-2xl leading-none text-astro-text">Causes</div>
-        {causes.length === 0 && <p className="text-sm text-astro-text-dim">Nobody has suggested one yet.</p>}
+        {causes.length === 0 && <NothingHere compact icon={<Scene kind="kitty" />} body="Nobody has suggested one yet." />}
         {causes.map((c) => (
           <CauseAdminRow key={c.id} cause={c} markedBy={player.id} />
         ))}

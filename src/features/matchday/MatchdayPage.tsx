@@ -1,21 +1,28 @@
+import { withConfirm } from '@/components/dialogs/confirm'
+import { CONFIRM_CLAIM, CONFIRM_CLAIM_MONTHLY, CONFIRM_JOIN_STANDBY, confirmPay } from './confirmCopy'
+import { toast } from 'sonner'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import { useState, type ReactNode } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
-import { DrumLoader } from '@/components/states/DrumLoader'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useCancelMatchday } from '@/features/admin/hooks'
 import { monthOf } from './api'
 import { AvailabilityCard } from './components/AvailabilityCard'
+import { RatingsBanner } from '@/features/voting/components/RatingsPrompt'
 import { DrawnTeams } from './components/DrawnTeams'
+import { MyMatchdayCard } from './components/MyMatchdayCard'
 import { LastResults } from './components/LastResults'
 import { MonthlySlots } from './components/MonthlySlots'
 import { StandbyQueue } from './components/StandbyQueue'
-import { useRunTeamDraw } from './draw/hooks'
+import { RULE_COPY, RULE_ORDER } from './draw/components/DrawRulesForm'
+import { useDrawRules } from './draw/hooks'
+import { isActiveHold } from '@/features/payments/api'
+import { useMyPayments, usePrices, useStartPayment } from '@/features/payments/hooks'
 import {
   useAvailability,
   useClaimMonthlySlot,
@@ -54,7 +61,7 @@ export function MatchdayPage() {
   const { data: weeklyClaims = [] } = useWeeklyClaims(matchday?.id)
   const { data: standbyEntries = [] } = useStandbyEntries(matchday?.id)
   const { data: spotsRemaining = 0 } = useWeeklySpotsRemaining(matchday?.id)
-  const runDraw = useRunTeamDraw(matchday?.id)
+  const { data: drawRules } = useDrawRules()
   const updateCapacity = useUpdateMatchdayCapacity(matchday?.id)
   const cancelMatchday = useCancelMatchday(matchday?.id)
   const month = matchday ? monthOf(matchday.played_at) : undefined
@@ -64,6 +71,9 @@ export function MatchdayPage() {
   const withdrawWeeklyClaim = useWithdrawWeeklyClaim(matchday?.id)
   const joinStandby = useJoinStandby(matchday?.id)
   const leaveStandby = useLeaveStandby(matchday?.id)
+  const { data: prices = {} } = usePrices()
+  const { data: myPayments = [] } = useMyPayments(player?.id)
+  const startPayment = useStartPayment()
 
   if (matchdayLoading) {
     return <PageLoader />
@@ -82,8 +92,9 @@ export function MatchdayPage() {
         <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
           Matchday
         </h1>
+        <RatingsBanner className="mb-5" />
         <EmptyState
-          icon={<EmptyPitchIcon />}
+          icon={<Scene kind="calendar" />}
           title="Nobody's said yes yet."
           body="There's no upcoming matchday on the books. Check back once the admin opens one."
         />
@@ -102,6 +113,13 @@ export function MatchdayPage() {
   const optedOutIds = new Set(availability.filter((a) => a.status === 'out').map((a) => a.player_id))
   const monthlyInCount = monthlyMembers.filter((m) => !optedOutIds.has(m.player_id)).length
   const confirmedCount = weeklyClaims.length + monthlyInCount
+  const weeklyPayments = myPayments.filter((p) => p.kind === 'weekly' && p.matchday_id === matchday.id)
+  const monthlyPayments = myPayments.filter((p) => p.kind === 'monthly' && p.month === month)
+  const weeklyPaid = hasWeeklyClaim && weeklyPayments.some((p) => p.status === 'paid')
+  const monthlyPaid = isMonthlyMember && monthlyPayments.some((p) => p.status === 'paid')
+  const weeklyHold = weeklyPayments.find(isActiveHold)?.hold_until ?? null
+  const monthlyHold = monthlyPayments.find(isActiveHold)?.hold_until ?? null
+  const paying = startPayment.isPending || startPayment.isSuccess
 
   return (
     <div className="space-y-5">
@@ -142,26 +160,49 @@ export function MatchdayPage() {
         }}
       />
 
-      <AvailabilityCard
-        matchdayId={matchday.id}
-        playerId={player?.id ?? null}
-        isOpen={matchday.status === 'open'}
-        daysUntil={daysUntil}
-        isMonthlyMember={isMonthlyMember}
-        monthlyOptStatus={monthlyOptStatus}
-        hasWeeklyClaim={hasWeeklyClaim}
-        isOnStandby={isOnStandby}
-        standbyPosition={isOnStandby ? standbyIndex + 1 : null}
-        spotsRemaining={spotsRemaining}
-        onClaim={() => player?.id && claimWeeklySpot.mutate(player.id)}
-        onWithdrawClaim={() => player?.id && withdrawWeeklyClaim.mutate(player.id)}
-        onJoinStandby={() => player?.id && joinStandby.mutate(player.id)}
-        onLeaveStandby={() => player?.id && leaveStandby.mutate(player.id)}
-        isClaiming={claimWeeklySpot.isPending}
-        isWithdrawing={withdrawWeeklyClaim.isPending}
-        isJoiningStandby={joinStandby.isPending}
-        isLeavingStandby={leaveStandby.isPending}
-      />
+      <RatingsBanner />
+
+      {matchday.status === 'drawn' && <MyMatchdayCard matchdayId={matchday.id} teams={teams} playerId={player?.id} />}
+
+      {matchday.status !== 'drawn' && matchday.status !== 'played' && (
+        <AvailabilityCard
+          matchdayId={matchday.id}
+          playerId={player?.id ?? null}
+          isOpen={matchday.status === 'open'}
+          daysUntil={daysUntil}
+          isMonthlyMember={isMonthlyMember}
+          monthlyOptStatus={monthlyOptStatus}
+          hasWeeklyClaim={hasWeeklyClaim}
+          isOnStandby={isOnStandby}
+          standbyPosition={isOnStandby ? standbyIndex + 1 : null}
+          spotsRemaining={spotsRemaining}
+          onClaim={() => player?.id && withConfirm(CONFIRM_CLAIM, () => claimWeeklySpot.mutate(player.id))}
+          onWithdrawClaim={() =>
+            player?.id &&
+            withdrawWeeklyClaim.mutate(player.id, {
+              onSuccess: () => toast.success("You've pulled out"),
+              onError: () => toast.error("Couldn't do that. Claims may have just closed."),
+            })
+          }
+          onJoinStandby={() => player?.id && withConfirm(CONFIRM_JOIN_STANDBY, () => joinStandby.mutate(player.id))}
+          onLeaveStandby={() =>
+            player?.id &&
+            leaveStandby.mutate(player.id, {
+              onSuccess: () => toast.success("You've left standby"),
+              onError: () => toast.error("Couldn't do that. Try again."),
+            })
+          }
+          isClaiming={claimWeeklySpot.isPending}
+          isWithdrawing={withdrawWeeklyClaim.isPending}
+          isJoiningStandby={joinStandby.isPending}
+          isLeavingStandby={leaveStandby.isPending}
+          weeklyPrice={prices.weekly}
+          isPaid={weeklyPaid}
+          heldUntil={weeklyHold}
+          onPay={() => withConfirm(confirmPay('weekly', prices.weekly), () => startPayment.mutate({ kind: 'weekly', matchday_id: matchday.id }))}
+          isPaying={paying && startPayment.variables?.kind === 'weekly'}
+        />
+      )}
 
       <div className="grid items-start gap-5 lg:grid-cols-[1fr_1.15fr]">
         <div className="flex min-w-0 flex-col gap-5">
@@ -170,9 +211,14 @@ export function MatchdayPage() {
               members={monthlyMembers}
               monthLabel={new Date(matchday.played_at).toLocaleDateString('en-GB', { month: 'long' })}
               playerId={player?.id ?? null}
-              onClaim={() => player?.id && claimMonthlySlot.mutate(player.id)}
+              onClaim={() => player?.id && withConfirm(CONFIRM_CLAIM_MONTHLY, () => claimMonthlySlot.mutate(player.id))}
               isClaiming={claimMonthlySlot.isPending}
               availability={availability}
+              price={prices.monthly}
+              isPaid={monthlyPaid}
+              heldUntil={monthlyHold}
+              onPay={() => withConfirm(confirmPay('monthly', prices.monthly), () => startPayment.mutate({ kind: 'monthly', month }))}
+              isPaying={paying && startPayment.variables?.kind === 'monthly'}
             />
           )}
 
@@ -210,9 +256,9 @@ export function MatchdayPage() {
                     : `${confirmedCount} confirmed, ${standbyEntries.length} on standby.`}
                 </p>
               </div>
-              {player?.is_admin && matchday.status === 'open' && teams.length === 0 && !runDraw.isPending && (
-                <Button onClick={() => runDraw.mutate()} disabled={runDraw.isPending}>
-                  Run the Draw
+              {player?.is_admin && matchday.status === 'open' && teams.length === 0 && (
+                <Button asChild>
+                  <Link to="/admin/pitch">Run the draw on Pitch-side</Link>
                 </Button>
               )}
             </div>
@@ -225,7 +271,12 @@ export function MatchdayPage() {
                     key={cap}
                     type="button"
                     disabled={updateCapacity.isPending}
-                    onClick={() => updateCapacity.mutate(cap)}
+                    onClick={() =>
+                      withConfirm(
+                        { tone: 'admin', eyebrow: 'Matchday control', title: `Switch to ${cap / 6} teams?`, body: `Capacity becomes ${cap}. Spots left update for everyone straight away.`, confirmLabel: `Make it ${cap}` },
+                        () => updateCapacity.mutate(cap),
+                      )
+                    }
                     className={
                       matchday.capacity === cap
                         ? 'rounded-lg bg-astro-accent px-3 py-1.5 text-xs font-extrabold text-astro-on-accent'
@@ -238,30 +289,18 @@ export function MatchdayPage() {
               </div>
             )}
 
-            {runDraw.isPending ? (
-              <DrumLoader label="Drawing the sides…" />
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                <InfoPill color="#4ade80" icon="check">No repeat pairings from last Sunday</InfoPill>
-                <InfoPill color="#4ade80" icon="check">
-                  Teams of 6 &middot; {matchday.capacity / 6} sides
-                </InfoPill>
-                <InfoPill color="#38bdf8" icon="info">First to pay, never a lottery</InfoPill>
-                <InfoPill color="#38bdf8" icon="info">Rating is not used to balance sides</InfoPill>
-              </div>
-            )}
-
-            {runDraw.isSuccess && (
-              <p className="mt-3 text-xs text-astro-text-muted">
-                Drawn: {runDraw.data.repeatPairingsCount} repeat pairing
-                {runDraw.data.repeatPairingsCount === 1 ? '' : 's'} from last week.
-              </p>
-            )}
-            {runDraw.isError && (
-              <p className="mt-3 text-xs text-astro-red">
-                {runDraw.error instanceof Error ? runDraw.error.message : 'Something went wrong.'}
-              </p>
-            )}
+            <div className="flex flex-wrap gap-2">
+              <InfoPill color="#4ade80" icon="check">
+                Teams of 6 &middot; {matchday.capacity / 6} sides
+              </InfoPill>
+              <InfoPill color="#38bdf8" icon="info">First to pay, never a lottery</InfoPill>
+              {drawRules &&
+                RULE_ORDER.filter((k) => drawRules[k]).map((k) => (
+                  <InfoPill key={k} color="#4ade80" icon="check">
+                    {RULE_COPY[k].label}
+                  </InfoPill>
+                ))}
+            </div>
           </div>
 
           {teams.length > 0 && <DrawnTeams teams={teams} />}

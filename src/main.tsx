@@ -3,6 +3,7 @@ import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { toast } from 'sonner'
+import { ConfirmHost } from '@/components/dialogs/confirm'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import './index.css'
@@ -26,6 +27,7 @@ createRoot(document.getElementById('root')!).render(
       <TooltipProvider>
         <RouterProvider router={router} />
         <Toaster />
+        <ConfirmHost />
       </TooltipProvider>
     </QueryClientProvider>
   </StrictMode>,

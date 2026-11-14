@@ -16,4 +16,40 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // for "convenience" — that would bypass RLS, which is the actual
 // enforcement mechanism behind vote anonymity. See project memory /
 // the design handoff for why that matters here specifically.
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+const REMEMBER_KEY = 'astro:remember'
+
+function store(remembered: boolean) {
+  return remembered ? window.localStorage : window.sessionStorage
+}
+
+/** "Remember me" off keeps the session in sessionStorage, so it ends when the browser closes. */
+export function setRememberMe(on: boolean) {
+  try {
+    if (on) localStorage.removeItem(REMEMBER_KEY)
+    else localStorage.setItem(REMEMBER_KEY, 'off')
+  } catch {
+    // Storage blocked: Supabase falls back to memory anyway.
+  }
+}
+
+export function getRememberMe() {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) !== 'off'
+  } catch {
+    return true
+  }
+}
+
+const authStorage = {
+  getItem: (key: string) => sessionStorage.getItem(key) ?? localStorage.getItem(key),
+  setItem: (key: string, value: string) => {
+    store(getRememberMe()).setItem(key, value)
+    store(!getRememberMe()).removeItem(key)
+  },
+  removeItem: (key: string) => {
+    localStorage.removeItem(key)
+    sessionStorage.removeItem(key)
+  },
+}
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, { auth: { storage: authStorage } })

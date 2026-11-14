@@ -5,11 +5,15 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
+import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
+import { getRememberMe, setRememberMe } from '@/lib/supabase'
 import { AuthLayout } from './AuthLayout'
-import { signIn } from './api'
+import { authMessage, sendEmailCode, sendResetLink, signIn } from './api'
+import { EmailCodeStep, GoogleButton } from './AuthExtras'
 import { usePublicRosterSize } from './hooks'
 
 const schema = z.object({
@@ -19,17 +23,21 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+export const LEFT_NOTICE = 'This account is switched off because you’ve left Astro. Ask an admin if you’re coming back.'
+
 export function WelcomePage({
   redirectTo,
   initialView = 'landing',
+  notice,
 }: {
   redirectTo?: string
   initialView?: 'landing' | 'signin'
+  notice?: string
 }) {
   const [view, setView] = useState(initialView)
 
   if (view === 'signin') {
-    return <SignInForm onBack={() => setView('landing')} redirectTo={redirectTo} />
+    return <SignInForm onBack={() => setView('landing')} redirectTo={redirectTo} notice={notice} />
   }
   return <LandingHero onSignIn={() => setView('signin')} />
 }
@@ -41,16 +49,12 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
     <div className="relative flex min-h-screen flex-col items-center bg-astro-bg px-5 py-9 pb-[70px]">
       <JoinBackdrop />
       <div className="relative z-[1] w-full max-w-[560px]" style={{ animation: 'jn-in 540ms cubic-bezier(.2,.8,.2,1) both' }}>
-        <div className="mb-[26px] flex justify-center">
-          <svg width="72" height="72" viewBox="0 0 24 24" style={{ animation: 'jn-spin 46s linear infinite' }}>
+        <div className="relative mx-auto mb-[26px] flex size-[72px] items-center justify-center">
+          <svg className="absolute inset-0" width="72" height="72" viewBox="0 0 24 24" style={{ animation: 'jn-spin 46s linear infinite' }}>
             <circle cx="12" cy="12" r="11" fill="none" stroke="rgba(166,63,255,0.45)" strokeWidth={0.6} />
             <path d="M12 1 12 23M1 12h22M4 4l16 16M20 4 4 20" stroke="rgba(166,63,255,0.2)" strokeWidth={0.5} />
-            <path
-              d="M50.00 4.00L59.40 37.06L93.75 35.79L65.22 54.94L77.04 87.21L50.00 66.00L22.96 87.21L34.78 54.94L6.25 35.79L40.60 37.06Z"
-              fill="#a63fff"
-              transform="scale(0.2) translate(10 10)"
-            />
           </svg>
+          <BrandMarkIcon className="absolute h-11 w-auto" />
         </div>
 
         <div className="mb-[30px] text-center">
@@ -73,7 +77,7 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="shrink-0 text-astro-on-accent">
               <path d="M8.4 3.6 16.8 12l-8.4 8.4Z" />
-            </svg>
+          </svg>
           </button>
           <Link
             to="/signup"
@@ -85,7 +89,7 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#c589ff" className="shrink-0">
               <path d="M8.4 3.6 16.8 12l-8.4 8.4Z" />
-            </svg>
+          </svg>
           </Link>
         </div>
 
@@ -127,46 +131,120 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
   )
 }
 
-function SignInForm({ onBack, redirectTo }: { onBack: () => void; redirectTo?: string }) {
+function SignInForm({ onBack, redirectTo, notice }: { onBack: () => void; redirectTo?: string; notice?: string }) {
   const navigate = useNavigate()
-  const [formError, setFormError] = useState<string | null>(null)
+  const [step, setStep] = useState<'password' | 'code' | 'forgot' | 'forgot-sent'>('password')
+  const [formError, setFormError] = useState<string | null>(notice ?? null)
+  const [sending, setSending] = useState(false)
   const {
     register,
     handleSubmit,
+    trigger,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  const [remember, setRemember] = useState(getRememberMe)
+  const done = () => navigate({ to: redirectTo ?? '/' })
+  const toggleRemember = (on: boolean) => {
+    setRemember(on)
+    setRememberMe(on)
+  }
 
   const onSubmit = async (values: FormValues) => {
     setFormError(null)
     try {
       await signIn(values)
-      await navigate({ to: redirectTo ?? '/' })
+      await done()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Something went wrong.')
+      setFormError(authMessage(err))
     }
   }
 
+  // Code and reset only need a valid email, not a password.
+  const withEmail = async (send: (email: string) => Promise<void>, next: typeof step) => {
+    setFormError(null)
+    if (!(await trigger('email'))) return
+    setSending(true)
+    try {
+      await send(getValues('email'))
+      setStep(next)
+    } catch (err) {
+      setFormError(authMessage(err))
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (step === 'code') {
+    return (
+      <AuthLayout subtitle="Check your email">
+        <EmailCodeStep email={getValues('email')} createUser={false} redirect={redirectTo} onDone={done} onBack={() => setStep('password')} />
+      </AuthLayout>
+    )
+  }
+
+  if (step === 'forgot-sent') {
+    return (
+      <AuthLayout subtitle="Check your email">
+        <p className="text-sm text-astro-text-muted [text-wrap:pretty]">
+          If <span className="font-bold text-astro-text">{getValues('email')}</span> has an account, a link to set a new password is on its way.
+        </p>
+        <button type="button" onClick={() => setStep('password')} className="mt-5 w-full text-center text-xs font-semibold text-astro-text-muted hover:text-astro-text">
+          &larr; Back to sign in
+        </button>
+      </AuthLayout>
+    )
+  }
+
+  const forgot = step === 'forgot'
   return (
-    <AuthLayout subtitle="Sign in to your account">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <AuthLayout subtitle={forgot ? 'Reset your password' : 'Sign in to your account'}>
+      {!forgot && <GoogleButton redirect={redirectTo} onError={setFormError} />}
+      <form
+        onSubmit={forgot ? (e) => (e.preventDefault(), withEmail(sendResetLink, 'forgot-sent')) : handleSubmit(onSubmit)}
+        className="space-y-4"
+      >
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" autoComplete="email" {...register('email')} />
           {errors.email && <p className="text-xs text-astro-red">{errors.email.message}</p>}
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" autoComplete="current-password" {...register('password')} />
-          {errors.password && <p className="text-xs text-astro-red">{errors.password.message}</p>}
-        </div>
+        {!forgot && (
+          <div className="space-y-1.5">
+            <div className="flex items-baseline justify-between">
+              <Label htmlFor="password">Password</Label>
+              <button type="button" onClick={() => (setFormError(null), setStep('forgot'))} className="text-xs font-semibold text-astro-accent">
+                Forgot password?
+              </button>
+            </div>
+            <PasswordInput id="password" autoComplete="current-password" {...register('password')} />
+            {errors.password && <p className="text-xs text-astro-red">{errors.password.message}</p>}
+          </div>
+        )}
+        {!forgot && (
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-astro-text-muted">
+            <input type="checkbox" checked={remember} onChange={(e) => toggleRemember(e.target.checked)} className="size-4 accent-astro-accent" />
+            Remember me
+          </label>
+        )}
         {formError && <p className="text-xs text-astro-red">{formError}</p>}
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        <Button type="submit" disabled={isSubmitting || sending} className="w-full">
+          {forgot ? (sending ? 'Sending…' : 'Email me a reset link') : isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
+      {!forgot && (
+        <button
+          type="button"
+          disabled={sending}
+          onClick={() => withEmail((email) => sendEmailCode(email, { createUser: false, redirect: redirectTo }), 'code')}
+          className="mt-3 w-full text-center text-xs font-semibold text-astro-accent disabled:opacity-50"
+        >
+          {sending ? 'Sending…' : 'Email me a sign-in code instead'}
+        </button>
+      )}
       <button
         type="button"
-        onClick={onBack}
+        onClick={forgot ? () => (setFormError(null), setStep('password')) : onBack}
         className="mt-5 w-full text-center text-xs font-semibold text-astro-text-muted hover:text-astro-text"
       >
         &larr; Back

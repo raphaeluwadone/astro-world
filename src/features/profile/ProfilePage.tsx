@@ -1,10 +1,13 @@
 import { Link } from '@tanstack/react-router'
+import { currentSeasonStart } from '@/lib/season'
+import { BadgeCabinet, BadgeRail, holdsCup, NewBadgeBanner } from '@/features/badges/components/ProfileBadges'
+import { usePlayerBadges } from '@/features/badges/hooks'
 import { useCurrentPlayer } from '@/features/auth/useSession'
+import { PhotoControls } from '@/features/photos/PhotoControls'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
-import { Achievements } from './components/Achievements'
 import { Comparisons } from './components/Comparisons'
 import { HeroCard } from './components/HeroCard'
 import { InfoPanel } from './components/InfoPanel'
@@ -31,8 +34,10 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
   const { data: matchRatings = [] } = useMatchRatings(playerId)
   const { data: matchHistory = [] } = useMatchHistory(playerId)
   const { data: careerStats } = useCareerStats(playerId)
+  const { data: seasonStats } = useCareerStats(playerId, currentSeasonStart().toISOString())
   const { data: tags = [] } = usePlayerTags(playerId)
   const { data: comparisons = [] } = useComparisons(playerId, currentPlayer?.id)
+  const badges = usePlayerBadges(playerId)
 
   if (isLoading) return <PageLoader />
   if (isError) return <ErrorState onRetry={() => refetch()} />
@@ -52,12 +57,16 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
     goals: careerStats.goals + player.legacy_goals,
     assists: careerStats.assists + player.legacy_assists,
     motm: careerStats.motm,
+    ownGoals: careerStats.ownGoals,
+    yellows: careerStats.yellows + player.legacy_yellow_cards,
+    reds: careerStats.reds + player.legacy_red_cards,
   }
 
   return (
     <div className="space-y-5">
+      <NewBadgeBanner badges={badges} nickname={player.nickname} isOwn={isOwnProfile} />
       <div className="mb-1 flex flex-wrap items-end justify-between gap-4">
-        <div>
+        <div className="min-w-0 max-w-full">
           <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
             Player profile
           </div>
@@ -65,6 +74,7 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
             {player.nickname.toUpperCase()}
           </h1>
           <div className="mt-1 text-sm text-astro-text-muted">{player.full_name}</div>
+          <BadgeRail badges={badges} />
         </div>
         {isOwnProfile && (
           <Link
@@ -77,21 +87,36 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
             Edit profile
           </Link>
         )}
+        {!isOwnProfile && currentPlayer && (
+          <Link
+            to="/compare"
+            search={{ ids: `${currentPlayer.id},${player.id}` }}
+            className="rounded-[11px] border border-[rgba(166,63,255,0.4)] bg-astro-surface-2 px-[18px] py-3 text-[13px] font-extrabold text-astro-accent-soft hover:bg-astro-accent/10"
+          >
+            Compare with me
+          </Link>
+        )}
+        {!isOwnProfile && currentPlayer?.is_admin && (
+          <div className="flex flex-col items-end gap-1.5">
+            <span className="text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-astro-cyan">Admin · card photo</span>
+            <PhotoControls playerId={player.id} size="sm" />
+          </div>
+        )}
       </div>
 
       <div className="grid items-start gap-5.5 lg:grid-cols-[320px_1fr]">
-        <HeroCard player={player} careerAvg={careerAvg} tags={tags} />
+        <HeroCard player={player} careerAvg={careerAvg} tags={tags} badges={badges} cupWinner={holdsCup(badges)} />
         <InfoPanel player={player} />
       </div>
 
-      {combinedCareerStats && <StatsSection matchRatings={matchRatings} careerStats={combinedCareerStats} />}
+      <BadgeCabinet badges={badges} nickname={player.nickname} />
 
-      <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}>
-        <RecentForm matchRatings={matchRatings} />
-        {combinedCareerStats && <Achievements playerId={playerId} stats={combinedCareerStats} />}
+      {combinedCareerStats && <StatsSection matchRatings={matchRatings} careerStats={combinedCareerStats} seasonStats={seasonStats} />}
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <RecentForm matchRatings={matchRatings} compact showStats />
+        <MatchHistoryList history={matchHistory} />
       </div>
-
-      <MatchHistoryList history={matchHistory} />
 
       <Comparisons
         comparisons={comparisons}

@@ -25,7 +25,7 @@ export function SelfTagsCard({
 
   return (
     <div className="astro-card p-6">
-      <h2 className="mb-1.5 font-display text-[28px] leading-none text-astro-text">Your Own Tags</h2>
+      <h2 className="mb-1.5 font-display text-[28px] leading-none text-astro-text">Your Own Traits</h2>
       <p className="mb-4 text-[13px] text-astro-text-dim">
         Two of your own. The rest are voted onto you, and you can&rsquo;t take those off.
       </p>
@@ -66,7 +66,7 @@ export function SelfTagsCard({
       {picking && (
         <div className="mt-3.5 flex flex-wrap gap-2">
           {available.length === 0 ? (
-            <p className="text-sm text-astro-text-dim">No tags left in the pool to add.</p>
+            <p className="text-sm text-astro-text-dim">No traits left in the pool to add.</p>
           ) : (
             available.map((t) => (
               <button

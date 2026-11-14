@@ -1,7 +1,9 @@
 import {
   ArticlesIcon,
+  GuideIcon,
   CommunityIcon,
   HomeIcon,
+  HonoursIcon,
   KittyIcon,
   MatchdayIcon,
   PlayersIcon,
@@ -19,6 +21,8 @@ export interface NavItem {
   icon: ComponentType<SVGProps<SVGSVGElement>>
   /** Section is real in the design but has no route yet: shown, not clickable. */
   disabled?: boolean
+  /** Sub-pages listed under this item. */
+  children?: { label: string; to: string }[]
 }
 
 /**
@@ -33,12 +37,14 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
   { label: 'Matchday', to: '/matchday', icon: MatchdayIcon },
   { label: 'Salami Cup', to: '/salami-cup', icon: SalamiCupIcon },
   { label: 'Community', to: '/community', icon: CommunityIcon },
-  { label: 'Players', to: '/players', icon: PlayersIcon },
+  { label: 'Honours', to: '/honours', icon: HonoursIcon, children: [{ label: 'Awards', to: '/awards' }] },
+  { label: 'Players', to: '/players', icon: PlayersIcon, children: [{ label: 'He Is Him', to: '/him' }] },
   { label: 'Rankings', to: '/rankings', icon: RankingsIcon },
   { label: 'Predictions', to: '/predictions', icon: PredictionsIcon, disabled: true },
   { label: 'Articles', to: '/articles', icon: ArticlesIcon },
   { label: 'Kitty', to: '/kitty', icon: KittyIcon },
   { label: 'Rules', to: '/rules', icon: RulesIcon },
+  { label: 'How Astro works', to: '/guide', icon: GuideIcon },
   { label: 'Profile', to: '/profile', icon: ProfileIcon },
 ]
 

@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#a63fff" />
-      <stop offset="100%" stop-color="#7c22e0" />
-    </linearGradient>
-  </defs>
-  <rect width="100" height="100" rx="24" fill="url(#g)" />
-  <path d="M50.00 17.80L56.58 40.94L80.63 40.05L60.65 53.46L68.93 76.05L50.00 61.20L31.07 76.05L39.35 53.46L19.38 40.05L43.42 40.94Z" fill="#0a0f1f" />
+  <rect width="100" height="100" rx="24" fill="#0a0f1f" />
+  <g transform="translate(5 9) scale(0.75)">
+    <ellipse cx="60" cy="50" rx="54" ry="19" fill="none" stroke="#6d3ec9" stroke-width="6" transform="rotate(-20 60 50)" />
+    <circle cx="60" cy="50" r="31" fill="#a63fff" />
+    <path d="M60 31 L74 41 L68 58 H52 L46 41 Z" fill="#0a0f1f" />
+    <path d="M18 66 Q60 88 103 46" fill="none" stroke="#eef0f9" stroke-width="6" stroke-linecap="round" />
+  </g>
 </svg>

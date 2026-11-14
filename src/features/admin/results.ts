@@ -4,7 +4,14 @@ export interface GoalInput {
   teamId: string
   scorerId: string
   assistId: string | null
-  minute: number
+  ownGoal: boolean
+}
+
+export interface CardInput {
+  teamId: string
+  playerId: string
+  kind: 'yellow' | 'red'
+  minute: number | null
 }
 
 export interface FixtureInput {
@@ -13,16 +20,14 @@ export interface FixtureInput {
   scoreA: number
   scoreB: number
   goals: GoalInput[]
+  /** Yellows and straight reds; the red for a second yellow is added by the database. */
+  cards: CardInput[]
 }
 
-/** Nothing has ever actually filed a matchday's results before: matches,
- * goals and match_players were only ever created by hand via SQL for
- * testing. This is the real admin action, not a queue/fixture generator
- * (the winner-stays-on queue format was deliberately left unmodelled
- * early in this project) — the admin just records whatever fixtures
- * actually happened. Everyone drawn into either side is recorded as
- * having played; there's no pitch-side substitution flow yet. */
-export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureInput[]) {
+/** Records whatever fixtures actually happened. Each side's drawn members count as having played,
+ * narrowed to those checked in on Pitch-side when anyone was. */
+export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureInput[], checkedIn: string[] = []) {
+  const here = new Set(checkedIn)
   for (const fixture of fixtures) {
     const { data: match, error: matchError } = await supabase
       .from('matches')
@@ -44,7 +49,9 @@ export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureI
     if (membersError) throw membersError
 
     const { error: playersError } = await supabase.from('match_players').insert(
-      (members ?? []).map((m) => ({ match_id: match.id, player_id: m.player_id, team_id: m.team_id })),
+      (members ?? [])
+        .filter((m) => here.size === 0 || here.has(m.player_id))
+        .map((m) => ({ match_id: match.id, player_id: m.player_id, team_id: m.team_id })),
     )
     if (playersError) throw playersError
 
@@ -55,10 +62,17 @@ export async function fileMatchdayResults(matchdayId: string, fixtures: FixtureI
           team_id: g.teamId,
           scorer_id: g.scorerId,
           assist_id: g.assistId,
-          minute: g.minute,
+          own_goal: g.ownGoal,
         })),
       )
       if (goalsError) throw goalsError
+    }
+
+    if (fixture.cards.length > 0) {
+      const { error: cardsError } = await supabase.from('cards').insert(
+        fixture.cards.map((c) => ({ match_id: match.id, team_id: c.teamId, player_id: c.playerId, kind: c.kind, minute: c.minute })),
+      )
+      if (cardsError) throw cardsError
     }
   }
 

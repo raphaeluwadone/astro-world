@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
+import { cn } from 'cn'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -15,6 +16,7 @@ import { SIDEBAR_NAV_ITEMS } from './nav-items'
  */
 export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
   const { player } = useCurrentPlayer()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
   const { data: matchday } = useNextMatchday()
   const { data: weeklyClaims = [] } = useWeeklyClaims(matchday?.id)
   const { data: monthlyMembers = [] } = useMonthlyMembers(matchday ? monthOf(matchday.played_at) : undefined)
@@ -29,17 +31,12 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <div className="flex items-center gap-2.5 px-2">
-        <div
-          className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-gradient-to-br from-astro-accent to-astro-accent-strong"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%)' }}
-        >
-          <BrandMarkIcon className="size-[18px]" />
-        </div>
+        <BrandMarkIcon className="h-9 w-auto shrink-0" />
         <Wordmark size={27} className="leading-none text-astro-text" />
       </div>
 
       <nav className="flex flex-col gap-[3px]">
-        {SIDEBAR_NAV_ITEMS.map(({ label, to, icon: Icon, disabled }) => {
+        {SIDEBAR_NAV_ITEMS.map(({ label, to, icon: Icon, disabled, children }) => {
           const badge =
             label === 'Matchday' && daysUntil !== null && daysUntil >= 0 ? (
               <span className="astro-marker">{daysUntil === 0 ? 'Today' : daysUntil}</span>
@@ -57,12 +54,13 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
             )
           }
 
-          return (
+          const inChild = children?.some((c) => pathname === c.to || pathname.startsWith(`${c.to}/`))
+          const link = (
             <Link
               key={to}
               to={to}
               activeOptions={{ exact: to === '/' }}
-              className="astro-nav__item no-underline"
+              className={cn('astro-nav__item no-underline', inChild && 'astro-nav__item--parent')}
               activeProps={{ className: 'astro-nav__item--active' }}
               onClick={onNavigate}
             >
@@ -70,6 +68,17 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
               <span>{label}</span>
               {badge}
             </Link>
+          )
+          if (!children) return link
+          return (
+            <div key={to} className="flex flex-col gap-[3px]">
+              {link}
+              {children.map((c) => (
+                <Link key={c.to} to={c.to} className="astro-nav__sub no-underline" activeProps={{ className: 'astro-nav__sub--active' }} onClick={onNavigate}>
+                  {c.label}
+                </Link>
+              ))}
+            </div>
           )
         })}
       </nav>
@@ -94,24 +103,7 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         )}
 
-        <Link
-          to="/memorial"
-          onClick={onNavigate}
-          className="flex items-center gap-2.5 rounded-[11px] px-2 py-2.5 no-underline hover:bg-[rgba(166,63,255,0.07)]"
-        >
-          <div
-            className="flex size-7 shrink-0 items-center justify-center rounded-[8px] border border-[rgba(166,63,255,0.4)] bg-astro-surface-2 font-display text-[15px] text-astro-accent-soft"
-            style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
-          >
-            13
-          </div>
-          <div className="min-w-0">
-            <div className="text-[9.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
-              In memory
-            </div>
-            <div className="text-[12.5px] font-extrabold text-astro-text-muted">Salami</div>
-          </div>
-        </Link>
+        <MemorialLink active={pathname.startsWith('/memorial')} onNavigate={onNavigate} />
 
         {matchday && (
           <div className="rounded-[14px] border border-[rgba(166,63,255,0.22)] bg-astro-surface-2 p-3.5">
@@ -130,5 +122,59 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </div>
     </>
+  )
+}
+
+function MemorialLink({ active, onNavigate }: { active: boolean; onNavigate?: () => void }) {
+  const inner = (
+    <>
+      <div
+        className={cn(
+          'flex size-7 shrink-0 items-center justify-center rounded-[8px] border font-display text-[15px] transition-colors',
+          active
+            ? 'border-[#e8ecfa]/70 bg-[linear-gradient(150deg,#2b3a6e,#18234a)] text-[#f3f5ff] shadow-[0_0_14px_rgba(203,213,245,0.35)]'
+            : 'border-[rgba(166,63,255,0.4)] bg-astro-surface-2 text-astro-accent-soft',
+        )}
+        style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
+      >
+        13
+      </div>
+      <div className="min-w-0">
+        <div className={cn('text-[9.5px] font-extrabold uppercase tracking-[0.13em]', active ? 'text-[#cbd5f5]' : 'text-astro-text-dim')}>In memory</div>
+        <div className={cn('text-[12.5px] font-extrabold', active ? 'text-astro-text' : 'text-astro-text-muted')}>Salami</div>
+      </div>
+    </>
+  )
+
+  return (
+    <Link
+      to="/memorial"
+      onClick={onNavigate}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'relative block overflow-hidden rounded-[12px] no-underline',
+        active ? 'p-[1.5px]' : 'p-px hover:bg-[rgba(166,63,255,0.07)]',
+      )}
+    >
+      {active && (
+        <span
+          aria-hidden="true"
+          className="absolute left-1/2 top-1/2 aspect-square w-[160%]"
+          style={{
+            background: 'conic-gradient(from 0deg, transparent 0 55%, #a63fff 70%, #e8ecfa 82%, #38bdf8 92%, transparent 100%)',
+            transform: 'translate(-50%, -50%)',
+            animation: 'astro-memorial-orbit 3.2s linear infinite',
+          }}
+        />
+      )}
+      <span
+        className={cn(
+          'relative flex items-center gap-2.5 rounded-[11px] px-2 py-2.5',
+          active && 'bg-[linear-gradient(120deg,#1d2a55,#141d3c)] shadow-[inset_0_0_0_1px_rgba(203,213,245,0.12)]',
+        )}
+      >
+        {inner}
+      </span>
+    </Link>
   )
 }

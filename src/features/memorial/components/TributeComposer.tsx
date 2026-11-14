@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { RichEditor } from '@/components/editor/RichEditor'
 import { MemorialModal } from '@/components/dialogs/MemorialModal'
 import { VigilLoaderSmall } from '@/components/states/VigilLoader'
 
@@ -52,13 +53,17 @@ export function TributeComposer({
         onConfirm={submit}
         confirmDisabled={isSubmitting || !content.trim()}
       >
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={2}
-          placeholder="He never once passed to me."
-          className="w-full resize-none rounded-xl border border-[rgba(203,213,245,0.25)] bg-[#151c30] px-[17px] py-[15px] font-serif text-[17px] text-[#e8ecfa] placeholder:text-[#4d5578] focus:outline-none"
-        />
+        <div className="rounded-xl border border-[rgba(203,213,245,0.25)] bg-[#151c30] px-[17px] py-3 focus-within:border-[rgba(203,213,245,0.5)]">
+          <RichEditor
+            value={content}
+            onChange={setContent}
+            autoFocus
+            onSubmit={() => !isSubmitting && submit()}
+            placeholder="He never once passed to me."
+            aria-label="Your tribute"
+            contentClassName="min-h-[3.2em] font-serif text-[17px] leading-[1.5] text-[#e8ecfa]"
+          />
+        </div>
       </MemorialModal>
     </>
   )

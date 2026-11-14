@@ -12,6 +12,10 @@ export interface PlayerCardRow {
   favourite_club: string | null
   favourite_club_logo_url: string | null
   avg_rating: number | null
+  goals: number
+  assists: number
+  appearances: number
+  motm_count: number
   tags: string[]
 }
 
@@ -21,6 +25,7 @@ export async function fetchPlayerCards(): Promise<PlayerCardRow[]> {
       supabase
         .from('players')
         .select('id, nickname, full_name, positions, favourite_number, favourite_club, favourite_club_logo_url')
+        .is('left_at', null)
         .order('nickname', { ascending: true }),
       supabase.rpc('player_career_stats'),
       supabase.from('player_tags').select('player_id, tags (label)'),
@@ -29,7 +34,7 @@ export async function fetchPlayerCards(): Promise<PlayerCardRow[]> {
   if (statsError) throw statsError
   if (tagsError) throw tagsError
 
-  const ratingByPlayer = new Map((stats ?? []).map((s) => [s.player_id, s.avg_rating]))
+  const statsByPlayer = new Map((stats ?? []).map((s) => [s.player_id, s]))
   const tagsByPlayer = new Map<string, string[]>()
   for (const row of tags ?? []) {
     const label = (row.tags as unknown as { label: string } | null)?.label
@@ -41,7 +46,11 @@ export async function fetchPlayerCards(): Promise<PlayerCardRow[]> {
 
   return (players ?? []).map((p) => ({
     ...p,
-    avg_rating: ratingByPlayer.get(p.id) ?? null,
-    tags: (tagsByPlayer.get(p.id) ?? []).slice(0, 2),
+    avg_rating: statsByPlayer.get(p.id)?.avg_rating ?? null,
+    goals: statsByPlayer.get(p.id)?.goals ?? 0,
+    assists: statsByPlayer.get(p.id)?.assists ?? 0,
+    appearances: statsByPlayer.get(p.id)?.appearances ?? 0,
+    motm_count: statsByPlayer.get(p.id)?.motm_count ?? 0,
+    tags: tagsByPlayer.get(p.id) ?? [],
   }))
 }

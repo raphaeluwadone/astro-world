@@ -1,3 +1,4 @@
+import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
@@ -99,11 +100,7 @@ export function JoinPage() {
     <div className="relative flex min-h-screen flex-col items-center bg-astro-bg px-5 py-9 pb-[70px]">
       <JoinBackdrop />
       <div className="relative z-[1] mb-6.5 flex w-full max-w-[560px] items-center gap-2.5">
-        <div className="flex size-[30px] shrink-0 items-center justify-center rounded-[9px] bg-astro-accent">
-          <svg width="16" height="16" viewBox="0 0 100 100" fill="#0a0f1f">
-            <path d="M50.00 4.00L59.40 37.06L93.75 35.79L65.22 54.94L77.04 87.21L50.00 66.00L22.96 87.21L34.78 54.94L6.25 35.79L40.60 37.06Z" />
-          </svg>
-        </div>
+        <BrandMarkIcon className="h-9 w-auto shrink-0" />
         <Wordmark size={24} className="text-astro-text" />
         <div className="ml-auto text-[11.5px] text-astro-text-dim">Step {idx + 1} of 5</div>
       </div>
@@ -282,7 +279,7 @@ export function JoinPage() {
           <h1 className="mb-2.5 font-display text-[46px] leading-[0.95] text-astro-text">THIS IS YOUR RECORD</h1>
           <p className="mb-6 text-[14.5px] leading-[1.6] text-astro-text-muted [text-wrap:pretty]">
             Everything the group has voted about you since you started. Claiming it means it becomes
-            yours: ratings, tags, the lot.
+            yours: ratings, traits, the lot.
           </p>
 
           <div

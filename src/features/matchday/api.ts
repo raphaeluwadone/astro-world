@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { TEAM_ID } from '@/lib/teamId'
 import type { Database } from '@/types/database'
 
 type AvailabilityStatus = Database['public']['Enums']['availability_status']
@@ -40,8 +41,8 @@ export interface MatchResultRow {
   id: string
   score_a: number
   score_b: number
-  team_a: { greek_name: string; colour: string }
-  team_b: { greek_name: string; colour: string }
+  team_a: { id: string; greek_name: string; colour: string }
+  team_b: { id: string; greek_name: string; colour: string }
 }
 
 const PLAYER_SUMMARY_COLS = 'id, nickname, full_name, favourite_number'
@@ -180,14 +181,16 @@ export async function fetchDrawnTeams(matchdayId: string): Promise<TeamWithMembe
     greek_name: team.greek_name,
     colour: team.colour,
     members: team.team_members.map((tm) => tm.players),
-  }))
+  })).sort((a, b) => teamRank(a.greek_name) - teamRank(b.greek_name))
 }
+
+const teamRank = (name: string) => TEAM_ID.findIndex((t) => t.name === name)
 
 export async function fetchMatchResults(matchdayId: string): Promise<MatchResultRow[]> {
   const { data, error } = await supabase
     .from('matches')
     .select(
-      'id, score_a, score_b, team_a:teams!matches_team_a_id_fkey (greek_name, colour), team_b:teams!matches_team_b_id_fkey (greek_name, colour)',
+      'id, score_a, score_b, team_a:teams!matches_team_a_id_fkey (id, greek_name, colour), team_b:teams!matches_team_b_id_fkey (id, greek_name, colour)',
     )
     .eq('matchday_id', matchdayId)
     .order('played_at', { ascending: true })

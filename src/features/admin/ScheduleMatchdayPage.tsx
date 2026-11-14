@@ -1,3 +1,5 @@
+import { confirmAction } from '@/components/dialogs/confirm'
+import { RatingSettingsCard } from '@/features/voting/components/RatingSettingsCard'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -28,6 +30,15 @@ export function ScheduleMatchdayPage() {
       return
     }
     setError(null)
+    const when = new Date(`${date}T${time}`)
+    const ok = await confirmAction({
+      tone: 'admin',
+      eyebrow: 'Schedule',
+      title: 'Open this matchday?',
+      body: `${when.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} at ${time}, ${capacity} spots. Claims open for everyone straight away.`,
+      confirmLabel: 'Open it',
+    })
+    if (!ok) return
     try {
       await createMatchday.mutateAsync({
         playedAt: new Date(`${date}T${time}`).toISOString(),
@@ -119,6 +130,10 @@ export function ScheduleMatchdayPage() {
           </div>
         </div>
       )}
+
+      <div className="mt-5">
+        <RatingSettingsCard />
+      </div>
     </div>
   )
 }

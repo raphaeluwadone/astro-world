@@ -1,6 +1,7 @@
-import type { MatchDetail } from '../api'
+import type { GoalRow, MatchDetail } from '../api'
+import { ScorerList } from './ScorerList'
 
-export function ScoreBanner({ match }: { match: MatchDetail }) {
+export function ScoreBanner({ match, goals }: { match: MatchDetail; goals?: GoalRow[] }) {
   const date = new Date(match.matchdays.played_at).toLocaleDateString('en-GB', {
     weekday: 'short',
     day: 'numeric',
@@ -31,12 +32,13 @@ export function ScoreBanner({ match }: { match: MatchDetail }) {
           {date} &middot; {time}
           {match.matchdays.venue ? ` · ${match.matchdays.venue}` : ''}
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-[clamp(18px,5vw,56px)]">
+        <div className="flex flex-wrap items-start justify-center gap-[clamp(18px,5vw,56px)]">
           <div className="flex min-w-[110px] flex-col items-center gap-2.5">
             <div className="size-[46px] rounded-[13px]" style={{ background: match.team_a.colour }} />
             <div className="font-display text-4xl leading-none text-astro-text">
               {match.team_a.greek_name.toUpperCase()}
             </div>
+            <ScorerList goals={goals} teamId={match.team_a.id} stacked />
           </div>
           <div className="font-display shrink-0 whitespace-nowrap text-[clamp(52px,9vw,96px)] leading-none tracking-[0.02em] text-astro-text">
             {match.score_a}
@@ -48,6 +50,7 @@ export function ScoreBanner({ match }: { match: MatchDetail }) {
             <div className="font-display text-4xl leading-none text-astro-text">
               {match.team_b.greek_name.toUpperCase()}
             </div>
+            <ScorerList goals={goals} teamId={match.team_b.id} stacked />
           </div>
         </div>
       </div>

@@ -1,5 +1,8 @@
+import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { useState } from 'react'
-import { useCastVote, useLastDropped } from '../hooks'
+import { toast } from 'sonner'
+import { useCastVote, useLastDropped, useRemoveComparison } from '../hooks'
 import type { ComparisonRow } from '../api'
 import { ComparisonPickerPanel } from './ComparisonPickerPanel'
 
@@ -125,12 +128,26 @@ function ComparisonCard({
   )
 }
 
-function EmptySlot({ ordinal, lastDropped }: { ordinal: string; lastDropped?: { name: string; droppedAt: string } | null }) {
+function EmptySlot({
+  ordinal,
+  lastDropped,
+  onAdd,
+}: {
+  ordinal: string
+  lastDropped?: { name: string; droppedAt: string } | null
+  onAdd?: () => void
+}) {
   const droppedNote = lastDropped
     ? `${lastDropped.name} got voted off on ${new Date(lastDropped.droppedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. Pick someone else.`
     : 'Pick someone to fill it.'
+  const Tag = onAdd ? 'button' : 'div'
   return (
-    <div className="flex min-h-[190px] flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-[rgba(166,63,255,0.4)] bg-[#0d1428] p-4 text-center">
+    <Tag
+      {...(onAdd ? { type: 'button' as const, onClick: onAdd } : {})}
+      className={`flex min-h-[190px] w-full flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-[rgba(166,63,255,0.4)] bg-[#0d1428] p-4 text-center ${
+        onAdd ? 'cursor-pointer transition-colors hover:border-solid hover:border-astro-accent/70 hover:bg-[#111a36] focus-visible:border-solid focus-visible:outline-none' : ''
+      }`}
+    >
       <div className="flex size-[42px] items-center justify-center rounded-xl border border-[rgba(166,63,255,0.4)] bg-[rgba(166,63,255,0.14)]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="#c589ff">
           <path d="M10.5 3.2h3v7.3h7.3v3h-7.3v7.3h-3v-7.3H3.2v-3h7.3Z" />
@@ -142,7 +159,7 @@ function EmptySlot({ ordinal, lastDropped }: { ordinal: string; lastDropped?: { 
           {droppedNote}
         </p>
       </div>
-    </div>
+    </Tag>
   )
 }
 
@@ -195,14 +212,14 @@ function ComparisonSection({
       <p className="mb-[18px] text-[13px] text-astro-text-muted">{description}</p>
 
       {comparisons.length === 0 && emptySlots.length === 0 ? (
-        <p className="mb-4 text-sm text-astro-text-dim">Nothing here yet.</p>
+        <NothingHere compact icon={<Scene kind="search" />} body="Nothing here yet." className="mb-4" />
       ) : (
         <div className="mb-4 grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))' }}>
           {comparisons.map((c) => (
             <ComparisonCard key={c.id} c={c} canVote={canVote} voterId={voterId} playerId={playerId} />
           ))}
           {emptySlots.map((slot) => (
-            <EmptySlot key={slot.ordinal} ordinal={slot.ordinal} lastDropped={slot.lastDropped} />
+            <EmptySlot key={slot.ordinal} ordinal={slot.ordinal} lastDropped={slot.lastDropped} onAdd={onCta} />
           ))}
         </div>
       )}
@@ -241,6 +258,14 @@ export function Comparisons({
   currentPlayerId: string | undefined
 }) {
   const [nominating, setNominating] = useState<'self' | 'community' | null>(null)
+  // Picks made on this visit; the list goes when the page does, so Undo only lasts until you leave.
+  const [justPicked, setJustPicked] = useState<{ id: string; name: string; source: 'self' | 'community' }[]>([])
+  const remove = useRemoveComparison(playerId)
+  const undo = (id: string) =>
+    remove.mutate(id, {
+      onSuccess: () => setJustPicked((list) => list.filter((p) => p.id !== id)),
+      onError: () => toast.error('Couldn’t undo that. Try again.'),
+    })
   const selfClaims = comparisons.filter((c) => c.source === 'self')
   // "Top three by net votes": community nominations aren't capped at
   // write time (unlike self-claims), so the ranking does the limiting.
@@ -287,6 +312,28 @@ export function Comparisons({
         playerId={playerId}
       />
 
+      {justPicked.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {justPicked.map((p) => (
+            <div key={p.id} className="flex items-center gap-3 rounded-xl border border-astro-accent/30 bg-astro-accent/[0.08] px-4 py-2.5 text-[13px]">
+              <span className="min-w-0 flex-1 text-astro-text-muted">
+                {p.source === 'self' ? 'You claimed ' : 'You nominated '}
+                <span className="font-extrabold text-astro-text">{p.name}</span>
+                {p.source === 'community' && ` for ${subjectNickname}`}.
+              </span>
+              <button
+                type="button"
+                disabled={remove.isPending}
+                onClick={() => undo(p.id)}
+                className="shrink-0 rounded-lg border border-white/[0.12] px-3 py-1 text-xs font-extrabold text-astro-text hover:border-astro-accent/60 disabled:opacity-60"
+              >
+                Undo
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {nominating && currentPlayerId && (
         <ComparisonPickerPanel
           source={nominating}
@@ -295,6 +342,7 @@ export function Comparisons({
           subjectNickname={subjectNickname}
           ownSelfClaims={selfClaims}
           onClose={() => setNominating(null)}
+          onPicked={(id, name) => setJustPicked((list) => [...list, { id, name, source: nominating }])}
         />
       )}
     </div>

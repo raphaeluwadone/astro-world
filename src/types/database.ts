@@ -34,8 +34,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      article_writers: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          player_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          player_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_writers_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_writers_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
+          author_id: string | null
           body: string
           cover_image_url: string | null
           created_at: string
@@ -43,8 +92,10 @@ export type Database = {
           kicker: string | null
           published_at: string | null
           title: string
+          updated_at: string
         }
         Insert: {
+          author_id?: string | null
           body: string
           cover_image_url?: string | null
           created_at?: string
@@ -52,8 +103,10 @@ export type Database = {
           kicker?: string | null
           published_at?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
+          author_id?: string | null
           body?: string
           cover_image_url?: string | null
           created_at?: string
@@ -61,8 +114,17 @@ export type Database = {
           kicker?: string | null
           published_at?: string | null
           title?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       availability: {
         Row: {
@@ -96,6 +158,61 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cards: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          match_id: string
+          minute: number | null
+          player_id: string
+          second_yellow: boolean
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          match_id: string
+          minute?: number | null
+          player_id: string
+          second_yellow?: boolean
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          match_id?: string
+          minute?: number | null
+          player_id?: string
+          second_yellow?: boolean
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cards_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cards_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cards_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -265,6 +382,55 @@ export type Database = {
           },
         ]
       }
+      cup_goals: {
+        Row: {
+          own_goal: boolean
+          created_at: string
+          cup_match_id: string
+          id: string
+          scorer_id: string
+          squad_id: string
+        }
+        Insert: {
+          own_goal?: boolean
+          created_at?: string
+          cup_match_id: string
+          id?: string
+          scorer_id: string
+          squad_id: string
+        }
+        Update: {
+          own_goal?: boolean
+          created_at?: string
+          cup_match_id?: string
+          id?: string
+          scorer_id?: string
+          squad_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cup_goals_cup_match_id_fkey"
+            columns: ["cup_match_id"]
+            isOneToOne: false
+            referencedRelation: "cup_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_goals_scorer_id_fkey"
+            columns: ["scorer_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cup_goals_squad_id_fkey"
+            columns: ["squad_id"]
+            isOneToOne: false
+            referencedRelation: "cup_squads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cup_matches: {
         Row: {
           created_at: string
@@ -412,6 +578,78 @@ export type Database = {
           },
         ]
       }
+      draw_never_pairs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          player_a: string
+          player_b: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          player_a: string
+          player_b: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          player_a?: string
+          player_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draw_never_pairs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_never_pairs_player_a_fkey"
+            columns: ["player_a"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_never_pairs_player_b_fkey"
+            columns: ["player_b"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draw_settings: {
+        Row: {
+          id: boolean
+          rules: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: boolean
+          rules?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: boolean
+          rules?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draw_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dues_payments: {
         Row: {
           dues_quarter_id: string
@@ -485,31 +723,73 @@ export type Database = {
         }
         Relationships: []
       }
+      email_outbox: {
+        Row: {
+          attempts: number
+          created_at: string
+          data: Json
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          sent_at: string | null
+          template: string
+          to_email: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          data?: Json
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          sent_at?: string | null
+          template: string
+          to_email: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          data?: Json
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          sent_at?: string | null
+          template?: string
+          to_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
+          own_goal: boolean
           assist_id: string | null
           created_at: string
           id: string
           match_id: string
-          minute: number
+          minute: number | null
           scorer_id: string
           team_id: string
         }
         Insert: {
+          own_goal?: boolean
           assist_id?: string | null
           created_at?: string
           id?: string
           match_id: string
-          minute: number
+          minute?: number | null
           scorer_id: string
           team_id: string
         }
         Update: {
+          own_goal?: boolean
           assist_id?: string | null
           created_at?: string
           id?: string
           match_id?: string
-          minute?: number
+          minute?: number | null
           scorer_id?: string
           team_id?: string
         }
@@ -540,6 +820,80 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honours_posts: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          id: string
+          pinned: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honours_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honours_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          player_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          player_id: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          player_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honours_reactions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honours_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "honours_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -821,6 +1175,561 @@ export type Database = {
           },
         ]
       }
+      notification_prefs: {
+        Row: {
+          email_badges: boolean
+          email_dues: boolean
+          email_matchday: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_badges?: boolean
+          email_dues?: boolean
+          email_matchday?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_badges?: boolean
+          email_dues?: boolean
+          email_matchday?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          data: Json
+          dedupe_key: string | null
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          dedupe_key?: string | null
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          data?: Json
+          dedupe_key?: string | null
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_prices: {
+        Row: {
+          amount: number
+          kind: Database["public"]["Enums"]["payment_kind"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount: number
+          kind: Database["public"]["Enums"]["payment_kind"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          kind?: Database["public"]["Enums"]["payment_kind"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_prices_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_kobo: number
+          created_at: string
+          dues_payment_id: string | null
+          dues_quarter_id: string | null
+          hold_until: string | null
+          id: string
+          kind: Database["public"]["Enums"]["payment_kind"]
+          matchday_id: string | null
+          month: string | null
+          monthly_membership_id: string | null
+          note: string | null
+          paid_at: string | null
+          player_id: string
+          provider_ref: string | null
+          reference: string
+          refunded_at: string | null
+          refunded_by: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          weekly_claim_id: string | null
+        }
+        Insert: {
+          amount_kobo: number
+          created_at?: string
+          dues_payment_id?: string | null
+          dues_quarter_id?: string | null
+          hold_until?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["payment_kind"]
+          matchday_id?: string | null
+          month?: string | null
+          monthly_membership_id?: string | null
+          note?: string | null
+          paid_at?: string | null
+          player_id: string
+          provider_ref?: string | null
+          reference?: string
+          refunded_at?: string | null
+          refunded_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          weekly_claim_id?: string | null
+        }
+        Update: {
+          amount_kobo?: number
+          created_at?: string
+          dues_payment_id?: string | null
+          dues_quarter_id?: string | null
+          hold_until?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["payment_kind"]
+          matchday_id?: string | null
+          month?: string | null
+          monthly_membership_id?: string | null
+          note?: string | null
+          paid_at?: string | null
+          player_id?: string
+          provider_ref?: string | null
+          reference?: string
+          refunded_at?: string | null
+          refunded_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          weekly_claim_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_dues_payment_id_fkey"
+            columns: ["dues_payment_id"]
+            isOneToOne: false
+            referencedRelation: "dues_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_dues_quarter_id_fkey"
+            columns: ["dues_quarter_id"]
+            isOneToOne: false
+            referencedRelation: "dues_quarters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_monthly_membership_id_fkey"
+            columns: ["monthly_membership_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_refunded_by_fkey"
+            columns: ["refunded_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_weekly_claim_id_fkey"
+            columns: ["weekly_claim_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_cards: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          game_id: string
+          id: string
+          kind: string
+          minute: number | null
+          player_id: string
+          second_yellow: boolean
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          game_id: string
+          id?: string
+          kind: string
+          minute?: number | null
+          player_id: string
+          second_yellow?: boolean
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          game_id?: string
+          id?: string
+          kind?: string
+          minute?: number | null
+          player_id?: string
+          second_yellow?: boolean
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_cards_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_cards_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "pitch_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_cards_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_cards_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_checkins: {
+        Row: {
+          checked_in_at: string
+          checked_in_by: string | null
+          matchday_id: string
+          player_id: string
+        }
+        Insert: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          matchday_id: string
+          player_id: string
+        }
+        Update: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          matchday_id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_checkins_checked_in_by_fkey"
+            columns: ["checked_in_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_checkins_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_checkins_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_games: {
+        Row: {
+          created_at: string
+          edited_at: string | null
+          elapsed_ms: number
+          ended_at: string | null
+          goal_target: number
+          id: string
+          length_min: number
+          matchday_id: string
+          report: string | null
+          running_since: string | null
+          team_a_id: string
+          team_b_id: string
+        }
+        Insert: {
+          created_at?: string
+          edited_at?: string | null
+          elapsed_ms?: number
+          ended_at?: string | null
+          goal_target?: number
+          id?: string
+          length_min?: number
+          matchday_id: string
+          report?: string | null
+          running_since?: string | null
+          team_a_id: string
+          team_b_id: string
+        }
+        Update: {
+          created_at?: string
+          edited_at?: string | null
+          elapsed_ms?: number
+          ended_at?: string | null
+          goal_target?: number
+          id?: string
+          length_min?: number
+          matchday_id?: string
+          report?: string | null
+          running_since?: string | null
+          team_a_id?: string
+          team_b_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_games_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_games_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_games_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_goals: {
+        Row: {
+          own_goal: boolean
+          assist_id: string | null
+          created_at: string
+          created_by: string | null
+          game_id: string
+          id: string
+          minute: number | null
+          scorer_id: string | null
+          team_id: string
+        }
+        Insert: {
+          own_goal?: boolean
+          assist_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          game_id: string
+          id?: string
+          minute?: number | null
+          scorer_id?: string | null
+          team_id: string
+        }
+        Update: {
+          own_goal?: boolean
+          assist_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          game_id?: string
+          id?: string
+          minute?: number | null
+          scorer_id?: string | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_goals_assist_id_fkey"
+            columns: ["assist_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "pitch_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_scorer_id_fkey"
+            columns: ["scorer_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pitch_goals_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_sessions: {
+        Row: {
+          goal_target: number
+          length_min: number
+          matchday_id: string
+          team_order: string[]
+          updated_at: string
+        }
+        Insert: {
+          goal_target?: number
+          length_min?: number
+          matchday_id: string
+          team_order: string[]
+          updated_at?: string
+        }
+        Update: {
+          goal_target?: number
+          length_min?: number
+          matchday_id?: string
+          team_order?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_sessions_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: true
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_badges: {
+        Row: {
+          auto_live_at: string
+          awarded_at: string
+          badge_key: string
+          decided_at: string | null
+          decided_by: string | null
+          detail: string | null
+          expires_at: string
+          id: string
+          period_key: string
+          player_id: string
+          stat: string | null
+          status: Database["public"]["Enums"]["badge_status"]
+          title: string | null
+        }
+        Insert: {
+          auto_live_at?: string
+          awarded_at?: string
+          badge_key: string
+          decided_at?: string | null
+          decided_by?: string | null
+          detail?: string | null
+          expires_at: string
+          id?: string
+          period_key: string
+          player_id: string
+          stat?: string | null
+          status?: Database["public"]["Enums"]["badge_status"]
+          title?: string | null
+        }
+        Update: {
+          auto_live_at?: string
+          awarded_at?: string
+          badge_key?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          detail?: string | null
+          expires_at?: string
+          id?: string
+          period_key?: string
+          player_id?: string
+          stat?: string | null
+          status?: Database["public"]["Enums"]["badge_status"]
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_badges_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_badges_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_claims: {
         Row: {
           birthday_day: number | null
@@ -1024,6 +1933,8 @@ export type Database = {
           instagram_handle: string | null
           is_admin: boolean
           joined_at: string
+          left_at: string | null
+          left_by: string | null
           legacy_appearances: number
           legacy_assists: number
           legacy_clean_sheets: number
@@ -1032,9 +1943,12 @@ export type Database = {
           legacy_yellow_cards: number
           nickname: string
           onboarded_at: string | null
+          photo_edit: Json | null
+          photo_original_url: string | null
           photo_url: string | null
           positions: Database["public"]["Enums"]["position_type"][]
           preferred_foot: Database["public"]["Enums"]["foot_type"] | null
+          seen_intros: string[]
           updated_at: string
           user_id: string | null
           weight_kg: number | null
@@ -1053,6 +1967,8 @@ export type Database = {
           instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
+          left_at?: string | null
+          left_by?: string | null
           legacy_appearances?: number
           legacy_assists?: number
           legacy_clean_sheets?: number
@@ -1061,9 +1977,12 @@ export type Database = {
           legacy_yellow_cards?: number
           nickname: string
           onboarded_at?: string | null
+          photo_edit?: Json | null
+          photo_original_url?: string | null
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null
+          seen_intros?: string[]
           updated_at?: string
           user_id?: string | null
           weight_kg?: number | null
@@ -1082,6 +2001,8 @@ export type Database = {
           instagram_handle?: string | null
           is_admin?: boolean
           joined_at?: string
+          left_at?: string | null
+          left_by?: string | null
           legacy_appearances?: number
           legacy_assists?: number
           legacy_clean_sheets?: number
@@ -1090,14 +2011,58 @@ export type Database = {
           legacy_yellow_cards?: number
           nickname?: string
           onboarded_at?: string | null
+          photo_edit?: Json | null
+          photo_original_url?: string | null
           photo_url?: string | null
           positions?: Database["public"]["Enums"]["position_type"][]
           preferred_foot?: Database["public"]["Enums"]["foot_type"] | null
+          seen_intros?: string[]
           updated_at?: string
           user_id?: string | null
           weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "players_left_by_fkey"
+            columns: ["left_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_dislikes: {
+        Row: {
+          created_at: string
+          player_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          player_id: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          player_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_dislikes_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_dislikes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_likes: {
         Row: {
@@ -1162,24 +2127,75 @@ export type Database = {
           },
         ]
       }
-      posts: {
+      post_replies: {
         Row: {
           author_id: string
           content: string
           created_at: string
           id: string
+          post_id: string
         }
         Insert: {
           author_id: string
           content: string
           created_at?: string
           id?: string
+          post_id: string
         }
         Update: {
           author_id?: string
           content?: string
           created_at?: string
           id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_replies_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          kind: string | null
+          matchday_id: string | null
+          pitch_game_id: string | null
+          team_cycle_id: string | null
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          kind?: string | null
+          matchday_id?: string | null
+          pitch_game_id?: string | null
+          team_cycle_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          kind?: string | null
+          matchday_id?: string | null
+          pitch_game_id?: string | null
+          team_cycle_id?: string | null
         }
         Relationships: [
           {
@@ -1187,6 +2203,27 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_pitch_game_id_fkey"
+            columns: ["pitch_game_id"]
+            isOneToOne: true
+            referencedRelation: "pitch_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_team_cycle_id_fkey"
+            columns: ["team_cycle_id"]
+            isOneToOne: true
+            referencedRelation: "team_cycles"
             referencedColumns: ["id"]
           },
         ]
@@ -1257,10 +2294,17 @@ export type Database = {
         }
         Relationships: []
       }
+      rating_settings: {
+        Row: { id: boolean; open_to_everyone: boolean; updated_at: string }
+        Insert: { id?: boolean; open_to_everyone?: boolean; updated_at?: string }
+        Update: { id?: boolean; open_to_everyone?: boolean; updated_at?: string }
+        Relationships: []
+      }
       ratings: {
         Row: {
           created_at: string
           match_id: string
+          matchday_id: string
           rater_id: string
           score: number
           subject_id: string
@@ -1269,6 +2313,7 @@ export type Database = {
         Insert: {
           created_at?: string
           match_id: string
+          matchday_id?: string
           rater_id: string
           score: number
           subject_id: string
@@ -1277,6 +2322,7 @@ export type Database = {
         Update: {
           created_at?: string
           match_id?: string
+          matchday_id?: string
           rater_id?: string
           score?: number
           subject_id?: string
@@ -1368,6 +2414,50 @@ export type Database = {
           {
             foreignKeyName: "tags_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_cycles: {
+        Row: {
+          champion: string | null
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          ends_at: string
+          final_table: Json | null
+          id: string
+          label: string
+          starts_at: string
+        }
+        Insert: {
+          champion?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          ends_at: string
+          final_table?: Json | null
+          id?: string
+          label: string
+          starts_at: string
+        }
+        Update: {
+          champion?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          ends_at?: string
+          final_table?: Json | null
+          id?: string
+          label?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_cycles_closed_by_fkey"
+            columns: ["closed_by"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
@@ -1503,6 +2593,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_badges: { Args: { p_year?: number }; Returns: number }
+      award_cup_extras: { Args: never; Returns: number }
+      award_race: {
+        Args: never
+        Returns: {
+          badge_key: string
+          contenders: number
+          leader: number
+          leaders: string[]
+          mine: number
+          my_rank: number
+          scope: string
+        }[]
+      }
+      badge_is_locked: {
+        Args: {
+          p_badge_key: string
+          p_period_key: string
+          p_status: Database["public"]["Enums"]["badge_status"]
+        }
+        Returns: boolean
+      }
+      badge_is_visible: {
+        Args: {
+          auto_live: string
+          s: Database["public"]["Enums"]["badge_status"]
+        }
+        Returns: boolean
+      }
+      can_manage_player_photo: {
+        Args: { object_name: string }
+        Returns: boolean
+      }
+      can_write_articles: { Args: never; Returns: boolean }
       cause_contributors: {
         Args: { p_cause_id: string }
         Returns: {
@@ -1511,10 +2635,86 @@ export type Database = {
         }[]
       }
       cause_raised_amount: { Args: { p_cause_id: string }; Returns: number }
+      claim_email_batch: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          created_at: string
+          data: Json
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          sent_at: string | null
+          template: string
+          to_email: string
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "email_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      close_team_cycle: {
+        Args: {
+          p_champion: string
+          p_final_table: Json
+          p_next_ends_at: string
+          p_next_label: string
+        }
+        Returns: string
+      }
+      club_moments: {
+        Args: never
+        Returns: {
+          detail: string
+          happened_at: string
+          kind: string
+          player_id: string
+          value: number
+        }[]
+      }
+      club_totals: {
+        Args: never
+        Returns: {
+          appearances: number
+          goals: number
+          matchdays: number
+          raised: number
+          roster: number
+        }[]
+      }
       cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      dispatch_emails: { Args: never; Returns: undefined }
+      draw_player_stats: {
+        Args: {
+          p_matchday?: string
+          p_players: string[]
+          p_season_start: string
+          p_since?: string
+        }
+        Returns: {
+          avg_rating: number
+          player_id: string
+          rating_count: number
+          season_goals: number
+          sundays: number
+        }[]
+      }
+      drawn_teams_lines: { Args: { p_matchday: string }; Returns: string }
       dues_paid_count: { Args: { p_dues_quarter_id: string }; Returns: number }
+      finish_email: {
+        Args: { p_error?: string; p_id: string }
+        Returns: undefined
+      }
       is_own_player: { Args: { p_player_id: string }; Returns: boolean }
       is_requesting_admin: { Args: never; Returns: boolean }
+      mark_notifications_read: {
+        Args: { p_ids?: string[] }
+        Returns: undefined
+      }
       match_ratings_integrity: {
         Args: { p_match_id: string }
         Returns: {
@@ -1541,7 +2741,33 @@ export type Database = {
           vote_count: number
         }[]
       }
+      matchday_post_author: { Args: never; Returns: string }
+      mention_token: { Args: { p_player: string }; Returns: string }
       motm_open_for: { Args: { p_matchday_id: string }; Returns: boolean }
+      next_matchday_at: { Args: { after: string }; Returns: string }
+      notifications_since: { Args: never; Returns: string }
+      notifications_sweep: { Args: never; Returns: undefined }
+      notify: {
+        Args: {
+          p_actor?: string
+          p_data: Json
+          p_dedupe?: string
+          p_email?: string
+          p_email_pref?: string
+          p_kind: string
+          p_link: string
+          p_user: string
+        }
+        Returns: boolean
+      }
+      notify_badge_won: {
+        Args: { b: Database["public"]["Tables"]["player_badges"]["Row"] }
+        Returns: undefined
+      }
+      notify_spot_opened: {
+        Args: { p_matchday: string; p_reason: string }
+        Returns: undefined
+      }
       played_in_match: {
         Args: { p_match_id: string; p_player_id: string }
         Returns: boolean
@@ -1558,7 +2784,10 @@ export type Database = {
           avg_rating: number
           goals: number
           motm_count: number
+          own_goals: number
           player_id: string
+          red_cards: number
+          yellow_cards: number
         }[]
       }
       player_is_monthly_member_for: {
@@ -1573,8 +2802,55 @@ export type Database = {
           played_at: string
         }[]
       }
+      player_user: { Args: { p_player: string }; Returns: string }
       public_roster_size: { Args: never; Returns: number }
+      compare_stats: {
+        Args: { p_since?: string }
+        Returns: {
+          appearances: number
+          assists: number
+          avg_rating: number | null
+          clean_sheets: number
+          cup_clean_sheets: number
+          cup_games: number
+          cup_goals: number
+          cup_heroes: number
+          cup_wins: number
+          cups_played: number
+          cups_won: number
+          goals: number
+          motm: number
+          own_goals: number
+          cup_own_goals: number
+          player_id: string
+        }[]
+      }
+      matchday_rating_roster: {
+        Args: { p_matchday: string }
+        Returns: { colour: string; greek_name: string; player_id: string; team_id: string }[]
+      }
+      matchday_ratings_open: { Args: { p_matchday: string }; Returns: boolean }
+      part_of_matchday: { Args: { p_matchday: string; p_player: string }; Returns: boolean }
+      rate_player: {
+        Args: { p_matchday: string; p_score: number; p_subject: string }
+        Returns: undefined
+      }
+      rating_match_for: { Args: { p_matchday: string; p_subject: string }; Returns: string }
+      rating_matchday: {
+        Args: never
+        Returns: {
+          can_rate: boolean
+          closes_at: string
+          is_open: boolean
+          matchday_id: string
+          open_to_everyone: boolean
+          part_of: boolean
+          played_at: string
+          venue: string | null
+        }[]
+      }
       ratings_open_for: { Args: { p_match_id: string }; Returns: boolean }
+      requesting_player_id: { Args: never; Returns: string }
       season_team_matches: {
         Args: { p_season_start: string }
         Returns: {
@@ -1584,7 +2860,58 @@ export type Database = {
           played_at: string
         }[]
       }
+      set_honours_pin: {
+        Args: { p_pinned: boolean; p_post_id: string }
+        Returns: undefined
+      }
+      record_cup_result: {
+        Args: { p_goals: Json; p_match: string; p_score_a: number; p_score_b: number }
+        Returns: undefined
+      }
+      swap_team_player: {
+        Args: { p_in: string; p_out: string; p_team: string }
+        Returns: undefined
+      }
+      team_matches_between: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          goals_against: number
+          goals_for: number
+          greek_name: string
+          opponent: string
+          played_at: string
+        }[]
+      }
+      team_order: { Args: { p_name: string }; Returns: number }
+      trait_hearts: { Args: { p_player: string }; Returns: number }
       voting_closes_at: { Args: { p_played_at: string }; Returns: string }
+      fail_payment: {
+        Args: { p_note: string; p_reference: string }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      mark_payment_refunded: {
+        Args: { p_payment_id: string }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      monthly_spots_remaining: { Args: { p_month: string }; Returns: number }
+      settle_payment: {
+        Args: {
+          p_amount_kobo: number
+          p_currency: string
+          p_provider_ref: string
+          p_reference: string
+        }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      start_payment: {
+        Args: {
+          p_dues_quarter_id?: string
+          p_kind: Database["public"]["Enums"]["payment_kind"]
+          p_matchday_id?: string
+          p_month?: string
+        }
+        Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
       weekly_spots_remaining: {
         Args: { p_matchday_id: string }
         Returns: number
@@ -1592,6 +2919,7 @@ export type Database = {
     }
     Enums: {
       availability_status: "in" | "out"
+      badge_status: "pending" | "live" | "held"
       cause_status: "suggested" | "open" | "met" | "closed"
       comparison_source: "self" | "community"
       cup_status: "open" | "drawn" | "live" | "played" | "cancelled"
@@ -1603,6 +2931,14 @@ export type Database = {
         | "complete"
         | "played"
         | "cancelled"
+      payment_kind: "weekly" | "monthly" | "dues"
+      payment_status:
+        | "pending"
+        | "paid"
+        | "failed"
+        | "cancelled"
+        | "refund_due"
+        | "refunded"
       player_claim_status: "pending" | "approved" | "rejected"
       position_type: "GK" | "DEF" | "ATT" | "UTIL"
       tag_source: "self" | "community"
@@ -1738,6 +3074,7 @@ export const Constants = {
   public: {
     Enums: {
       availability_status: ["in", "out"],
+      badge_status: ["pending", "live", "held"],
       cause_status: ["suggested", "open", "met", "closed"],
       comparison_source: ["self", "community"],
       cup_status: ["open", "drawn", "live", "played", "cancelled"],
@@ -1749,6 +3086,15 @@ export const Constants = {
         "complete",
         "played",
         "cancelled",
+      ],
+      payment_kind: ["weekly", "monthly", "dues"],
+      payment_status: [
+        "pending",
+        "paid",
+        "failed",
+        "cancelled",
+        "refund_due",
+        "refunded",
       ],
       player_claim_status: ["pending", "approved", "rejected"],
       position_type: ["GK", "DEF", "ATT", "UTIL"],

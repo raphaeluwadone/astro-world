@@ -1,7 +1,7 @@
 import { drawTeams } from '@/features/matchday/draw/drawTeams'
 import type { PlayerSummary } from '@/features/matchday/api'
 import { supabase } from '@/lib/supabase'
-import type { Database } from '@/types/database'
+import type { Database, Json } from '@/types/database'
 
 export type CupStatus = Database['public']['Enums']['cup_status']
 export type CupQuarter = Database['public']['Tables']['cup_quarters']['Row']
@@ -29,6 +29,15 @@ export interface CupMatch {
   score_a: number | null
   score_b: number | null
   played_at: string | null
+  goals: CupGoal[]
+}
+
+export interface CupGoal {
+  /** The squad credited with the goal. */
+  squad_id: string
+  scorer_id: string
+  /** Scorer is from the other squad. */
+  own_goal: boolean
 }
 
 const PLAYER_SUMMARY_COLS = 'id, nickname, full_name, favourite_number'
@@ -105,7 +114,7 @@ export async function fetchSquads(cupQuarterId: string): Promise<CupSquad[]> {
 export async function fetchMatches(cupQuarterId: string): Promise<CupMatch[]> {
   const { data, error } = await supabase
     .from('cup_matches')
-    .select('id, squad_a_id, squad_b_id, score_a, score_b, played_at, squad_a:cup_squads!cup_matches_squad_a_id_fkey (name), squad_b:cup_squads!cup_matches_squad_b_id_fkey (name)')
+    .select('id, squad_a_id, squad_b_id, score_a, score_b, played_at, squad_a:cup_squads!cup_matches_squad_a_id_fkey (name), squad_b:cup_squads!cup_matches_squad_b_id_fkey (name), goals:cup_goals (squad_id, scorer_id, own_goal, created_at)')
     .eq('cup_quarter_id', cupQuarterId)
     .order('created_at', { ascending: true })
   if (error) throw error
@@ -118,6 +127,7 @@ export async function fetchMatches(cupQuarterId: string): Promise<CupMatch[]> {
     played_at: string | null
     squad_a: { name: string }
     squad_b: { name: string }
+    goals: Array<CupGoal & { created_at: string }>
   }>).map((m) => ({
     id: m.id,
     squad_a_id: m.squad_a_id,
@@ -127,6 +137,7 @@ export async function fetchMatches(cupQuarterId: string): Promise<CupMatch[]> {
     score_a: m.score_a,
     score_b: m.score_b,
     played_at: m.played_at,
+    goals: [...m.goals].sort((x, y) => x.created_at.localeCompare(y.created_at)).map(({ squad_id, scorer_id, own_goal }) => ({ squad_id, scorer_id, own_goal })),
   }))
 }
 
@@ -245,11 +256,13 @@ export async function createCupMatch(fields: NewCupMatchFields): Promise<string>
   return data.id
 }
 
-export async function recordCupMatchScore(matchId: string, scoreA: number, scoreB: number) {
-  const { error } = await supabase
-    .from('cup_matches')
-    .update({ score_a: scoreA, score_b: scoreB, played_at: new Date().toISOString() })
-    .eq('id', matchId)
+export async function recordCupMatchScore(matchId: string, scoreA: number, scoreB: number, goals: CupGoal[]) {
+  const { error } = await supabase.rpc('record_cup_result', {
+    p_match: matchId,
+    p_score_a: scoreA,
+    p_score_b: scoreB,
+    p_goals: goals as unknown as Json,
+  })
   if (error) throw error
 }
 

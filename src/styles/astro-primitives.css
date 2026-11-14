@@ -128,3 +128,40 @@
 .astro-memorial-glow { position: absolute; left: 50%; top: 50%; background: radial-gradient(ellipse at center,rgba(166,63,255,0.4) 0%,rgba(166,63,255,0.12) 42%,transparent 72%); pointer-events: none; animation: astro-glow 14s ease-in-out infinite; }
 /* NB: astro-glow keyframes carry translate(-50%,-50%) themselves — an animated
    transform replaces a static one, so centring must live inside the keyframes. */
+/* Not from the design files: hover states for primitives that had none. */
+.astro-nav__item { transition: color 150ms ease, background 150ms ease; }
+.astro-nav__item:not(.astro-nav__item--active):hover { color: #eef0f9; background: rgba(255,255,255,0.045); }
+.astro-btn--cup:hover { background: #f7c25e; transform: translateY(-2px); }
+.astro-btn--ghost:hover { background: #1e2c56; color: #eef0f9; }
+.astro-btn--admin:hover { background: #7dd3fc; }
+.astro-btn--dashed:hover { background: rgba(56,189,248,0.08); border-style: solid; }
+
+/* Sub-pages under a nav item. */
+.astro-nav__item--parent { color: #eef0f9; }
+.astro-nav__sub {
+  position: relative; display: flex; align-items: center; margin-left: 23px; padding: 7px 12px 7px 20px;
+  border-left: 1px solid rgba(255,255,255,0.09); border-radius: 0 9px 9px 0;
+  font-size: 12.5px; font-weight: 600; color: #7d86a8; transition: color 150ms ease, background 150ms ease;
+}
+.astro-nav__sub:hover { color: #eef0f9; background: rgba(255,255,255,0.045); }
+.astro-nav__sub--active { color: #eef0f9; font-weight: 800; border-left-color: #a63fff; background: linear-gradient(90deg,rgba(166,63,255,0.16),rgba(166,63,255,0.02)); }
+
+/* ---- rich editor (TipTap) ---- */
+.astro-editor .tiptap { outline: none; min-height: 1.5em; overflow-wrap: anywhere; }
+.astro-editor .tiptap > * + * { margin-top: 0.5em; }
+.astro-editor .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: #6d7496; }
+.astro-editor .tiptap ul { list-style: disc; padding-left: 1.25em; }
+.astro-editor .tiptap ol { list-style: decimal; padding-left: 1.25em; }
+.astro-editor .tiptap li::marker { color: #a63fff; }
+.astro-editor .tiptap a { color: #c589ff; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.astro-editor .tiptap strong { font-weight: 800; }
+.astro-editor .tiptap h2 { font-family: "Bebas Neue", sans-serif; font-size: 28px; line-height: 1; margin-top: 0.8em; }
+.astro-editor .tiptap h3 { font-size: 17px; font-weight: 800; margin-top: 0.6em; }
+.astro-editor .tiptap blockquote { border-left: 3px solid rgba(166,63,255,0.6); padding-left: 1em; font-style: italic; color: #d7dcef; }
+.astro-editor .tiptap img { max-width: 100%; border-radius: 12px; }
+.astro-editor .tiptap img.ProseMirror-selectednode { outline: 2px solid #a63fff; }
+
+/* No spinner arrows on number fields. */
+input[type='number'] { appearance: textfield; -moz-appearance: textfield; }
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

@@ -48,7 +48,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
         Matchday
       </Link>
 
-      <ScoreBanner match={match} />
+      <ScoreBanner match={match} goals={goals} />
 
       <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
         {motm && <MotmCard motm={motm} />}

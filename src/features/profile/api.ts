@@ -10,8 +10,8 @@ export interface MatchRatingRow {
 }
 
 export interface MatchHistoryRow extends MatchRatingRow {
-  team_a: { greek_name: string; colour: string }
-  team_b: { greek_name: string; colour: string }
+  team_a: { id: string; greek_name: string; colour: string }
+  team_b: { id: string; greek_name: string; colour: string }
   score_a: number
   score_b: number
 }
@@ -72,33 +72,58 @@ export async function fetchMatchRatings(playerId: string): Promise<MatchRatingRo
   return data ?? []
 }
 
-export async function fetchAppearanceCount(playerId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from('match_players')
-    .select('*', { count: 'exact', head: true })
-    .eq('player_id', playerId)
+/** `since` (ISO) limits a count to matches played from then on. */
+export async function fetchAppearanceCount(playerId: string, since?: string): Promise<number> {
+  let q = supabase.from('match_players').select('match_id, matches!inner(played_at)', { count: 'exact', head: true }).eq('player_id', playerId)
+  if (since) q = q.gte('matches.played_at', since)
+  const { count, error } = await q
   if (error) throw error
   return count ?? 0
 }
 
 export async function fetchGoalsAndAssists(
   playerId: string,
-): Promise<{ goals: number; assists: number }> {
-  const [goals, assists] = await Promise.all([
-    supabase.from('goals').select('*', { count: 'exact', head: true }).eq('scorer_id', playerId),
-    supabase.from('goals').select('*', { count: 'exact', head: true }).eq('assist_id', playerId),
-  ])
+  since?: string,
+): Promise<{ goals: number; assists: number; ownGoals: number }> {
+  let goalsQ = supabase.from('goals').select('own_goal, matches!inner(played_at)').eq('scorer_id', playerId)
+  let cupQ = supabase.from('cup_goals').select('own_goal, cup_matches!inner(played_at)').eq('scorer_id', playerId)
+  let assistsQ = supabase.from('goals').select('id, matches!inner(played_at)', { count: 'exact', head: true }).eq('assist_id', playerId)
+  if (since) {
+    goalsQ = goalsQ.gte('matches.played_at', since)
+    cupQ = cupQ.gte('cup_matches.played_at', since)
+    assistsQ = assistsQ.gte('matches.played_at', since)
+  }
+  const [goals, cupGoals, assists] = await Promise.all([goalsQ, cupQ, assistsQ])
   if (goals.error) throw goals.error
+  if (cupGoals.error) throw cupGoals.error
   if (assists.error) throw assists.error
-  return { goals: goals.count ?? 0, assists: assists.count ?? 0 }
+  const all = [...(goals.data ?? []), ...(cupGoals.data ?? [])]
+  const ownGoals = all.filter((g) => g.own_goal).length
+  // An own goal comes off the scorer's tally.
+  return { goals: all.length - 2 * ownGoals, assists: assists.count ?? 0, ownGoals }
 }
 
 /** How many matchdays this player has actually won MOTM (most nominations). */
-export async function fetchMotmCount(playerId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('matchday_motm_summary')
+export async function fetchCardCounts(playerId: string, since?: string): Promise<{ yellows: number; reds: number }> {
+  let q = supabase.from('cards').select('kind, matches!inner(played_at)').eq('player_id', playerId)
+  if (since) q = q.gte('matches.played_at', since)
+  const { data, error } = await q
   if (error) throw error
+  const rows = data ?? []
+  return { yellows: rows.filter((r) => r.kind === 'yellow').length, reds: rows.filter((r) => r.kind === 'red').length }
+}
+
+export async function fetchMotmCount(playerId: string, since?: string): Promise<number> {
+  const [{ data, error }, days] = await Promise.all([
+    supabase.rpc('matchday_motm_summary'),
+    since ? supabase.from('matchdays').select('id').gte('played_at', since) : null,
+  ])
+  if (error) throw error
+  if (days?.error) throw days.error
+  const inRange = days && new Set(days.data.map((d) => d.id))
   const byMatchday = new Map<string, { nominee_id: string; vote_count: number }>()
   for (const row of data ?? []) {
+    if (inRange && !inRange.has(row.matchday_id)) continue
     const current = byMatchday.get(row.matchday_id)
     if (!current || row.vote_count > current.vote_count) {
       byMatchday.set(row.matchday_id, row)
@@ -128,8 +153,8 @@ export async function fetchMatchHistory(playerId: string): Promise<MatchHistoryR
     .from('matches')
     .select(
       `id, score_a, score_b,
-       team_a:teams!matches_team_a_id_fkey (greek_name, colour),
-       team_b:teams!matches_team_b_id_fkey (greek_name, colour)`,
+       team_a:teams!matches_team_a_id_fkey (id, greek_name, colour),
+       team_b:teams!matches_team_b_id_fkey (id, greek_name, colour)`,
     )
     .in('id', matchIds)
   if (error) throw error
@@ -139,8 +164,8 @@ export async function fetchMatchHistory(playerId: string): Promise<MatchHistoryR
       const m = matchById.get(r.match_id) as unknown as {
         score_a: number
         score_b: number
-        team_a: { greek_name: string; colour: string }
-        team_b: { greek_name: string; colour: string }
+        team_a: { id: string; greek_name: string; colour: string }
+        team_b: { id: string; greek_name: string; colour: string }
       }
       return m ? { ...r, ...m } : null
     })
@@ -274,13 +299,18 @@ export async function createComparison(params: {
   source: Database['public']['Enums']['comparison_source']
   createdBy: string
 }) {
-  const { error } = await supabase.from('player_comparisons').insert({
-    player_id: params.playerId,
-    pro_player_id: params.proPlayerId,
-    source: params.source,
-    created_by: params.createdBy,
-  })
+  const { data, error } = await supabase
+    .from('player_comparisons')
+    .insert({
+      player_id: params.playerId,
+      pro_player_id: params.proPlayerId,
+      source: params.source,
+      created_by: params.createdBy,
+    })
+    .select('id')
+    .single()
   if (error) throw error
+  return data.id
 }
 
 export async function removeComparison(comparisonId: string) {

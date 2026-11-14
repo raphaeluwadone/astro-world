@@ -1,12 +1,14 @@
+import { withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
+import { Scene } from '@/components/states/Scene'
 import { toast } from 'sonner'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { EmptyPitchIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import type { PendingClaimRow } from './api'
+import { MembersTabs } from './members/MembersTabs'
 import { useApproveClaim, usePendingClaims, useRejectClaim } from './hooks'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -21,23 +23,24 @@ export function AdminClaimsPage() {
   return (
     <div>
       <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-        A separate application, on purpose
+        Members
       </div>
       <h1 className="mb-1.5 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
-        Pending Claims
+        Record claims
       </h1>
-      <p className="mb-6 max-w-lg text-sm text-astro-text-muted">
+      <p className="mb-5 max-w-lg text-sm text-astro-text-muted">
         Records hold ratings other people voted for, so a claim on one waits here until an admin
-        confirms it's genuinely that person. The rest of the Admin Portal (matchday control, cup
-        squads, rules editor) isn't built yet: this is a real, working slice of it.
+        confirms it's genuinely that person. Rejecting keeps their account; they just start as a new
+        player.
       </p>
+      <MembersTabs />
 
       {isLoading ? (
         <PageLoader />
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : claims.length === 0 ? (
-        <EmptyState icon={<EmptyPitchIcon />} title="Nothing to review." body="New claims will show up here." />
+        <EmptyState icon={<Scene kind="whistle" />} title="Nothing to review." body="New claims will show up here." />
       ) : (
         <div className="flex flex-col gap-3">
           {claims.map((c) => (
@@ -75,7 +78,10 @@ export function AdminClaimsPage() {
                   type="button"
                   disabled={approve.isPending || reject.isPending}
                   onClick={() =>
-                    approve.mutate(c, { onSuccess: () => toast.success(`Approved as ${c.players.nickname}`) })
+                    withConfirm(
+                      { tone: 'admin', eyebrow: 'Claims', title: `Approve as ${c.players.nickname}?`, body: `This login takes over ${c.players.nickname}’s profile, stats and history.`, confirmLabel: 'Approve' },
+                      () => approve.mutate(c, { onSuccess: () => toast.success(`Approved as ${c.players.nickname}`) }),
+                    )
                   }
                   className="rounded-lg bg-astro-green px-4 py-2 text-xs font-extrabold text-[#08130c] disabled:opacity-60"
                 >
