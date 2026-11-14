@@ -1,5 +1,6 @@
 import {
   ArticlesIcon,
+  GuideIcon,
   CommunityIcon,
   HomeIcon,
   HonoursIcon,
@@ -43,6 +44,7 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
   { label: 'Articles', to: '/articles', icon: ArticlesIcon },
   { label: 'Kitty', to: '/kitty', icon: KittyIcon },
   { label: 'Rules', to: '/rules', icon: RulesIcon },
+  { label: 'How Astro works', to: '/guide', icon: GuideIcon },
   { label: 'Profile', to: '/profile', icon: ProfileIcon },
 ]
 

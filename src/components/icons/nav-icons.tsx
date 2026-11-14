@@ -162,3 +162,19 @@ export function HonoursIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function GuideIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M1.8 4.4c3.6-.7 7 .1 9.2 1.8v15c-2.4-1.6-5.7-2.2-9.2-1.5ZM22.2 4.4c-3.6-.7-7 .1-9.2 1.8v15c2.4-1.6 5.7-2.2 9.2-1.5Z" />
+    </svg>
+  )
+}
+
+export function SignOutIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M3 3h10v4.4h-2.2V5.2H5.2v13.6h5.6v-2.2H13V21H3ZM16.4 7.2 21.2 12l-4.8 4.8-1.6-1.6 2.1-2.1H9v-2.2h7.9l-2.1-2.1Z" />
+    </svg>
+  )
+}

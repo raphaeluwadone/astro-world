@@ -1,3 +1,5 @@
+import { SPOT_CHAPTER } from '@/features/guide/chapters'
+
 export interface OnboardingStep {
   label: string
   title: string
@@ -6,7 +8,7 @@ export interface OnboardingStep {
   next: string
 }
 
-/** Verbatim from the design handoff. Copy polish is planned as a separate pass. */
+/** From the design handoff, except step three, which shares the guide's spot chapter. */
 export const STEPS: OnboardingStep[] = [
   {
     label: 'Step one of five',
@@ -32,14 +34,9 @@ export const STEPS: OnboardingStep[] = [
   },
   {
     label: 'Step three of five',
-    title: 'MARK YOURSELF IN BY WEDNESDAY EIGHT.',
-    body: 'More of us want a game than there are spots, so the thirty who play are whoever said yes first. No lottery.',
-    points: [
-      "Say you're available any time before Wednesday 20:00.",
-      "It's first come, first served by when you replied, not a ballot.",
-      'Miss out and you go on standby, in that same order. No favours for anyone.',
-      'The thirty are then split into five sides of six: Alpha through Epsilon. That part actually is random.',
-    ],
+    title: SPOT_CHAPTER.title,
+    body: SPOT_CHAPTER.body,
+    points: SPOT_CHAPTER.points,
     next: 'Next: your rating',
   },
   {
@@ -68,8 +65,8 @@ export const STEPS: OnboardingStep[] = [
   {
     label: "That's everything",
     title: 'RIGHT. SEE YOU SUNDAY.',
-    body: "One thing left: tell us you're available, and you're in Wednesday's ballot.",
-    points: ['The ballot for this Sunday closes Wednesday at eight.', 'Anything unclear later lives on the Rules page.'],
-    next: 'Mark me in for Sunday',
+    body: 'One thing left: claim your spot for Sunday on Matchday before claims close.',
+    points: ['Claims for this Sunday close Wednesday at eight.', 'Anything unclear later lives in How Astro works, in the sidebar.'],
+    next: 'Claim my Sunday spot',
   },
 ]

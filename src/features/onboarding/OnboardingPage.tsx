@@ -1,9 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useCurrentPlayer } from '@/features/auth/useSession'
-import { useSetAvailability } from '@/features/matchday/hooks'
-import { fetchNextMatchday } from '@/features/matchday/api'
-import { useQuery } from '@tanstack/react-query'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
 import { useMarkOnboarded } from './hooks'
@@ -17,33 +14,20 @@ export function OnboardingPage() {
   const { player } = useCurrentPlayer()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
-  const { data: nextMatchday } = useQuery({ queryKey: ['matchday', 'next'], queryFn: fetchNextMatchday })
-  const setAvailability = useSetAvailability(nextMatchday?.id)
   const markOnboarded = useMarkOnboarded(player?.id)
 
   const Art = ART[step]
   const current = STEPS[step]
   const isLast = step === LAST_STEP
 
-  async function finish(markAvailable: boolean) {
-    // Marking yourself in is a bonus action, not a precondition for finishing
-    // onboarding: the ballot for the "next" matchday might already be closed
-    // (RLS rejects the write once it's past 'open'), and that's fine, just
-    // proceed to mark onboarded and leave either way.
-    if (markAvailable && player?.id && nextMatchday?.id && nextMatchday.status === 'open') {
-      try {
-        await setAvailability.mutateAsync({ playerId: player.id, status: 'in' })
-      } catch {
-        // Ballot's closed or something else rejected it: not fatal, carry on.
-      }
-    }
+  async function finish(to: '/' | '/matchday') {
     await markOnboarded.mutateAsync()
-    navigate({ to: '/' })
+    navigate({ to })
   }
 
   function next() {
     if (isLast) {
-      finish(true)
+      finish('/matchday')
       return
     }
     setStep((s) => Math.min(LAST_STEP, s + 1))
@@ -78,7 +62,7 @@ export function OnboardingPage() {
             </div>
             <button
               type="button"
-              onClick={() => finish(false)}
+              onClick={() => finish('/')}
               className="text-[12.5px] font-bold text-astro-text-dim hover:text-astro-text"
             >
               Skip for now
@@ -126,7 +110,7 @@ export function OnboardingPage() {
                 )}
                 <button
                   type="button"
-                  disabled={setAvailability.isPending || markOnboarded.isPending}
+                  disabled={markOnboarded.isPending}
                   onClick={next}
                   className="rounded-[11px] bg-astro-accent px-6 py-3.5 text-sm font-extrabold text-astro-on-accent transition-transform hover:-translate-y-0.5 disabled:opacity-60"
                 >
@@ -135,7 +119,7 @@ export function OnboardingPage() {
                 {isLast && (
                   <button
                     type="button"
-                    onClick={() => finish(false)}
+                    onClick={() => finish('/')}
                     className="px-1.5 py-3.5 text-[13px] font-bold text-astro-text-muted hover:text-astro-text"
                   >
                     Look around first

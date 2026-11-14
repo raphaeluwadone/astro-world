@@ -44,13 +44,13 @@ export type SceneKind = keyof typeof SCENES
 
 const next: Partial<Record<SceneKind, number>> = {}
 
-/** An empty-state scene of the given kind. Each new one takes the next variant, so neighbours differ. */
-export function Scene({ kind }: { kind: SceneKind }) {
-  const [variant] = useState(() => {
+/** An empty-state scene of the given kind. Each new one takes the next variant, so neighbours differ, unless one is given. */
+export function Scene({ kind, variant: fixed }: { kind: SceneKind; variant?: number }) {
+  const [rotating] = useState(() => {
     const n = next[kind] ?? 0
     next[kind] = n + 1
     return n % SCENES[kind].length
   })
-  const Pick = SCENES[kind][variant]
+  const Pick = SCENES[kind][(fixed ?? rotating) % SCENES[kind].length]
   return <Pick />
 }
