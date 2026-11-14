@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import {
   fetchAdminPayments,
   fetchMyPayments,
+  fetchPaymentReceipt,
   fetchSlotRoster,
   fetchPrices,
   markRefunded,
@@ -40,6 +41,14 @@ export function useVerifyPayment(reference: string | undefined) {
     retry: 1,
     // Paystack can take a moment to mark a charge successful.
     refetchInterval: (q) => (q.state.data?.status === 'pending' && q.state.dataUpdateCount < 6 ? 3000 : false),
+  })
+}
+
+export function usePaymentReceipt(reference: string | undefined, status: string | undefined) {
+  return useQuery({
+    queryKey: ['payments', 'receipt', reference, status],
+    queryFn: () => fetchPaymentReceipt(reference!),
+    enabled: !!reference && !!status,
   })
 }
 

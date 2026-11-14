@@ -104,3 +104,25 @@ export function formatNaira(amount: number) {
 }
 
 export const isActiveHold = (p: Payment) => p.status === 'pending' && !!p.hold_until && new Date(p.hold_until) > new Date()
+
+export interface PaymentReceipt {
+  kind: PaymentKind
+  status: PaymentStatus
+  amount_kobo: number
+  paid_at: string | null
+  created_at: string
+  reference: string
+  month: string | null
+  matchdays: { played_at: string } | null
+  dues_quarters: { quarter: number; year: number } | null
+}
+
+export async function fetchPaymentReceipt(reference: string): Promise<PaymentReceipt | null> {
+  const { data, error } = await supabase
+    .from('payments')
+    .select('kind, status, amount_kobo, paid_at, created_at, reference, month, matchdays (played_at), dues_quarters (quarter, year)')
+    .eq('reference', reference)
+    .maybeSingle()
+  if (error) throw error
+  return data as PaymentReceipt | null
+}
