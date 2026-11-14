@@ -3,6 +3,7 @@ import { Link, useSearch } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
 import { PageLoader } from '@/components/states/PageLoader'
+import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Scene } from '@/components/states/Scene'
 import { usePaymentReceipt, useVerifyPayment } from './hooks'
 import { formatNaira, type PaymentKind, type PaymentReceipt, type PaymentStatus } from './api'
@@ -60,8 +61,9 @@ const toneOf = (s: PaymentStatus | undefined): Tone => (s === 'paid' ? 'good' : 
 
 export function PayReturnPage() {
   const { reference } = useSearch({ from: '/_app/pay/return' })
-  const { data, isLoading, isError, error } = useVerifyPayment(reference)
-  const { data: receipt } = usePaymentReceipt(reference, data?.status)
+  const { player } = useCurrentPlayer()
+  const { data, isLoading, isError, error } = useVerifyPayment(reference, player?.id)
+  const { data: receipt } = usePaymentReceipt(reference, player?.id, data?.status)
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -75,7 +77,10 @@ export function PayReturnPage() {
   if (!reference) {
     return <Shell tone="bad" copy={{ kicker: 'Payment', title: 'NO PAYMENT TO CHECK.', body: 'Start a payment from Matchday or the Kitty.', cta: { label: 'See Matchday', to: '/matchday' } }} />
   }
-  if (isLoading) return <PageLoader />
+  if (!player || isLoading) return <PageLoader />
+  if (error?.message === 'Payment not found') {
+    return <Shell tone="bad" copy={{ kicker: 'Payment', title: 'NOT YOUR PAYMENT.', body: 'This receipt belongs to whoever paid. Signed in as someone else? Your own payments show on Matchday and the Kitty.', cta: { label: 'See Matchday', to: '/matchday' } }} />
+  }
   if (isError || !data) {
     return <Shell tone="bad" copy={{ kicker: 'Payment', title: 'WE COULDN’T CHECK THAT.', body: error?.message ?? 'Try again in a minute.', cta: { label: 'See Matchday', to: '/matchday' } }} />
   }

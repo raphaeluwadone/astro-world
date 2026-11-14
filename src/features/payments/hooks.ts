@@ -33,22 +33,22 @@ export function useStartPayment() {
   })
 }
 
-export function useVerifyPayment(reference: string | undefined) {
+export function useVerifyPayment(reference: string | undefined, playerId: string | undefined) {
   return useQuery({
-    queryKey: ['payment-verify', reference],
+    queryKey: ['payment-verify', reference, playerId],
     queryFn: () => verifyPayment(reference!),
-    enabled: !!reference,
+    enabled: !!reference && !!playerId,
     retry: 1,
     // Paystack can take a moment to mark a charge successful.
     refetchInterval: (q) => (q.state.data?.status === 'pending' && q.state.dataUpdateCount < 6 ? 3000 : false),
   })
 }
 
-export function usePaymentReceipt(reference: string | undefined, status: string | undefined) {
+export function usePaymentReceipt(reference: string | undefined, playerId: string | undefined, status: string | undefined) {
   return useQuery({
-    queryKey: ['payments', 'receipt', reference, status],
-    queryFn: () => fetchPaymentReceipt(reference!),
-    enabled: !!reference && !!status,
+    queryKey: ['payments', 'receipt', reference, playerId, status],
+    queryFn: () => fetchPaymentReceipt(reference!, playerId!),
+    enabled: !!reference && !!playerId && !!status,
   })
 }
 

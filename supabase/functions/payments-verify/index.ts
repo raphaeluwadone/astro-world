@@ -8,7 +8,14 @@ Deno.serve(async (req) => {
   const { reference } = await req.json().catch(() => ({}))
   if (typeof reference !== 'string' || !reference) return json({ error: 'Missing reference' }, 400)
 
-  const { data: mine } = await userClient(req).from('payments').select('id').eq('reference', reference).maybeSingle()
+  // Admins can read every payment, so match the payer rather than relying on RLS.
+  const user = userClient(req)
+  const { data: auth } = await user.auth.getUser()
+  if (!auth.user) return json({ error: 'Sign in to check a payment' }, 401)
+  const { data: me } = await user.from('players').select('id').eq('user_id', auth.user.id).maybeSingle()
+  const { data: mine } = me
+    ? await user.from('payments').select('id').eq('reference', reference).eq('player_id', me.id).maybeSingle()
+    : { data: null }
   if (!mine) return json({ error: 'Payment not found' }, 404)
 
   try {

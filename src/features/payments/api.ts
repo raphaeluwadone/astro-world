@@ -117,11 +117,12 @@ export interface PaymentReceipt {
   dues_quarters: { quarter: number; year: number } | null
 }
 
-export async function fetchPaymentReceipt(reference: string): Promise<PaymentReceipt | null> {
+export async function fetchPaymentReceipt(reference: string, playerId: string): Promise<PaymentReceipt | null> {
   const { data, error } = await supabase
     .from('payments')
     .select('kind, status, amount_kobo, paid_at, created_at, reference, month, matchdays (played_at), dues_quarters (quarter, year)')
     .eq('reference', reference)
+    .eq('player_id', playerId)
     .maybeSingle()
   if (error) throw error
   return data as PaymentReceipt | null
