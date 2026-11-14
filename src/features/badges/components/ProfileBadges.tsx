@@ -1,6 +1,8 @@
 import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import { isNoticeDismissed, rememberNotices, TimedNotice } from '@/components/TimedNotice'
 import { Timeline, TimelineItem } from '@/components/timeline/Timeline'
 import { dropDate } from '@/features/honours/feed'
 import { useCupQuarters } from '@/features/honours/hooks'
@@ -240,9 +242,18 @@ function readDismissed(): string[] {
 }
 
 /** Shown to everyone for a week after a cup, yearly or monthly badge goes live. */
-export function NewBadgeBanner({ badges, nickname }: { badges: Badge[]; nickname: string }) {
+export function NewBadgeBanner({ badges, nickname, isOwn }: { badges: Badge[]; nickname: string; isOwn: boolean }) {
   const [dismissed, setDismissed] = useState(readDismissed)
-  const fresh = headlineBadges(badges).find((b) => isNewBadge(b) && !dismissed.includes(b.id))
+  // Keeps the banner on screen for this visit after it has been marked seen.
+  const [showing, setShowing] = useState<string>()
+  const fresh = headlineBadges(badges).find(
+    (b) => isNewBadge(b) && !dismissed.includes(b.id) && (isOwn || b.id === showing || !isNoticeDismissed(`badge:${b.id}`)),
+  )
+  if (fresh && !isOwn && !showing) {
+    setShowing(fresh.id)
+    // Shown once is seen, and the rest of their new badges count as seen too.
+    rememberNotices(headlineBadges(badges).filter((b) => isNewBadge(b)).map((b) => `badge:${b.id}`))
+  }
   if (!fresh) return null
   const isCup = fresh.tier === 'cup'
   const color = TIER_COLOR[fresh.tier]
@@ -257,9 +268,9 @@ export function NewBadgeBanner({ badges, nickname }: { badges: Badge[]; nickname
     }
   }
 
-  return (
+  const banner = (
     <div
-      className="flex flex-wrap items-center gap-3 rounded-xl border px-3.5 py-2.5"
+      className={cn('flex flex-wrap items-center gap-3 rounded-xl border py-2.5 pl-3.5', isOwn ? 'pr-3.5' : 'pr-11')}
       style={{
         borderColor: isCup ? 'rgba(242,169,59,0.5)' : `color-mix(in srgb, ${color} 45%, transparent)`,
         background: `linear-gradient(110deg, color-mix(in srgb, ${color} 18%, transparent), color-mix(in srgb, ${color} 3%, transparent))`,
@@ -279,10 +290,18 @@ export function NewBadgeBanner({ badges, nickname }: { badges: Badge[]; nickname
           {fresh.tiedWith.length > 0 && `, shared with ${fresh.tiedWith.map((p) => p.nickname).slice(0, 3).join(', ')}`}
         </div>
       </div>
-      <button type="button" onClick={dismiss} className="text-xs font-bold text-astro-text-dim hover:text-astro-text">
-        Dismiss
-      </button>
+      {isOwn && (
+        <button type="button" onClick={dismiss} className="text-xs font-bold text-astro-text-dim hover:text-astro-text">
+          Dismiss
+        </button>
+      )}
     </div>
+  )
+  if (isOwn) return banner
+  return (
+    <TimedNotice key={fresh.id} id={`badge:${fresh.id}`} className="rounded-xl">
+      {banner}
+    </TimedNotice>
   )
 }
 

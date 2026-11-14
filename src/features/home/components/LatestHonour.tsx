@@ -12,6 +12,8 @@ export function recentHonour(feed: FeedItem[], now = Date.now()) {
   return item
 }
 
+export const honourNoticeId = (item: FeedItem) => `honour:${item.type}:${item.at.getTime()}`
+
 function names(list: string[]) {
   if (list.length <= 2) return list.join(' and ')
   return `${list.slice(0, 2).join(', ')} and ${list.length - 2} more`
@@ -35,7 +37,7 @@ export function LatestHonour({ item }: { item: FeedItem }) {
   return (
     <Link
       to="/honours"
-      className="group flex items-center gap-4 rounded-[14px] border px-5 py-3.5 no-underline transition-colors hover:bg-white/[0.03]"
+      className="group flex items-center gap-4 rounded-[14px] border py-3.5 pl-5 pr-12 no-underline transition-colors hover:bg-white/[0.03]"
       style={{
         borderColor: `color-mix(in srgb, ${color} 40%, transparent)`,
         background: `linear-gradient(120deg, color-mix(in srgb, ${color} 14%, transparent), transparent 70%)`,

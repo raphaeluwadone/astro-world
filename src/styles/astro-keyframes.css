@@ -282,3 +282,6 @@
 @keyframes cm-bar { from { transform: scaleX(0) } to { transform: scaleX(1) } }
 @keyframes cm-poly { from { opacity: 0.001; transform: scale(0.82) } to { opacity: 1; transform: scale(1) } }
 @keyframes cm-in { from { opacity: 0.001; transform: translateY(7px) } to { opacity: 1; transform: none } }
+
+/* Not from the design files: the timer bar on a banner that closes itself. */
+@keyframes notice-drain { from { transform: scaleX(1) } to { transform: scaleX(0) } }

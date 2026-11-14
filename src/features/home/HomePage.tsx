@@ -1,3 +1,4 @@
+import { TimedNotice } from '@/components/TimedNotice'
 import { useMemo } from 'react'
 import { useArticles } from '@/features/articles/hooks'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -28,8 +29,8 @@ import { AwardRaceCard } from './components/AwardRaceCard'
 import { CupBanner, shouldShowCupBanner } from './components/CupBanner'
 import { HomeNotices } from './components/HomeNotices'
 import { LastResultCard } from './components/LastResultCard'
-import { LatestHonour, recentHonour } from './components/LatestHonour'
-import { isRuleChangeRecent, RulesChangedStrip } from './components/RulesChangedStrip'
+import { honourNoticeId, LatestHonour, recentHonour } from './components/LatestHonour'
+import { isRuleChangeRecent, RULES_NOTICE_ID, RulesChangedStrip } from './components/RulesChangedStrip'
 import { ArticlesPreview } from './components/ArticlesPreview'
 import { GroupChatPreview } from './components/GroupChatPreview'
 import { NextMatchdayCard } from './components/NextMatchdayCard'
@@ -128,14 +129,14 @@ export function HomePage() {
         <HomeNotices honour={latestHonour} cup={shouldShowCupBanner(cup) ? cup : null} rulesChanged={isRuleChangeRecent()} />
       </div>
       {isRuleChangeRecent() && (
-        <div className="max-md:hidden">
+        <TimedNotice id={RULES_NOTICE_ID} className="rounded-[14px] max-md:hidden">
           <RulesChangedStrip />
-        </div>
+        </TimedNotice>
       )}
       {latestHonour && (
-        <div className="max-md:hidden">
+        <TimedNotice id={honourNoticeId(latestHonour)} className="rounded-[14px] max-md:hidden">
           <LatestHonour item={latestHonour} />
-        </div>
+        </TimedNotice>
       )}
       {shouldShowCupBanner(cup) && (
         <div className="max-md:hidden">

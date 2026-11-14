@@ -64,7 +64,7 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
 
   return (
     <div className="space-y-5">
-      <NewBadgeBanner badges={badges} nickname={player.nickname} />
+      <NewBadgeBanner badges={badges} nickname={player.nickname} isOwn={isOwnProfile} />
       <div className="mb-1 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 max-w-full">
           <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
