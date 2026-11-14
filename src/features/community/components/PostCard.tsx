@@ -1,3 +1,4 @@
+import { withConfirm } from '@/components/dialogs/confirm'
 import { useEffect, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -81,7 +82,7 @@ function Replies({ postId, canReply, onCancel }: { postId: string; canReply: boo
                     {(r.author.id === player?.id || player?.is_admin) && (
                       <button
                         type="button"
-                        onClick={() => remove.mutate(r.id)}
+                        onClick={() => withConfirm({ title: 'Delete this reply?', body: 'It’s gone for everyone, and it can’t be brought back.', confirmLabel: 'Delete reply', tone: 'danger' }, () => remove.mutate(r.id))}
                         className="ml-auto text-[11px] font-bold text-astro-text-dim hover:text-astro-red"
                       >
                         Delete

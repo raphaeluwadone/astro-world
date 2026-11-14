@@ -1,3 +1,4 @@
+import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { useState, type ReactNode } from 'react'
@@ -117,7 +118,7 @@ function SheetBody({ m }: { m: MemberRow }) {
     )
 
   const toggle = (r: 'admin' | 'writer' | 'left', on: boolean, done: string) =>
-    role.mutate({ id: m.id, role: r, on }, { onSuccess: () => toast.success(done), onError: (e) => toast.error(errText(e)) })
+    role.mutate({ id: m.id, role: r, on }, { onSuccess: () => undoToast(done, () => role.mutate({ id: m.id, role: r, on: !on })), onError: (e) => toast.error(errText(e)) })
 
   return (
     <>
@@ -146,7 +147,7 @@ function SheetBody({ m }: { m: MemberRow }) {
               aria-label="Admin"
               checked={m.is_admin}
               disabled={isMe || !!m.left_at || role.isPending}
-              onCheckedChange={(on) => toggle('admin', on, on ? `${m.nickname} is an admin now.` : `${m.nickname} isn’t an admin any more.`)}
+              onCheckedChange={(on) => withConfirm({ tone: 'admin', eyebrow: 'Members', title: on ? `Make ${m.nickname} an admin?` : `Remove ${m.nickname} as an admin?`, body: on ? 'They can run matchdays, see payments and change anyone’s details.' : 'They lose access to the admin portal.', confirmLabel: on ? 'Make admin' : 'Remove admin' }, () => toggle('admin', on, on ? `${m.nickname} is an admin now.` : `${m.nickname} isn’t an admin any more.`))}
             />
           </div>
           <div className="flex items-center gap-3">
@@ -208,7 +209,7 @@ function SheetBody({ m }: { m: MemberRow }) {
             />
           </Field>
           <Field label="Number">
-            <input className={INPUT} inputMode="numeric" value={form.favourite_number} onChange={(e) => set({ favourite_number: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
+            <input className={INPUT} inputMode="numeric" placeholder="e.g. 7" value={form.favourite_number} onChange={(e) => set({ favourite_number: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
           </Field>
           <Field label="Instagram" className="col-span-2">
             <input className={INPUT} value={form.instagram_handle} placeholder="@handle" onChange={(e) => set({ instagram_handle: e.target.value })} />
@@ -224,7 +225,7 @@ function SheetBody({ m }: { m: MemberRow }) {
             />
           </Field>
           <Field label="Day">
-            <input className={INPUT} inputMode="numeric" value={form.birthday_day} onChange={(e) => set({ birthday_day: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
+            <input className={INPUT} inputMode="numeric" placeholder="DD" value={form.birthday_day} onChange={(e) => set({ birthday_day: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
           </Field>
         </div>
       </Section>
@@ -233,7 +234,7 @@ function SheetBody({ m }: { m: MemberRow }) {
         <div className="grid grid-cols-3 gap-3">
           {LEGACY.map(([k, label]) => (
             <Field key={k} label={label}>
-              <input className={INPUT} inputMode="numeric" value={form[k]} onChange={(e) => set({ [k]: e.target.value.replace(/\D/g, '').slice(0, 4) })} />
+              <input className={INPUT} inputMode="numeric" placeholder="0" value={form[k]} onChange={(e) => set({ [k]: e.target.value.replace(/\D/g, '').slice(0, 4) })} />
             </Field>
           ))}
         </div>

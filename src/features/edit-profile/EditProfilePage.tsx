@@ -1,3 +1,4 @@
+import { undoToast } from '@/components/dialogs/confirm'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { BackLink } from '@/components/navigation/BackLink'
@@ -129,7 +130,13 @@ export function EditProfilePage() {
             allTags={tags}
             tagPool={tagPool}
             onAdd={(tagId) => addSelfTag.mutate(tagId)}
-            onRemove={(rowId) => removeSelfTag.mutate(rowId)}
+            onRemove={(rowId) => {
+              const label = tags.find((t) => t.id === rowId)?.label
+              const poolId = tagPool.find((t) => t.label === label)?.id
+              removeSelfTag.mutate(rowId, {
+                onSuccess: () => label && poolId && undoToast(`Removed ${label}`, () => addSelfTag.mutate(poolId)),
+              })
+            }}
             isMutating={addSelfTag.isPending || removeSelfTag.isPending}
           />
         </div>

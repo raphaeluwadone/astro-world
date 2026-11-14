@@ -1,3 +1,5 @@
+import { withConfirm } from '@/components/dialogs/confirm'
+import { CONFIRM_OPT_OUT } from '../confirmCopy'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { PullOutDialog } from './PullOutDialog'
@@ -120,7 +122,7 @@ export function AvailabilityCard({
             <button
               type="button"
               disabled={settingOptStatus}
-              onClick={() => setMonthlyOptStatus({ playerId: playerId!, status: 'out' })}
+              onClick={() => monthlyOptStatus !== 'out' && withConfirm(CONFIRM_OPT_OUT, () => setMonthlyOptStatus({ playerId: playerId!, status: 'out' }))}
               className={cn(BASE_BUTTON, monthlyOptStatus === 'out' ? undefined : UNSELECTED_BUTTON)}
               style={monthlyOptStatus === 'out' ? { background: '#e0483f', color: '#fff' } : undefined}
             >

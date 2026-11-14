@@ -1,3 +1,4 @@
+import { withConfirm } from '@/components/dialogs/confirm'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Scene } from '@/components/states/Scene'
 import { useNavigate } from '@tanstack/react-router'
@@ -68,7 +69,7 @@ function SwapIn({
   const taken = players.some((p) => p.nickname.toLowerCase() === q)
 
   const swap = (inId: string, name: string) =>
-    act.mutate((by) => api.swapPlayer(matchdayId, team.id, out.id, inId, by), {
+    withConfirm({ tone: 'admin', eyebrow: 'Swap', title: `${name} in for ${out.nickname}?`, body: `${out.nickname} comes off the side and the swap is posted to the feed.`, confirmLabel: 'Swap them' }, () => act.mutate((by) => api.swapPlayer(matchdayId, team.id, out.id, inId, by), {
       onSuccess: () => {
         void qc.invalidateQueries({ queryKey: ['drawn-teams', matchdayId] })
         void qc.invalidateQueries({ queryKey: ['community-feed'] })
@@ -76,7 +77,7 @@ function SwapIn({
         onDone()
       },
       onError: fail('make that swap'),
-    })
+    }))
   const walkIn = () =>
     act.mutate(() => api.addWalkIn(query), {
       onSuccess: (id) => {
@@ -393,6 +394,7 @@ function GoalTime({ goal, lengthMin, act }: { goal: api.PitchGoal; lengthMin: nu
         inputMode="numeric"
         min={1}
         max={99}
+        placeholder="min"
         autoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -545,7 +547,7 @@ function GoalEditor({
                       <button
                         type="button"
                         aria-label="Undo goal"
-                        onClick={() => act.mutate(() => api.deleteGoal(g.id), { onSuccess: () => toast('Goal removed.'), onError: fail('remove that goal') })}
+                        onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Pitch-side', title: g.scorer_id ? `Remove ${nameOf(g.scorer_id)}’s goal?` : 'Remove this goal?', body: 'It comes off the score and their stats.', confirmLabel: 'Remove goal' }, () => act.mutate(() => api.deleteGoal(g.id), { onSuccess: () => toast('Goal removed.'), onError: fail('remove that goal') }))}
                         className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
                       >
                         &times;
@@ -568,7 +570,7 @@ function GoalEditor({
                         <button
                           type="button"
                           aria-label="Undo card"
-                          onClick={() => act.mutate(() => api.deleteCard(c.id), { onSuccess: () => toast('Card removed.'), onError: fail('remove that card') })}
+                          onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Pitch-side', title: `Remove ${nameOf(c.player_id)}’s card?`, body: 'It comes off their record for this game.', confirmLabel: 'Remove card' }, () => act.mutate(() => api.deleteCard(c.id), { onSuccess: () => toast('Card removed.'), onError: fail('remove that card') }))}
                           className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
                         >
                           &times;
@@ -753,6 +755,7 @@ function MinutesInput({ value, onSave, className }: { value: number; onSave: (mi
       inputMode="numeric"
       min={1}
       max={90}
+      placeholder="mins"
       value={text}
       onChange={(e) => setText(e.target.value)}
       onBlur={commit}
@@ -1035,7 +1038,7 @@ function DrawStep({ matchdayId, capacity }: { matchdayId: string; capacity: numb
               <div className="mt-2 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => saveRules.mutate(rules, { onSuccess: () => { setDraft(null); toast.success('Saved as the default') } })}
+                  onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Draw rules', title: 'Save as the defaults?', body: 'Every draw from now on starts from these rules.', confirmLabel: 'Save defaults' }, () => saveRules.mutate(rules, { onSuccess: () => { setDraft(null); toast.success('Saved as the default') } }))}
                   className="min-h-9 flex-1 rounded-[10px] border border-astro-cyan/50 text-[12.5px] font-bold text-astro-cyan"
                 >
                   Save as default

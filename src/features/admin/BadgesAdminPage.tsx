@@ -1,3 +1,4 @@
+import { confirmAction, withConfirm } from '@/components/dialogs/confirm'
 import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
 import { Link } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
@@ -37,7 +38,13 @@ function AwardGroup({ rows, deciderId, held }: { rows: BadgeRow[]; deciderId: st
   const def = badgeDef(first.badge_key, first.title)
   const color = TIER_COLOR[def.tier]
 
-  function run(status: 'live' | 'held', label: string) {
+  async function run(status: 'live' | 'held', label: string) {
+    const ok = await confirmAction(
+      status === 'live'
+        ? { tone: 'admin', eyebrow: 'Badges', title: `Make ${def.name} live?`, body: `It goes on ${rows.length === 1 ? 'their card' : `${rows.length} cards`} and into the honours feed, and they’re told.`, confirmLabel: 'Make it live' }
+        : { tone: 'admin', eyebrow: 'Badges', title: `Hold back ${def.name}?`, body: 'Nobody sees it until you make it live.', confirmLabel: 'Hold it back' },
+    )
+    if (!ok) return
     Promise.all(rows.map((r) => decide.mutateAsync({ id: r.id, status })))
       .then(() => toast.success(label))
       .catch(() => toast.error("Couldn't update that badge."))
@@ -104,8 +111,10 @@ function ManualAward({ deciderId }: { deciderId: string | null }) {
   const cup = playedCups.find((q) => q.id === cupId) ?? playedCups[0]
   const year = new Date().getFullYear()
 
-  function submit() {
+  async function submit() {
     if (!playerId || (isCup && !cup)) return
+    const ok = await confirmAction({ tone: 'admin', eyebrow: 'Badges', title: 'Award this badge?', body: 'It goes on their card and into the honours feed, and they’re told.', confirmLabel: 'Award it' })
+    if (!ok) return
     award.mutate(
       { playerId, badgeKey, period: isCup ? { key: cup!.id, at: cup!.scheduled_at } : { key: String(year) }, detail: detail.trim() },
       {
@@ -238,10 +247,10 @@ export function BadgesAdminPage() {
             <Button
               disabled={runAward.isPending}
               onClick={() =>
-                runAward.mutate(Number(year), {
+                withConfirm({ tone: 'admin', eyebrow: 'Badges', title: `Award ${year} titles?`, body: `Works out the ${year} season titles from the stats and adds them for you to review.`, confirmLabel: 'Work them out' }, () => runAward.mutate(Number(year), {
                   onSuccess: (n) => toast.success(n ? `${n} badge${n === 1 ? '' : 's'} added` : 'Nothing new to award'),
                   onError: () => toast.error("Couldn't work out the badges."),
-                })
+                }))
               }
             >
               {runAward.isPending ? 'Working it out…' : yearAwarded ? `Check ${year} again` : `Award ${year} titles`}

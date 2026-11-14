@@ -1,3 +1,4 @@
+import { confirmAction, undoToast } from '@/components/dialogs/confirm'
 import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
 import { Scene } from '@/components/states/Scene'
 import { cn } from 'cn'
@@ -65,11 +66,19 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
   }
 
   async function onPublish(next: boolean) {
+    const ok = await confirmAction(
+      next
+        ? { title: 'Publish this article?', body: 'It goes on the Articles page for everyone straight away.', confirmLabel: 'Publish' }
+        : { title: 'Unpublish this article?', body: 'It comes off the Articles page and goes back to a draft.', confirmLabel: 'Unpublish', tone: 'danger' },
+    )
+    if (!ok) return
     try {
       const target = dirty || !id ? await persist() : id
       await publish.mutateAsync({ id: target, published: next })
       setPublishedState(next)
-      toast.success(next ? 'Published. It’s on the Articles page now.' : 'Unpublished. Back to a draft.')
+      undoToast(next ? 'Published. It’s on the Articles page now.' : 'Unpublished. Back to a draft.', () =>
+        publish.mutate({ id: target, published: !next }, { onSuccess: () => setPublishedState(!next) }),
+      )
     } catch (e) {
       toast.error(errText(e))
     }

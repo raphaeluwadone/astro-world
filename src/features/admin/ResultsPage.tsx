@@ -1,3 +1,4 @@
+import { confirmAction } from '@/components/dialogs/confirm'
 import { Link } from '@tanstack/react-router'
 import { Scene } from '@/components/states/Scene'
 import { AstroSelect } from '@/components/ui/astro-select'
@@ -339,6 +340,8 @@ export function ResultsPage() {
       cards: f.cards.filter((c) => c.teamId === f.teamAId || c.teamId === f.teamBId),
     }))
 
+    const ok = await confirmAction({ tone: 'admin', eyebrow: 'Results', title: 'File these results?', body: `${fixtures.length} game${fixtures.length === 1 ? '' : 's'} and ${checkedIn.length} players. Stats update for everyone and ratings open.`, confirmLabel: 'File results' })
+    if (!ok) return
     try {
       await fileResults.mutateAsync({ fixtures, checkedIn })
     } catch (err) {
@@ -387,6 +390,8 @@ export function ResultsPage() {
                 <input
                   type="number"
                   min={0}
+                  inputMode="numeric"
+                  placeholder="0"
                   value={fixture.scoreA}
                   onChange={(e) => updateFixture(fi, { scoreA: e.target.value })}
                   className="font-display w-14 shrink-0 rounded-[10px] border border-white/10 bg-astro-surface-2 px-2 py-3 text-center text-xl text-astro-text"
@@ -395,6 +400,8 @@ export function ResultsPage() {
                 <input
                   type="number"
                   min={0}
+                  inputMode="numeric"
+                  placeholder="0"
                   value={fixture.scoreB}
                   onChange={(e) => updateFixture(fi, { scoreB: e.target.value })}
                   className="font-display w-14 shrink-0 rounded-[10px] border border-white/10 bg-astro-surface-2 px-2 py-3 text-center text-xl text-astro-text"

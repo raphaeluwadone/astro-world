@@ -1,3 +1,5 @@
+import { withConfirm } from '@/components/dialogs/confirm'
+import { CONFIRM_CLAIM, CONFIRM_CLAIM_MONTHLY, CONFIRM_JOIN_STANDBY, confirmPay } from './confirmCopy'
 import { toast } from 'sonner'
 import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
@@ -174,7 +176,7 @@ export function MatchdayPage() {
           isOnStandby={isOnStandby}
           standbyPosition={isOnStandby ? standbyIndex + 1 : null}
           spotsRemaining={spotsRemaining}
-          onClaim={() => player?.id && claimWeeklySpot.mutate(player.id)}
+          onClaim={() => player?.id && withConfirm(CONFIRM_CLAIM, () => claimWeeklySpot.mutate(player.id))}
           onWithdrawClaim={() =>
             player?.id &&
             withdrawWeeklyClaim.mutate(player.id, {
@@ -182,7 +184,7 @@ export function MatchdayPage() {
               onError: () => toast.error("Couldn't do that. Claims may have just closed."),
             })
           }
-          onJoinStandby={() => player?.id && joinStandby.mutate(player.id)}
+          onJoinStandby={() => player?.id && withConfirm(CONFIRM_JOIN_STANDBY, () => joinStandby.mutate(player.id))}
           onLeaveStandby={() =>
             player?.id &&
             leaveStandby.mutate(player.id, {
@@ -197,7 +199,7 @@ export function MatchdayPage() {
           weeklyPrice={prices.weekly}
           isPaid={weeklyPaid}
           heldUntil={weeklyHold}
-          onPay={() => startPayment.mutate({ kind: 'weekly', matchday_id: matchday.id })}
+          onPay={() => withConfirm(confirmPay('weekly', prices.weekly), () => startPayment.mutate({ kind: 'weekly', matchday_id: matchday.id }))}
           isPaying={paying && startPayment.variables?.kind === 'weekly'}
         />
       )}
@@ -209,13 +211,13 @@ export function MatchdayPage() {
               members={monthlyMembers}
               monthLabel={new Date(matchday.played_at).toLocaleDateString('en-GB', { month: 'long' })}
               playerId={player?.id ?? null}
-              onClaim={() => player?.id && claimMonthlySlot.mutate(player.id)}
+              onClaim={() => player?.id && withConfirm(CONFIRM_CLAIM_MONTHLY, () => claimMonthlySlot.mutate(player.id))}
               isClaiming={claimMonthlySlot.isPending}
               availability={availability}
               price={prices.monthly}
               isPaid={monthlyPaid}
               heldUntil={monthlyHold}
-              onPay={() => startPayment.mutate({ kind: 'monthly', month })}
+              onPay={() => withConfirm(confirmPay('monthly', prices.monthly), () => startPayment.mutate({ kind: 'monthly', month }))}
               isPaying={paying && startPayment.variables?.kind === 'monthly'}
             />
           )}
@@ -269,7 +271,12 @@ export function MatchdayPage() {
                     key={cap}
                     type="button"
                     disabled={updateCapacity.isPending}
-                    onClick={() => updateCapacity.mutate(cap)}
+                    onClick={() =>
+                      withConfirm(
+                        { tone: 'admin', eyebrow: 'Matchday control', title: `Switch to ${cap / 6} teams?`, body: `Capacity becomes ${cap}. Spots left update for everyone straight away.`, confirmLabel: `Make it ${cap}` },
+                        () => updateCapacity.mutate(cap),
+                      )
+                    }
                     className={
                       matchday.capacity === cap
                         ? 'rounded-lg bg-astro-accent px-3 py-1.5 text-xs font-extrabold text-astro-on-accent'

@@ -1,3 +1,4 @@
+import { withConfirm } from '@/components/dialogs/confirm'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -40,10 +41,14 @@ export function PhotoControls({ playerId, size = 'default' }: { playerId: string
             variant="ghost"
             disabled={busy}
             onClick={() =>
-              remove.mutate(state, {
-                onSuccess: () => toast.success('Photo removed'),
-                onError: () => toast.error('Couldn’t remove the photo. Try again.'),
-              })
+              withConfirm(
+                { title: 'Remove your photo?', body: 'Your card goes back to the silhouette until you add a new one.', confirmLabel: 'Remove photo', tone: 'danger' },
+                () =>
+                  remove.mutate(state, {
+                    onSuccess: () => toast.success('Photo removed'),
+                    onError: () => toast.error('Couldn’t remove the photo. Try again.'),
+                  }),
+              )
             }
           >
             {remove.isPending ? 'Removing…' : 'Remove'}

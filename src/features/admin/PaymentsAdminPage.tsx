@@ -1,3 +1,5 @@
+import { digitsOnly, withCommas } from '@/lib/numbers'
+import { withConfirm } from '@/components/dialogs/confirm'
 import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Scene } from '@/components/states/Scene'
@@ -24,16 +26,16 @@ function PriceField({ kind, current, updatedBy }: { kind: PriceKind; current: nu
       className="flex items-end gap-2"
       onSubmit={(e) => {
         e.preventDefault()
-        save.mutate({ kind, amount }, { onSuccess: () => toast.success(`${KIND_LABEL[kind]} price saved`), onError: (err) => toast.error(err.message) })
+        withConfirm({ tone: 'admin', eyebrow: 'Prices', title: `Set the ${KIND_LABEL[kind].toLowerCase()} to ${formatNaira(amount)}?`, body: 'Payments started from now on use this price. Anything already paid keeps its amount.', confirmLabel: 'Set price' }, () => save.mutate({ kind, amount }, { onSuccess: () => toast.success(`${KIND_LABEL[kind]} price saved`), onError: (err) => toast.error(err.message) }))
       }}
     >
       <label className="flex-1">
         <span className="mb-1 block text-[11px] font-extrabold uppercase tracking-[0.1em] text-astro-text-dim">{KIND_LABEL[kind]} (₦)</span>
         <input
           inputMode="numeric"
-          value={value}
-          onChange={(e) => setValue(e.target.value.replace(/[^\d]/g, ''))}
-          placeholder="Not set"
+          value={withCommas(value)}
+          onChange={(e) => setValue(digitsOnly(e.target.value))}
+          placeholder="Not set, e.g. 3,000"
           className="h-10 w-full rounded-[10px] border border-border bg-astro-surface-2 px-3 text-sm text-astro-text placeholder:text-astro-text-dim"
         />
       </label>
@@ -116,7 +118,12 @@ export function PaymentsAdminPage() {
                       <button
                         type="button"
                         disabled={markRefunded.isPending}
-                        onClick={() => markRefunded.mutate(p.id, { onSuccess: () => toast.success(`Marked ${p.players.nickname} refunded`) })}
+                        onClick={() =>
+                          withConfirm(
+                            { tone: 'admin', eyebrow: 'Refunds', title: `Mark ${p.players.nickname} refunded?`, body: `Only do this once the ${formatNaira(p.amount_kobo / 100)} is back with them. It comes off the refunds list.`, confirmLabel: 'Mark refunded' },
+                            () => markRefunded.mutate(p.id, { onSuccess: () => toast.success(`Marked ${p.players.nickname} refunded`) }),
+                          )
+                        }
                         className="rounded-md border border-border bg-astro-surface px-2.5 py-1 text-[11px] font-bold text-astro-text-muted hover:text-astro-text disabled:opacity-60"
                       >
                         Mark refunded

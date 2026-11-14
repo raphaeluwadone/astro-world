@@ -160,3 +160,8 @@
 .astro-editor .tiptap blockquote { border-left: 3px solid rgba(166,63,255,0.6); padding-left: 1em; font-style: italic; color: #d7dcef; }
 .astro-editor .tiptap img { max-width: 100%; border-radius: 12px; }
 .astro-editor .tiptap img.ProseMirror-selectednode { outline: 2px solid #a63fff; }
+
+/* No spinner arrows on number fields. */
+input[type='number'] { appearance: textfield; -moz-appearance: textfield; }
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

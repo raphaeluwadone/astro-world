@@ -1,3 +1,4 @@
+import { undoToast } from '@/components/dialogs/confirm'
 import { cn } from 'cn'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -93,7 +94,10 @@ function AdminActions({ post, onEdit }: { post: HonoursPost; onEdit: () => void 
         onClick={() =>
           pin.mutate(
             { id: post.id, pinned: !post.pinned },
-            { onSuccess: () => toast.success(post.pinned ? 'Unpinned' : 'Pinned to the top'), onError: () => toast.error("Couldn't change the pin.") },
+            {
+              onSuccess: () => undoToast(post.pinned ? 'Unpinned' : 'Pinned to the top', () => pin.mutate({ id: post.id, pinned: post.pinned })),
+              onError: () => toast.error("Couldn't change the pin."),
+            },
           )
         }
       >

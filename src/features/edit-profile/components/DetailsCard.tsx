@@ -64,12 +64,14 @@ export function DetailsCard({
           <TextField
             label="Height (cm)"
             type="number"
+            placeholder="e.g. 178"
             value={draft.height_cm}
             onChange={(v) => onChange({ height_cm: v })}
           />
           <TextField
             label="Weight (kg)"
             type="number"
+            placeholder="e.g. 75"
             value={draft.weight_kg}
             onChange={(v) => onChange({ weight_kg: v })}
           />
@@ -78,6 +80,7 @@ export function DetailsCard({
           <TextField
             label="Favourite number"
             type="number"
+            placeholder="e.g. 7"
             value={draft.favourite_number}
             onChange={(v) => onChange({ favourite_number: v })}
             hint="Not a jersey number. Doesn't have to be unique."

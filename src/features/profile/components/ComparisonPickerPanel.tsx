@@ -1,3 +1,4 @@
+import { withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
 import { MemberModal } from '@/components/dialogs/MemberModal'
 import { InlineLoader } from '@/components/states/InlineLoader'
@@ -105,7 +106,7 @@ export function ComparisonPickerPanel({
               <button
                 type="button"
                 disabled={removeComparison.isPending}
-                onClick={() => removeComparison.mutate(c.id)}
+                onClick={() => withConfirm({ title: `Drop ${c.pro.name}?`, body: 'Their votes go with them. You can claim someone again, but a dropped name waits a month.', confirmLabel: 'Drop', tone: 'danger' }, () => removeComparison.mutate(c.id))}
                 className="text-xs font-bold text-astro-red hover:text-[#ff7a70]"
               >
                 Drop

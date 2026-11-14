@@ -1,3 +1,5 @@
+import { toast } from 'sonner'
+import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { NothingHere } from '@/components/states/NothingHere'
 import { Scene } from '@/components/states/Scene'
 import { BadgeHoverCard } from '@/features/badges/components/BadgeHoverCard'
@@ -107,7 +109,15 @@ export function SalamiCupPage() {
                 <button
                   type="button"
                   disabled={leaveCup.isPending}
-                  onClick={() => leaveCup.mutate(myEntry.id)}
+                  onClick={() =>
+                    withConfirm(
+                      { title: 'Withdraw from the cup?', body: entriesOpen ? 'You can enter again while entries are open.' : 'Entries are closed, so you can’t get back in once you withdraw.', confirmLabel: 'Withdraw', cancelLabel: 'Stay in', tone: 'danger' },
+                      () =>
+                        leaveCup.mutate(myEntry.id, {
+                          onSuccess: () => (entriesOpen ? undoToast('You’ve withdrawn from the cup', () => joinCup.mutate(player.id)) : toast('You’ve withdrawn from the cup')),
+                        }),
+                    )
+                  }
                   className="flex items-center gap-2 rounded-full border border-[rgba(74,222,128,0.45)] bg-[rgba(74,222,128,0.14)] px-3.5 py-2 text-[12.5px] font-extrabold text-[#4ade80]"
                 >
                   You&rsquo;re in &middot; tap to withdraw
@@ -117,7 +127,12 @@ export function SalamiCupPage() {
                   <button
                     type="button"
                     disabled={joinCup.isPending}
-                    onClick={() => joinCup.mutate(player.id)}
+                    onClick={() =>
+                      withConfirm(
+                        { title: 'Enter the Salami Cup?', body: 'Squads are picked by hand once entries close. Withdraw before then if you can’t make it.', confirmLabel: 'I’m in' },
+                        () => joinCup.mutate(player.id),
+                      )
+                    }
                     className="rounded-full bg-astro-amber px-4 py-2.5 text-[12.5px] font-extrabold text-[#20150a]"
                   >
                     {joinCup.isPending ? 'Joining…' : "I'm in"}

@@ -1,3 +1,4 @@
+import { confirmAction, undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AstroSelect } from '@/components/ui/astro-select'
@@ -110,7 +111,7 @@ function StatusControls({ cupId, status }: { cupId: string; status: CupStatus })
   return (
     <div className="flex flex-wrap items-center gap-2.5">
       {next && (
-        <Button onClick={() => updateStatus.mutate(next)} disabled={updateStatus.isPending} className="w-fit">
+        <Button onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Salami Cup', title: next === 'live' ? 'Start the cup?' : 'Mark the cup played?', body: next === 'live' ? 'Everyone sees it as live now.' : 'It closes the cup and the results become final.', confirmLabel: `Mark ${next}` }, () => updateStatus.mutate(next))} disabled={updateStatus.isPending} className="w-fit">
           {updateStatus.isPending ? 'Updating…' : `Mark ${next}`}
         </Button>
       )}
@@ -161,7 +162,7 @@ function SquadsPanel({ cupId }: { cupId: string }) {
             {s.members.map((m) => (
               <div key={m.id} className="flex items-center gap-1.5 rounded-md border border-white/[0.07] bg-astro-surface-2 px-2.5 py-1 text-[11.5px] font-bold text-astro-text-muted">
                 {m.nickname}
-                <button type="button" onClick={() => removePlayer.mutate({ squadId: s.id, playerId: m.id })} className="text-astro-text-dim hover:text-astro-red">
+                <button type="button" onClick={() => removePlayer.mutate({ squadId: s.id, playerId: m.id }, { onSuccess: () => undoToast(`${m.nickname} out of ${s.name}`, () => addPlayer.mutate({ squadId: s.id, playerId: m.id })) })} className="text-astro-text-dim hover:text-astro-red">
                   &times;
                 </button>
               </div>
@@ -296,9 +297,9 @@ function FixtureRow({
     <div className="rounded-[11px] bg-astro-surface-2 px-3.5 py-3">
       <div className="flex flex-wrap items-center gap-2.5">
         <div className="min-w-0 flex-1 text-right text-[13px] font-bold text-astro-text">{match.squad_a_name}</div>
-        <input type="number" min={0} value={a} onChange={(e) => setA(e.target.value)} aria-label={`${match.squad_a_name} goals`} className={SCORE_INPUT} />
+        <input type="number" inputMode="numeric" placeholder="0" min={0} value={a} onChange={(e) => setA(e.target.value)} aria-label={`${match.squad_a_name} goals`} className={SCORE_INPUT} />
         <span className="text-astro-text-dim">&ndash;</span>
-        <input type="number" min={0} value={b} onChange={(e) => setB(e.target.value)} aria-label={`${match.squad_b_name} goals`} className={SCORE_INPUT} />
+        <input type="number" inputMode="numeric" placeholder="0" min={0} value={b} onChange={(e) => setB(e.target.value)} aria-label={`${match.squad_b_name} goals`} className={SCORE_INPUT} />
         <div className="min-w-0 flex-1 text-[13px] font-bold text-astro-text">{match.squad_b_name}</div>
         <button
           type="button"
@@ -381,12 +382,12 @@ function FixturesPanel({ cupId }: { cupId: string }) {
             squads={squads}
             saving={recordScore.isPending}
             onSave={(scoreA, scoreB, goals) =>
-              recordScore.mutate(
+              withConfirm({ tone: 'admin', eyebrow: 'Salami Cup', title: `Save ${scoreA}–${scoreB}?`, body: 'The score and scorers count towards everyone’s cup stats.', confirmLabel: 'Save result' }, () => recordScore.mutate(
                 { matchId: m.id, scoreA, scoreB, goals },
                 { onError: (err) => toast.error(err instanceof Error ? err.message : 'Couldn’t save that result.') },
-              )
+              ))
             }
-            onRemove={() => deleteMatch.mutate(m.id)}
+            onRemove={() => withConfirm({ tone: 'admin', eyebrow: 'Salami Cup', title: 'Delete this fixture?', body: 'Its score and goals go with it.', confirmLabel: 'Delete fixture' }, () => deleteMatch.mutate(m.id))}
           />
         ))}
       </div>
@@ -407,6 +408,8 @@ export function CupAdminPage() {
 
   async function draw() {
     setDrawError(null)
+    const ok = await confirmAction({ tone: 'admin', eyebrow: 'Salami Cup', title: 'Draw the squads?', body: `${entrants.length} entrants into squads of six. Everyone can see their squad straight away.`, confirmLabel: 'Draw squads' })
+    if (!ok) return
     try {
       await runDraw.mutateAsync()
     } catch (err) {

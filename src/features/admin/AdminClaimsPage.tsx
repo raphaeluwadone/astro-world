@@ -1,3 +1,4 @@
+import { withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
 import { Scene } from '@/components/states/Scene'
 import { toast } from 'sonner'
@@ -77,7 +78,10 @@ export function AdminClaimsPage() {
                   type="button"
                   disabled={approve.isPending || reject.isPending}
                   onClick={() =>
-                    approve.mutate(c, { onSuccess: () => toast.success(`Approved as ${c.players.nickname}`) })
+                    withConfirm(
+                      { tone: 'admin', eyebrow: 'Claims', title: `Approve as ${c.players.nickname}?`, body: `This login takes over ${c.players.nickname}’s profile, stats and history.`, confirmLabel: 'Approve' },
+                      () => approve.mutate(c, { onSuccess: () => toast.success(`Approved as ${c.players.nickname}`) }),
+                    )
                   }
                   className="rounded-lg bg-astro-green px-4 py-2 text-xs font-extrabold text-[#08130c] disabled:opacity-60"
                 >

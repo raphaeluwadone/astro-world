@@ -1,3 +1,5 @@
+import { withConfirm } from '@/components/dialogs/confirm'
+import { CONFIRM_CLAIM, CONFIRM_JOIN_STANDBY, CONFIRM_OPT_OUT } from '@/features/matchday/confirmCopy'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -111,7 +113,7 @@ function QuickActions({
         <button
           type="button"
           disabled={setAvailability.isPending}
-          onClick={() => setAvailability.mutate({ playerId, status: 'out' })}
+          onClick={() => !out && withConfirm(CONFIRM_OPT_OUT, () => setAvailability.mutate({ playerId, status: 'out' }))}
           className={`${base} ${out ? 'bg-astro-red text-white' : idle}`}
         >
           Can&rsquo;t
@@ -126,7 +128,7 @@ function QuickActions({
     <button
       type="button"
       disabled={claim.isPending}
-      onClick={() => claim.mutate(playerId)}
+      onClick={() => withConfirm(CONFIRM_CLAIM, () => claim.mutate(playerId))}
       className={`${base} mt-3.5 w-full bg-astro-accent text-astro-on-accent md:hidden`}
     >
       {claim.isPending ? 'Claiming…' : `Claim a spot · ${spotsRemaining} left`}
@@ -135,7 +137,7 @@ function QuickActions({
     <button
       type="button"
       disabled={joinStandby.isPending}
-      onClick={() => joinStandby.mutate(playerId)}
+      onClick={() => withConfirm(CONFIRM_JOIN_STANDBY, () => joinStandby.mutate(playerId))}
       className={`${base} ${idle} mt-3.5 w-full md:hidden`}
     >
       {joinStandby.isPending ? 'Joining…' : 'Full · join standby'}

@@ -1,3 +1,5 @@
+import { withConfirm } from '@/components/dialogs/confirm'
+import { confirmPay } from '@/features/matchday/confirmCopy'
 import { useState } from 'react'
 import { Scene } from '@/components/states/Scene'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -112,9 +114,13 @@ function SuggestCauseForm({ suggestedBy }: { suggestedBy: string }) {
           type="button"
           disabled={!title.trim() || !description.trim() || suggest.isPending}
           onClick={() =>
-            suggest.mutate(
-              { title: title.trim(), description: description.trim(), suggestedBy },
-              { onSuccess: () => setOpen(false) },
+            withConfirm(
+              { title: 'Put this cause forward?', body: 'Everyone can see it. The admins set the target and the closing date.', confirmLabel: 'Send it' },
+              () =>
+                suggest.mutate(
+                  { title: title.trim(), description: description.trim(), suggestedBy },
+                  { onSuccess: () => setOpen(false) },
+                ),
             )
           }
           className="rounded-[10px] bg-astro-green px-4 py-2.5 text-[13px] font-extrabold text-[#08130c] disabled:opacity-60"
@@ -181,7 +187,7 @@ export function KittyPage() {
                     <button
                       type="button"
                       disabled={startPayment.isPending || startPayment.isSuccess}
-                      onClick={() => startPayment.mutate({ kind: 'dues', dues_quarter_id: duesQuarter.id })}
+                      onClick={() => withConfirm(confirmPay('dues', duesQuarter.amount), () => startPayment.mutate({ kind: 'dues', dues_quarter_id: duesQuarter.id }))}
                       className="rounded-[11px] bg-astro-amber px-[18px] py-3 text-[13px] font-extrabold text-[#1c1405] disabled:opacity-60"
                     >
                       {startPayment.isPending || startPayment.isSuccess ? 'Opening Paystack…' : `Pay ${formatNaira(duesQuarter.amount)} now`}

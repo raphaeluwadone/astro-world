@@ -1,3 +1,4 @@
+import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AstroSelect } from '@/components/ui/astro-select'
@@ -48,7 +49,7 @@ function NeverPairs() {
           {pairs.map((p) => (
             <li key={p.player_a + p.player_b} className="flex items-center gap-2 rounded-[10px] border border-white/[0.07] px-3 py-2 text-[13px] font-bold text-astro-text">
               {name(p.player_a)} <span className="text-astro-text-dim">and</span> {name(p.player_b)}
-              <button type="button" onClick={() => remove.mutate(p)} className="ml-auto text-[12px] font-bold text-astro-text-muted hover:text-astro-red">
+              <button type="button" onClick={() => remove.mutate(p, { onSuccess: () => undoToast(`Removed ${name(p.player_a)} and ${name(p.player_b)}`, () => add.mutate([p.player_a, p.player_b])) })} className="ml-auto text-[12px] font-bold text-astro-text-muted hover:text-astro-red">
                 Remove
               </button>
             </li>
@@ -82,13 +83,13 @@ export function DrawRulesPage() {
           type="button"
           disabled={!dirty || save.isPending}
           onClick={() =>
-            save.mutate(rules, {
+            withConfirm({ tone: 'admin', eyebrow: 'Draw rules', title: 'Save as the defaults?', body: 'Every draw from now on starts from these rules. Pitch-side can still change them for one draw.', confirmLabel: 'Save defaults' }, () => save.mutate(rules, {
               onSuccess: () => {
                 setDraft(null)
                 toast.success('Draw rules saved')
               },
               onError: () => toast.error('Couldn’t save the rules.'),
-            })
+            }))
           }
           className="mt-3 min-h-11 w-full rounded-[12px] bg-astro-cyan text-[14px] font-extrabold text-[#04121d] disabled:opacity-40"
         >

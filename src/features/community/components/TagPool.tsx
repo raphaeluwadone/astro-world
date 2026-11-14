@@ -1,3 +1,4 @@
+import { withConfirm } from '@/components/dialogs/confirm'
 import { cn } from 'cn'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -35,13 +36,13 @@ export function TagPool({ tags }: { tags: TagPoolRow[] }) {
   const create = () => {
     const clean = label.trim()
     if (clean.length < 2) return
-    invent.mutate(clean, {
+    withConfirm({ title: `Put “${clean}” up for a vote?`, body: 'Everyone can see it. Three votes and it joins the trait pool.', confirmLabel: 'Put it up' }, () => invent.mutate(clean, {
       onSuccess: () => {
         setLabel('')
         toast.success(`${clean} is up for a vote. Two more and it joins the pool.`)
       },
       onError: (e) => toast.error(/duplicate|unique/i.test(String((e as { message?: string }).message)) ? 'That trait already exists.' : 'Couldn’t create that. Try again.'),
-    })
+    }))
   }
 
   return (
