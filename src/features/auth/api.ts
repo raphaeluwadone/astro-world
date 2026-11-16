@@ -70,6 +70,9 @@ export async function signInWithGoogle(redirect?: string) {
 
 export const GOOGLE_ENABLED = import.meta.env.VITE_AUTH_GOOGLE === 'true'
 
+/** Email codes and reset links need a working email service, so they stay hidden until VITE_AUTH_EMAIL is 'true'. */
+export const EMAIL_AUTH_ENABLED = import.meta.env.VITE_AUTH_EMAIL === 'true'
+
 /** Supabase's messages are written for developers; these are the ones players actually hit. */
 export function authMessage(err: unknown): string {
   const msg = err instanceof Error ? err.message : ''

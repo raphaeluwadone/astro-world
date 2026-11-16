@@ -6,9 +6,11 @@ import { Wordmark } from '@/components/icons/Wordmark'
 export function AuthLayout({
   subtitle,
   children,
+  footer,
 }: {
   subtitle: string
   children: ReactNode
+  footer?: ReactNode
 }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-astro-bg px-4">
@@ -22,6 +24,7 @@ export function AuthLayout({
           </div>
         </div>
         <div className="rounded-2xl border border-border bg-astro-surface p-6 [&_[data-slot=input]]:rounded-[6px]">{children}</div>
+        {footer}
       </div>
     </div>
   )

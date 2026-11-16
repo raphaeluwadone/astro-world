@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
-import { authMessage, sendEmailCode, signUp } from '@/features/auth/api'
+import { authMessage, EMAIL_AUTH_ENABLED, sendEmailCode, signUp } from '@/features/auth/api'
+import { checkGroupCode, groupCodeMemory } from '@/features/join/api'
 import { EmailCodeStep, GoogleButton } from '@/features/auth/AuthExtras'
 import { supabase } from '@/lib/supabase'
 import { AuthLayout } from '@/features/auth/AuthLayout'
 
 const schema = z.object({
+  code: z.string().trim().min(1, 'Enter the group code'),
   email: z.string().email('Enter a valid email'),
   password: z.string().min(8, 'At least 8 characters'),
 })
@@ -38,6 +40,7 @@ function SignupPage() {
     handleSubmit,
     trigger,
     getValues,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
@@ -58,10 +61,15 @@ function SignupPage() {
   const onSubmit = async (values: FormValues) => {
     setFormError(null)
     try {
+      if (!(await checkGroupCode(values.code))) {
+        setError('code', { message: 'That code isn’t right. Ask in the group chat.' })
+        return
+      }
       const result = await signUp(values)
       if (result.confirmationRequired) {
         setConfirmationRequired(true)
       } else {
+        groupCodeMemory.set(values.code)
         await navigate({ to: '/join' })
       }
     } catch (err) {
@@ -92,9 +100,14 @@ function SignupPage() {
   }
 
   return (
-    <AuthLayout subtitle="Create your account">
+    <AuthLayout subtitle="Join the group">
       <GoogleButton redirect="/join" onError={setFormError} />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="code">Group code</Label>
+          <Input id="code" autoComplete="off" autoCapitalize="characters" autoCorrect="off" placeholder="From the group chat" {...register('code')} />
+          {errors.code && <p className="text-xs text-astro-red">{errors.code.message}</p>}
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" autoComplete="email" {...register('email')} />
@@ -107,12 +120,14 @@ function SignupPage() {
         </div>
         {formError && <p className="text-xs text-astro-red">{formError}</p>}
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Creating account…' : 'Create account'}
+          {isSubmitting ? 'Checking…' : 'Next: find your name'}
         </Button>
       </form>
-      <button type="button" disabled={sending} onClick={sendCode} className="mt-3 w-full text-center text-xs font-semibold text-astro-accent disabled:opacity-50">
-        {sending ? 'Sending…' : 'No password? Email me a code instead'}
-      </button>
+      {EMAIL_AUTH_ENABLED && (
+        <button type="button" disabled={sending} onClick={sendCode} className="mt-3 w-full text-center text-xs font-semibold text-astro-accent disabled:opacity-50">
+          {sending ? 'Sending…' : 'No password? Email me a code instead'}
+        </button>
+      )}
       <p className="mt-5 text-center text-xs text-astro-text-muted">
         Already have an account?{' '}
         <Link to="/login" search={{ view: 'signin' }} className="font-semibold text-astro-accent">

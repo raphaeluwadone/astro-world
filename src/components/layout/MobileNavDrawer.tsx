@@ -27,14 +27,16 @@ export function MobileNavDrawer({ open, onOpenChange }: { open: boolean; onOpenC
             <CloseIcon className="size-4" />
           </DialogPrimitive.Close>
           <SidebarNavContent onNavigate={() => onOpenChange(false)} />
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="astro-tap mt-auto flex min-h-11 items-center gap-3 rounded-[9px] px-2.5 text-[14px] font-bold text-astro-text-muted hover:bg-astro-red/10 hover:text-astro-red"
-          >
-            <SignOutIcon className="size-[19px]" />
-            Sign out
-          </button>
+          <div className="sticky bottom-[-30px] -mx-4 -mb-[30px] mt-auto border-t border-border bg-astro-surface px-4 pb-[calc(14px+env(safe-area-inset-bottom))] pt-3">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="astro-tap flex min-h-11 w-full items-center gap-3 rounded-[9px] px-2.5 text-[14px] font-bold text-astro-text-muted hover:bg-astro-red/10 hover:text-astro-red"
+            >
+              <SignOutIcon className="size-[19px]" />
+              Sign out
+            </button>
+          </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

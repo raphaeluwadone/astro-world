@@ -19,7 +19,7 @@ export const Route = createFileRoute('/login')({
 })
 
 function LoginRoute() {
-  const { redirect, view, left } = Route.useSearch()
+  const { redirect, left } = Route.useSearch()
   const [real, setReal] = useState(false)
   if (DevSignInAs && !real && !left) {
     return (
@@ -30,5 +30,5 @@ function LoginRoute() {
       </div>
     )
   }
-  return <WelcomePage redirectTo={redirect} initialView={view} notice={left ? LEFT_NOTICE : undefined} />
+  return <WelcomePage redirectTo={redirect} notice={left ? LEFT_NOTICE : undefined} />
 }

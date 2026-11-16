@@ -2872,6 +2872,19 @@ export type Database = {
         Returns: boolean
       }
       can_write_articles: { Args: never; Returns: boolean }
+      group_code_ok: { Args: { p_code: string }; Returns: boolean }
+      join_group: {
+        Args: {
+          p_birthday_day?: number
+          p_birthday_month?: number
+          p_code: string
+          p_full_name?: string
+          p_instagram?: string
+          p_nickname?: string
+          p_player_id?: string
+        }
+        Returns: string
+      }
       cause_contributors: {
         Args: { p_cause_id: string }
         Returns: {

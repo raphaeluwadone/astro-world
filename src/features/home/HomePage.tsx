@@ -37,6 +37,7 @@ import { NextMatchdayCard } from './components/NextMatchdayCard'
 import { QuickLinks } from './components/QuickLinks'
 import { RatingsBanner } from '@/features/voting/components/RatingsPrompt'
 import { TopOfThePile } from './components/TopOfThePile'
+import { TourCard } from './components/TourCard'
 import { HeartCount } from './components/HeartCount'
 import { useAwardRace, useMyCommunityLikes } from './hooks'
 
@@ -122,6 +123,7 @@ export function HomePage() {
         <HeartCount count={likesLoaded ? likes : undefined} playerId={playerId ?? undefined} />
       </div>
 
+      <TourCard className="max-md:order-2" />
       <PlayerSearchBar className="md:hidden max-md:order-2" />
       <LiveMatchday className="max-md:order-2" />
 
