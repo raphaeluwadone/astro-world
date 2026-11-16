@@ -29,6 +29,10 @@ Deno.serve(async (req) => {
     .single<{ id: string; reference: string; amount_kobo: number; player_id: string }>()
   if (error) return json({ error: error.message }, 400)
 
+  const { data: who } = await user.from('players').select('nickname, full_name').eq('id', payment.player_id).maybeSingle()
+  const playerName = who?.full_name || who?.nickname || auth.user.email
+  const kindLabel = { weekly: 'Weekly spot', monthly: 'Monthly pass', dues: 'Dues' }[kind as 'weekly' | 'monthly' | 'dues']
+
   // APP_URL pins the callback in production, so a caller can't redirect players elsewhere.
   const appUrl = Deno.env.get('APP_URL') ?? req.headers.get('origin') ?? 'http://localhost:5175'
   const init = await paystack<{ authorization_url: string; access_code: string }>('/transaction/initialize', {
@@ -39,7 +43,14 @@ Deno.serve(async (req) => {
       currency: 'NGN',
       reference: payment.reference,
       callback_url: `${appUrl}${RETURN_PATH}`,
-      metadata: { payment_id: payment.id, player_id: payment.player_id, kind },
+      // Paystack's dashboard shows custom fields on each transaction, so the payer reads as a name, not an id.
+      metadata: {
+        custom_fields: [
+          { display_name: 'Player', variable_name: 'player', value: playerName },
+          ...(who?.nickname && who.nickname !== playerName ? [{ display_name: 'Nickname', variable_name: 'nickname', value: who.nickname }] : []),
+          { display_name: 'Payment', variable_name: 'payment', value: kindLabel },
+        ],
+      },
     }),
   })
   if (!init.ok || !init.body.data) {
