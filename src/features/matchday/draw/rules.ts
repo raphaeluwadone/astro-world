@@ -3,6 +3,8 @@ import { pairKey, shuffle } from './drawTeams'
 export type RatingWindow = 'last_week' | 'last_month' | 'last_3_months' | 'season' | 'all'
 
 export interface DrawRules {
+  /** Admins pick the sides by hand; the random draw is off. */
+  manual: boolean
   freshPairs: boolean
   noThreeWeeks: boolean
   neverPairs: boolean
@@ -16,6 +18,7 @@ export interface DrawRules {
 }
 
 export const DEFAULT_RULES: DrawRules = {
+  manual: false,
   freshPairs: true,
   noThreeWeeks: true,
   neverPairs: true,
@@ -56,7 +59,7 @@ export interface DrawContext {
   topScorers: Set<string>
 }
 
-export type RuleKey = Exclude<keyof DrawRules, 'ratingWindow'>
+export type RuleKey = Exclude<keyof DrawRules, 'ratingWindow' | 'manual'>
 
 // Balance outweighs the people rules, as asked; never-together is effectively hard.
 const WEIGHT: Record<RuleKey, number> = {

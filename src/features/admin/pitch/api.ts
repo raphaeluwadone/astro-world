@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import type { BibPair } from './bibs'
 
 export interface PitchGoal {
   id: string
@@ -32,6 +33,8 @@ export interface PitchGame {
   running_since: string | null
   ended_at: string | null
   report: string | null
+  bib_a: string | null
+  bib_b: string | null
   created_at: string
   goals: PitchGoal[]
   cards: PitchCard[]
@@ -54,7 +57,7 @@ export async function fetchPitch(matchdayId: string): Promise<PitchState> {
     supabase.from('pitch_checkins').select('player_id').eq('matchday_id', matchdayId),
     supabase
       .from('pitch_games')
-      .select('id, team_a_id, team_b_id, length_min, goal_target, elapsed_ms, running_since, ended_at, report, created_at, goals:pitch_goals(id, game_id, team_id, scorer_id, assist_id, minute, own_goal, created_at), cards:pitch_cards(id, game_id, team_id, player_id, kind, minute, second_yellow, created_at)')
+      .select('id, team_a_id, team_b_id, length_min, goal_target, elapsed_ms, running_since, ended_at, report, bib_a, bib_b, created_at, goals:pitch_goals(id, game_id, team_id, scorer_id, assist_id, minute, own_goal, created_at), cards:pitch_cards(id, game_id, team_id, player_id, kind, minute, second_yellow, created_at)')
       .eq('matchday_id', matchdayId)
       .order('created_at'),
     supabase.from('pitch_sessions').select('team_order, goal_target, length_min').eq('matchday_id', matchdayId).maybeSingle(),
@@ -98,14 +101,20 @@ export async function saveSession(matchdayId: string, session: PitchSession) {
   if (error) throw error
 }
 
-export async function startGame(matchdayId: string, teamAId: string, teamBId: string, lengthMin: number, goalTarget: number) {
+export async function startGame(matchdayId: string, teamAId: string, teamBId: string, lengthMin: number, goalTarget: number, bibs: BibPair) {
   const { data, error } = await supabase
     .from('pitch_games')
-    .insert({ matchday_id: matchdayId, team_a_id: teamAId, team_b_id: teamBId, length_min: lengthMin, goal_target: goalTarget, running_since: new Date().toISOString() })
+    .insert({ matchday_id: matchdayId, team_a_id: teamAId, team_b_id: teamBId, length_min: lengthMin, goal_target: goalTarget, bib_a: bibs[0], bib_b: bibs[1], running_since: new Date().toISOString() })
     .select('id')
     .single()
   if (error) throw error
   return data.id
+}
+
+/** Both bibs go in one update, so two sides can swap colours without a moment of clashing. */
+export async function setBibs(gameId: string, bibs: BibPair) {
+  const { error } = await supabase.from('pitch_games').update({ bib_a: bibs[0], bib_b: bibs[1] }).eq('id', gameId)
+  if (error) throw error
 }
 
 export async function setRunning(game: PitchGame, running: boolean) {
@@ -177,6 +186,13 @@ export async function swapPlayer(matchdayId: string, teamId: string, outId: stri
   if (error) throw error
   await setCheckins(matchdayId, [outId], false, by)
   await setCheckins(matchdayId, [inId], true, by)
+}
+
+/** Puts a player on a side without taking anyone off, and checks them in: they're here, that's why they're being added. */
+export async function addToTeam(matchdayId: string, teamId: string, playerId: string, by: string) {
+  const { error } = await supabase.rpc('add_team_player', { p_team: teamId, p_in: playerId })
+  if (error) throw error
+  await setCheckins(matchdayId, [playerId], true, by)
 }
 
 /** A second yellow also records a red; the database adds and removes that red itself. */

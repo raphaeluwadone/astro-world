@@ -5,6 +5,8 @@ import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { PageLoader } from '@/components/states/PageLoader'
+import { SelectionPage } from '@/features/draft/SelectionPage'
+import { useLiveSelection } from '@/features/draft/hooks'
 import { LiveMatchday } from '@/features/matchday/components/LiveMatchday'
 import { DayTableCard } from '@/features/matchday/components/DayTableCard'
 import { CupTableCard } from '@/features/salami-cup/components/CupTableCard'
@@ -17,6 +19,7 @@ import { useCreatePost, useFeed, useLinkedPost, useMostMentioned, useTagPool, us
 export function CommunityPage() {
   const { player } = useCurrentPlayer()
   const playerId = player?.id ?? null
+  const selection = useLiveSelection()
 
   const { data: feed = [], isLoading: feedLoading, isError: feedError, refetch: refetchFeed } = useFeed(playerId)
   const { data: mentioned = [] } = useMostMentioned()
@@ -49,6 +52,8 @@ export function CommunityPage() {
       onToggleDislike={() => toggleDislike.mutate({ postId: post.id, disliked: !post.dislikedByMe })}
     />
   )
+
+  if (selection.active && selection.matchdayId) return <SelectionPage matchdayId={selection.matchdayId} />
 
   return (
     <div>

@@ -1,4 +1,4 @@
-import { AtSign, Flag, MessageCircle, Award, Camera, ClipboardList, DoorOpen, Hourglass, Shirt, Star, Ticket, TrendingDown, UserCheck, UserX, Wallet, type LucideIcon } from 'lucide-react'
+import { AtSign, CalendarX, Flag, MessageCircle, Award, Camera, ClipboardList, DoorOpen, Hourglass, Shirt, Star, Ticket, TrendingDown, UserCheck, UserX, Wallet, type LucideIcon } from 'lucide-react'
 import { BADGE_DEFS, MONTHLY_DEFS, TIER_COLOR } from '@/features/badges/definitions'
 import type { NotificationRow } from './api'
 
@@ -33,13 +33,36 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
 
   switch (n.kind) {
     case 'spot':
-      return { title: `You're on for ${sunday(d.played_at)}`, body: `Spot ${d.spot} of ${d.capacity}. Teams are drawn Saturday.`, icon: Ticket, color: PURPLE }
+      return { title: `You're on for ${sunday(d.played_at)}`, body: `Spot ${d.spot} of ${d.capacity}. Teams are drawn on game day.`, icon: Ticket, color: PURPLE }
     case 'standby':
       return { title: `You're on standby for ${sunday(d.played_at)}`, body: `Number ${d.position} in line. We'll tell you if a spot opens.`, icon: Hourglass, color: PURPLE }
     case 'spot_open':
       return { title: `A spot just opened for ${sunday(d.played_at)}`, body: 'First to claim it gets it.', icon: DoorOpen, color: PURPLE }
+    case 'draft_turn':
+      return { title: "You're on the clock", body: `Pick ${d.pick} is yours for ${d.team}. Head to Community.`, icon: UserCheck, color: PURPLE }
     case 'teams_drawn':
       return { title: 'Teams are out', body: `You're on ${d.team} for ${sunday(d.played_at)}.`, icon: Shirt, color: PURPLE }
+    case 'spot_dropped':
+      return {
+        title: `Your spot for ${sunday(d.played_at)} has gone`,
+        body:
+          d.kind === 'monthly'
+            ? `Your ${naira(d.amount)} monthly spot wasn't paid by Saturday 20:00, so this Sunday went to standby. Pay to get back in.`
+            : `It wasn't paid by Saturday 20:00, so it went to standby. Join standby if you still want to play.`,
+        icon: Wallet,
+        color: AMBER,
+      }
+    case 'matchday_cancelled':
+      return {
+        title: `${sunday(d.played_at)} is off`,
+        body: d.refund
+          ? `The matchday was cancelled. Your ${naira(d.refund)} is flagged for a refund; an admin will send it back.`
+          : d.role === 'monthly'
+            ? 'The matchday was cancelled. Your monthly spot still covers the other Sundays.'
+            : 'The matchday was cancelled.',
+        icon: CalendarX,
+        color: AMBER,
+      }
     case 'pitch_result': {
       const result = d.for > d.against ? 'won' : d.for < d.against ? 'lost' : 'drew'
       return { title: `Full time: ${d.team} ${result}`, body: `${d.team} ${d.for}–${d.against} ${d.opponent}, game ${d.game_no}. The match report is up.`, icon: Flag, color: PURPLE }

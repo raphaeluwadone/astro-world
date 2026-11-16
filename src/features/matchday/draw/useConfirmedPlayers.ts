@@ -10,7 +10,7 @@ export function useConfirmedPlayers(matchdayId: string | undefined) {
     queryFn: async () => {
       const ids = await fetchConfirmedPlayerIds(matchdayId!)
       if (ids.length === 0) return []
-      const { data, error } = await supabase.from('players').select('id, nickname').in('id', ids).order('nickname')
+      const { data, error } = await supabase.from('players').select('id, nickname, full_name, user_id').in('id', ids).order('nickname')
       if (error) throw error
       return data ?? []
     },

@@ -13,15 +13,19 @@ import type { PlayerSummary, TeamWithMembers } from '@/features/matchday/api'
 import { useDrawnTeams, useNextMatchday } from '@/features/matchday/hooks'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 import { RichEditor } from '@/components/editor/RichEditor'
+import { DraftAdminPanel } from '@/features/draft/DraftAdminPanel'
+import { useDraft } from '@/features/draft/hooks'
 import { DrawPreviewCard } from '@/features/matchday/draw/components/DrawPreviewCard'
 import { DrawRulesForm, RULE_COPY, RULE_ORDER } from '@/features/matchday/draw/components/DrawRulesForm'
 import { useDrawRules, usePreviewTeamDraw, usePublishTeamDraw, useSaveDrawRules } from '@/features/matchday/draw/hooks'
 import type { DrawRules } from '@/features/matchday/draw/rules'
 import { useConfirmedPlayers } from '@/features/matchday/draw/useConfirmedPlayers'
 import * as api from './api'
+import { BIBS, DEFAULT_BIBS, bibFor, nextBibs, withBibs, type BibPair, type SideTeam } from './bibs'
 import { countdown, fmtMinute, useNow } from './clock'
 import { rotation, shuffled } from './rotation'
 import { DayTable } from './DayTable'
+import { PickTeams } from './PickTeams'
 import { usePitch, usePitchAction } from './hooks'
 
 type Tab = 'checkin' | 'games'
@@ -39,13 +43,14 @@ function useWakeLock(active: boolean) {
   }, [active])
 }
 
-function TeamDot({ team, className }: { team: TeamWithMembers; className?: string }) {
-  return <span className={cn('inline-block size-2.5 shrink-0 rounded-full', className)} style={{ background: team.colour }} aria-hidden />
+function TeamDot({ team, className }: { team: SideTeam; className?: string }) {
+  return <span className={cn('inline-block size-2.5 shrink-0 rounded-full', className)} style={{ background: team.colour }} title={team.bib ? `${team.bib.label} bibs` : undefined} aria-hidden />
 }
 
 /* ---------------- Check-in ---------------- */
 
-function SwapIn({
+/** Finds a player to take a side's place (`out` set) or to join it. Typing a name nobody has makes a guest. */
+function PlayerFinder({
   team,
   out,
   onTeams,
@@ -54,7 +59,7 @@ function SwapIn({
   onDone,
 }: {
   team: TeamWithMembers
-  out: PlayerSummary
+  out?: PlayerSummary
   onTeams: Set<string>
   act: ReturnType<typeof usePitchAction>
   matchdayId: string
@@ -68,29 +73,46 @@ function SwapIn({
   const matches = free.filter((p) => !q || p.nickname.toLowerCase().includes(q) || p.full_name.toLowerCase().includes(q)).slice(0, 8)
   const taken = players.some((p) => p.nickname.toLowerCase() === q)
 
-  const swap = (inId: string, name: string) =>
-    withConfirm({ tone: 'admin', eyebrow: 'Swap', title: `${name} in for ${out.nickname}?`, body: `${out.nickname} comes off the side and the swap is posted to the feed.`, confirmLabel: 'Swap them' }, () => act.mutate((by) => api.swapPlayer(matchdayId, team.id, out.id, inId, by), {
-      onSuccess: () => {
-        void qc.invalidateQueries({ queryKey: ['drawn-teams', matchdayId] })
-        void qc.invalidateQueries({ queryKey: ['community-feed'] })
-        toast.success(`${name} in for ${out.nickname}.`)
-        onDone()
-      },
-      onError: fail('make that swap'),
-    }))
-  const walkIn = () =>
-    act.mutate(() => api.addWalkIn(query), {
-      onSuccess: (id) => {
-        void qc.invalidateQueries({ queryKey: ['pitch-swap-candidates'] })
-        swap(id as string, query.trim())
-      },
-      onError: (e) => toast.error(/duplicate|unique/i.test(String((e as { message?: string }).message)) ? 'Someone already has that nickname. Pick them from the list.' : 'Couldn’t add them. Try again.'),
-    })
+  const place = (playerId: string, by: string) => (out ? api.swapPlayer(matchdayId, team.id, out.id, playerId, by) : api.addToTeam(matchdayId, team.id, playerId, by))
+  const done = (name: string) => {
+    void qc.invalidateQueries({ queryKey: ['drawn-teams', matchdayId] })
+    void qc.invalidateQueries({ queryKey: ['community-feed'] })
+    void qc.invalidateQueries({ queryKey: ['pitch-swap-candidates'] })
+    toast.success(out ? `${name} in for ${out.nickname}.` : `${name} added to ${team.greek_name}.`)
+    onDone()
+  }
+  const copy = (name: string, guest: boolean) =>
+    out
+      ? {
+          tone: 'admin' as const,
+          eyebrow: 'Swap',
+          title: `${name} in for ${out.nickname}?`,
+          body: `${guest ? `${name} is made a guest with no account. ` : ''}${out.nickname} comes off the side and the swap is posted to the feed.`,
+          confirmLabel: 'Swap them',
+        }
+      : {
+          tone: 'admin' as const,
+          eyebrow: 'Add player',
+          title: `Add ${name} to ${team.greek_name}?`,
+          body: `${guest ? `${name} is made a guest with no account, who can claim the record later. ` : ''}They join the side, are marked here, and the teams post on the feed is updated.`,
+          confirmLabel: 'Add them',
+        }
+  const choose = (playerId: string, name: string) =>
+    withConfirm(copy(name, false), () => act.mutate((by) => place(playerId, by), { onSuccess: () => done(name), onError: fail(out ? 'make that swap' : 'add them') }))
+  const chooseGuest = () => {
+    const name = query.trim()
+    withConfirm(copy(name, true), () =>
+      act.mutate(async (by) => place(await api.addWalkIn(name), by), {
+        onSuccess: () => done(name),
+        onError: (e) => toast.error(/duplicate|unique/i.test(String((e as { message?: string }).message)) ? 'Someone already has that nickname. Pick them from the list.' : 'Couldn’t add them. Try again.'),
+      }),
+    )
+  }
 
   return (
     <div className="mt-3 rounded-[10px] border border-astro-cyan/40 bg-astro-admin-bg p-3">
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-[13px] font-extrabold text-astro-text">Who&rsquo;s in for {out.nickname}?</span>
+        <span className="text-[13px] font-extrabold text-astro-text">{out ? `Who’s in for ${out.nickname}?` : `Add to ${team.greek_name}`}</span>
         <button type="button" onClick={onDone} className="ml-auto text-xs font-bold text-astro-text-dim hover:text-astro-text">
           Cancel
         </button>
@@ -101,7 +123,7 @@ function SwapIn({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search, or type a new name"
-        aria-label="Replacement player"
+        aria-label={out ? 'Replacement player' : 'Player to add'}
         maxLength={30}
         className="mb-2 min-h-10 w-full rounded-[9px] border border-white/[0.1] bg-astro-admin-card px-3 text-[13.5px] text-astro-text placeholder:text-astro-text-dim focus:border-astro-cyan/60 focus:outline-none"
       />
@@ -111,21 +133,21 @@ function SwapIn({
             key={p.id}
             type="button"
             disabled={act.isPending}
-            onClick={() => swap(p.id, p.nickname)}
+            onClick={() => choose(p.id, p.nickname)}
             className="flex min-h-11 items-center gap-2 rounded-[10px] border border-white/[0.1] px-2.5 text-left hover:border-astro-cyan/60"
           >
-            <PlayerPhoto playerId={p.id} alt="" className="size-7 shrink-0 rounded-[7px]" />
-            <span className="truncate text-[13px] font-bold text-astro-text">{p.nickname}</span>
+            <PlayerPhoto playerId={p.id} alt="" className="size-7 shrink-0 rounded-[7px] max-[399px]:hidden" />
+            <span className="min-w-0 break-words text-[13px] font-bold leading-tight text-astro-text">{p.nickname}</span>
           </button>
         ))}
         {q && !taken && (
           <button
             type="button"
             disabled={act.isPending}
-            onClick={walkIn}
+            onClick={chooseGuest}
             className="col-span-2 min-h-11 rounded-[10px] border border-dashed border-astro-cyan/50 px-2.5 text-left text-[13px] font-bold text-astro-cyan"
           >
-            + Add &ldquo;{query.trim()}&rdquo; as a walk-in
+            + Add &ldquo;{query.trim()}&rdquo; as a guest
           </button>
         )}
       </div>
@@ -136,6 +158,7 @@ function SwapIn({
 
 function CheckIn({ teams, checkedIn, act, matchdayId }: { teams: TeamWithMembers[]; checkedIn: Set<string>; act: ReturnType<typeof usePitchAction>; matchdayId: string }) {
   const [swapping, setSwapping] = useState<{ teamId: string; outId: string | null } | null>(null)
+  const [adding, setAdding] = useState<string | null>(null)
   const onTeams = new Set(teams.flatMap((t) => t.members.map((m) => m.id)))
   const total = teams.reduce((n, t) => n + t.members.length, 0)
   const here = teams.reduce((n, t) => n + t.members.filter((m) => checkedIn.has(m.id)).length, 0)
@@ -164,17 +187,25 @@ function CheckIn({ teams, checkedIn, act, matchdayId }: { teams: TeamWithMembers
                 !swapping.outId && (
                   <>
                     <span className="ml-auto text-xs font-bold text-astro-amber">Tap who&rsquo;s out</span>
-                    <button type="button" onClick={() => setSwapping(null)} className="text-xs font-bold text-astro-text-dim hover:text-astro-text">
+                    <button type="button" onClick={() => setSwapping(null)} className="px-2 py-2.5 text-xs font-bold text-astro-text-dim hover:text-astro-text">
                       Cancel
                     </button>
                   </>
                 )
               ) : (
                 <>
-                  <button type="button" onClick={() => setSwapping({ teamId: t.id, outId: null })} className="ml-auto text-xs font-bold text-astro-text-muted hover:text-astro-text">
+                  <button
+                    type="button"
+                    aria-pressed={adding === t.id}
+                    onClick={() => { setSwapping(null); setAdding(adding === t.id ? null : t.id) }}
+                    className={cn('ml-auto px-2 py-2.5 text-xs font-bold hover:text-astro-text', adding === t.id ? 'text-astro-cyan' : 'text-astro-text-muted')}
+                  >
+                    Add
+                  </button>
+                  <button type="button" onClick={() => { setAdding(null); setSwapping({ teamId: t.id, outId: null }) }} className="px-2 py-2.5 text-xs font-bold text-astro-text-muted hover:text-astro-text">
                     Swap
                   </button>
-                  <button type="button" onClick={() => set(ids, !all)} className="text-xs font-bold text-astro-cyan hover:underline">
+                  <button type="button" onClick={() => set(ids, !all)} className="px-2 py-2.5 text-xs font-bold text-astro-cyan hover:underline">
                     {all ? 'Clear' : 'All here'}
                   </button>
                 </>
@@ -202,8 +233,8 @@ function CheckIn({ teams, checkedIn, act, matchdayId }: { teams: TeamWithMembers
                             : 'border-white/[0.08] bg-astro-admin-bg hover:border-white/20',
                     )}
                   >
-                    <PlayerPhoto playerId={m.id} alt="" className="size-7 shrink-0 rounded-[7px]" />
-                    <span className={cn('min-w-0 flex-1 truncate text-[13px] font-bold', on ? 'text-astro-text' : 'text-astro-text-muted')}>{m.nickname}</span>
+                    <PlayerPhoto playerId={m.id} alt="" className="size-7 shrink-0 rounded-[7px] max-[399px]:hidden" />
+                    <span className={cn('min-w-0 flex-1 break-words text-[13px] font-bold leading-tight', on ? 'text-astro-text' : 'text-astro-text-muted')}>{m.nickname}</span>
                     {on && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3.2" aria-hidden>
                         <path d="m5 12.5 4.5 4.5L19 7.5" />
@@ -214,7 +245,7 @@ function CheckIn({ teams, checkedIn, act, matchdayId }: { teams: TeamWithMembers
               })}
             </div>
             {swapping?.teamId === t.id && swapping.outId && (
-              <SwapIn
+              <PlayerFinder
                 key={swapping.outId}
                 team={t}
                 out={t.members.find((m) => m.id === swapping.outId)!}
@@ -224,6 +255,7 @@ function CheckIn({ teams, checkedIn, act, matchdayId }: { teams: TeamWithMembers
                 onDone={() => setSwapping(null)}
               />
             )}
+            {adding === t.id && <PlayerFinder key="add" team={t} onTeams={onTeams} act={act} matchdayId={matchdayId} onDone={() => setAdding(null)} />}
           </section>
         )
       })}
@@ -243,7 +275,7 @@ function PlayerGrid({ players, onPick, extra }: { players: PlayerSummary[]; onPi
           onClick={() => onPick(p.id)}
           className="flex min-h-12 items-center gap-2 rounded-[10px] border border-white/[0.1] bg-astro-admin-bg px-2.5 text-left hover:border-astro-cyan/60 active:bg-astro-cyan/10"
         >
-          <PlayerPhoto playerId={p.id} alt="" className="size-7 shrink-0 rounded-[7px]" />
+          <PlayerPhoto playerId={p.id} alt="" className="size-7 shrink-0 rounded-[7px] max-[399px]:hidden" />
           <span className="truncate text-[13.5px] font-bold text-astro-text">{p.nickname}</span>
         </button>
       ))}
@@ -601,6 +633,76 @@ function GoalEditor({
   )
 }
 
+/** Who is on each side for this game, with cards and who hasn't turned up. */
+function SideRosters({ game, sides, checkedIn }: { game: api.PitchGame; sides: SideTeam[]; checkedIn: Set<string> }) {
+  const off = api.sentOff(game)
+  const booked = new Set(game.cards.filter((c) => c.kind === 'yellow').map((c) => c.player_id))
+  const anyHere = checkedIn.size > 0
+  return (
+    <section className="grid grid-cols-2 gap-2" aria-label="Players on each side">
+      {sides.map((t) => (
+        <div key={t.id} className="min-w-0 rounded-[12px] border border-white/[0.08] bg-astro-admin-card p-3">
+          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-extrabold text-astro-text">
+            <TeamDot team={t} />
+            <span className="truncate">{t.greek_name}</span>
+            <span className="ml-auto text-astro-text-dim">{t.members.length}</span>
+          </div>
+          <ul className="flex flex-col gap-1">
+            {t.members.map((m) => (
+              <li key={m.id} className={cn('flex items-center gap-1.5 text-[12.5px] font-bold', anyHere && !checkedIn.has(m.id) ? 'text-astro-text-dim' : 'text-astro-text')}>
+                <span className={cn('min-w-0 flex-1 truncate', off.has(m.id) && 'line-through decoration-astro-red')}>{m.nickname}</span>
+                {anyHere && !checkedIn.has(m.id) && <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-[0.08em] text-astro-amber">not here</span>}
+                {booked.has(m.id) && <CardMark kind="yellow" />}
+                {off.has(m.id) && <CardMark kind="red" />}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+/** Picks the bib colour for each of a game's two sides. A colour one side has is greyed out for the other. */
+function BibPicker({ sides, bibs, onChange, disabled }: { sides: [string, string]; bibs: BibPair; onChange: (bibs: BibPair) => void; disabled?: boolean }) {
+  return (
+    <div className="rounded-[10px] border border-white/[0.07] bg-astro-admin-bg p-3">
+      <div className="mb-1 flex items-center gap-2">
+        <span className="text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-astro-text-dim">Bibs</span>
+        <button type="button" disabled={disabled} onClick={() => onChange([bibs[1], bibs[0]])} className="ml-auto px-2 py-2.5 text-xs font-bold text-astro-cyan hover:underline disabled:opacity-50">
+          Swap colours
+        </button>
+      </div>
+      {([0, 1] as const).map((i) => (
+        <div key={i} className="py-1.5">
+          <div className="mb-1 text-[12px] font-bold text-astro-text">
+            {sides[i]} <span className="font-semibold text-astro-text-muted">· {bibFor(bibs[i])?.label} bibs</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {BIBS.map((b) => {
+              const on = bibs[i] === b.key
+              const clash = bibs[1 - i] === b.key
+              return (
+                <button
+                  key={b.key}
+                  type="button"
+                  disabled={disabled || clash}
+                  aria-pressed={on}
+                  aria-label={`${sides[i]} wear ${b.label.toLowerCase()}`}
+                  title={clash ? `${sides[1 - i]} already have ${b.label.toLowerCase()}` : b.label}
+                  onClick={() => onChange(i === 0 ? [b.key, bibs[1]] : [bibs[0], b.key])}
+                  className={cn('size-9 rounded-full border-2 transition-transform', on ? 'scale-110 border-white' : 'border-white/20', clash && 'opacity-25')}
+                  style={{ background: b.colour }}
+                />
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function LiveGame({
   game,
   teams,
@@ -608,7 +710,7 @@ function LiveGame({
   act,
 }: {
   game: api.PitchGame
-  teams: TeamWithMembers[]
+  teams: SideTeam[]
   checkedIn: Set<string>
   act: ReturnType<typeof usePitchAction>
 }) {
@@ -618,6 +720,7 @@ function LiveGame({
   const { over, label, progress } = countdown(game, now)
   const [picking, setPicking] = useState<Picking | null>(null)
   const [confirmEnd, setConfirmEnd] = useState(false)
+  const [bibsOpen, setBibsOpen] = useState(false)
   const [report, setReport] = useState(game.report ?? '')
   const side = (id: string) => teams.find((t) => t.id === id)!
   const a = side(game.team_a_id)
@@ -634,13 +737,21 @@ function LiveGame({
                 <TeamDot team={t} />
                 {t.greek_name}
               </span>
+              <button
+                type="button"
+                aria-expanded={bibsOpen}
+                onClick={() => setBibsOpen((o) => !o)}
+                className={cn('-mt-1 rounded-full border px-2.5 py-0.5 text-[10.5px] font-bold', t.bib ? 'border-white/[0.16] text-astro-text-muted hover:text-astro-text' : 'border-dashed border-astro-amber/60 text-astro-amber')}
+              >
+                {t.bib ? `${t.bib.label} bibs` : 'Pick bibs'}
+              </button>
               <span className="font-display text-[64px] leading-none text-astro-text tabular-nums">{score(t.id)}</span>
               <button
                 type="button"
                 disabled={act.isPending}
                 onClick={() => setPicking({ teamId: t.id, step: 'scorer' })}
                 className="min-h-11 w-full rounded-[10px] text-[14px] font-extrabold text-[#04121d] disabled:opacity-60"
-                style={{ background: t.colour }}
+                style={{ background: t.colour, color: t.bib?.ink }}
               >
                 + Goal
               </button>
@@ -669,18 +780,29 @@ function LiveGame({
         </div>
       </section>
 
+      {bibsOpen && (
+        <BibPicker
+          sides={[a.greek_name, b.greek_name]}
+          bibs={[bibFor(game.bib_a)?.key ?? DEFAULT_BIBS[0], bibFor(game.bib_b)?.key ?? DEFAULT_BIBS[1]]}
+          disabled={act.isPending}
+          onChange={(pair) => act.mutate(() => api.setBibs(game.id, pair), { onError: fail('change the bibs') })}
+        />
+      )}
+
       {reached && !picking && (
         <div className="flex items-center gap-3 rounded-[14px] border-2 p-3.5" style={{ borderColor: reached.colour, background: `color-mix(in srgb, ${reached.colour} 12%, transparent)` }}>
           <span className="min-w-0 flex-1 text-[14px] font-extrabold text-astro-text">
             {reached.greek_name} reach {game.goal_target}. That&rsquo;s the game.
           </span>
-          <button type="button" onClick={() => setConfirmEnd(true)} className="min-h-10 shrink-0 rounded-[10px] px-3.5 text-[13px] font-extrabold text-[#04121d]" style={{ background: reached.colour }}>
+          <button type="button" onClick={() => setConfirmEnd(true)} className="min-h-10 shrink-0 rounded-[10px] px-3.5 text-[13px] font-extrabold text-[#04121d]" style={{ background: reached.colour, color: reached.bib?.ink }}>
             Full time
           </button>
         </div>
       )}
 
       <GoalEditor game={game} teams={teams} checkedIn={checkedIn} act={act} picking={picking} setPicking={setPicking} />
+
+      <SideRosters game={game} sides={[a, b]} checkedIn={checkedIn} />
 
       <button
         type="button"
@@ -777,7 +899,10 @@ function NewGame({ teams, pitch, act, matchdayId }: { teams: TeamWithMembers[]; 
   const session: api.PitchSession = { team_order: order, goal_target: saved?.goal_target ?? 2, length_min: saved?.length_min ?? finished.at(-1)?.length_min ?? 10 }
   const rot = rotation(order, finished, greek)
   const [override, setOverride] = useState<string[] | null>(null)
+  const [bibOverride, setBibOverride] = useState<BibPair | null>(null)
   const picked = override ?? rot.next ?? []
+  const bibs = bibOverride ?? nextBibs(picked, finished.at(-1))
+  const anyHere = pitch.checkedIn.size > 0
   const side = (id: string) => teams.find((t) => t.id === id)!
   const save = (patch: Partial<api.PitchSession>) => act.mutate(() => api.saveSession(matchdayId, { ...session, ...patch }), { onError: fail('save that') })
   const toggle = (id: string) => setOverride((p) => {
@@ -809,11 +934,11 @@ function NewGame({ teams, pitch, act, matchdayId }: { teams: TeamWithMembers[]; 
         <div className="mb-4 rounded-[10px] border border-white/[0.07] bg-astro-admin-bg p-3">
           <div className="mb-2 flex items-center gap-2">
             <span className="text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-astro-text-dim">Opening order</span>
-            <button type="button" onClick={() => { setOverride(null); save({ team_order: shuffled(greek) }) }} className="ml-auto text-xs font-bold text-astro-cyan hover:underline">
+            <button type="button" onClick={() => { setOverride(null); save({ team_order: shuffled(greek) }) }} className="ml-auto px-2 py-2.5 text-xs font-bold text-astro-cyan hover:underline">
               Shuffle
             </button>
             {order.some((id, i) => id !== greek[i]) && (
-              <button type="button" onClick={() => { setOverride(null); save({ team_order: greek }) }} className="text-xs font-bold text-astro-text-muted hover:text-astro-text">
+              <button type="button" onClick={() => { setOverride(null); save({ team_order: greek }) }} className="px-2 py-2.5 text-xs font-bold text-astro-text-muted hover:text-astro-text">
                 Alpha first
               </button>
             )}
@@ -833,18 +958,29 @@ function NewGame({ teams, pitch, act, matchdayId }: { teams: TeamWithMembers[]; 
       <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {teams.map((t) => {
           const at = picked.indexOf(t.id)
+          const bib = at >= 0 ? bibFor(bibs[at]) : undefined
+          const colour = bib?.colour ?? t.colour
           return (
             <button
               key={t.id}
               type="button"
               aria-pressed={at >= 0}
               onClick={() => toggle(t.id)}
-              className={cn('flex min-h-12 items-center gap-2 rounded-[10px] border-2 px-3 text-[14px] font-extrabold', at >= 0 ? 'text-astro-text' : 'border-white/[0.08] text-astro-text-muted')}
-              style={at >= 0 ? { borderColor: t.colour, background: `color-mix(in srgb, ${t.colour} 14%, transparent)` } : undefined}
+              className={cn('flex min-h-12 flex-col items-stretch gap-1.5 rounded-[10px] border-2 px-3 py-2 text-left text-[14px] font-extrabold', at >= 0 ? 'text-astro-text' : 'border-white/[0.08] text-astro-text-muted')}
+              style={at >= 0 ? { borderColor: colour, background: `color-mix(in srgb, ${colour} 14%, transparent)` } : undefined}
             >
-              <TeamDot team={t} />
-              {t.greek_name}
-              {at >= 0 && <span className="ml-auto text-[10px] text-astro-text-dim">{t.id === rot.on && !offRotation ? 'STAYS' : at === 0 ? 'HOME' : 'AWAY'}</span>}
+              <span className="flex items-center gap-2">
+                <TeamDot team={{ ...t, colour, bib }} />
+                {t.greek_name}
+                {at >= 0 && <span className="ml-auto text-[10px] text-astro-text-dim">{t.id === rot.on && !offRotation ? 'STAYS' : at === 0 ? 'HOME' : 'AWAY'}</span>}
+              </span>
+              <span className="flex flex-wrap gap-x-1.5 gap-y-0.5 text-[11.5px] font-semibold leading-snug">
+                {t.members.map((m) => (
+                  <span key={m.id} className={anyHere && !pitch.checkedIn.has(m.id) ? 'text-astro-text-dim/60' : 'text-astro-text-muted'}>
+                    {m.nickname}
+                  </span>
+                ))}
+              </span>
             </button>
           )
         })}
@@ -853,6 +989,11 @@ function NewGame({ teams, pitch, act, matchdayId }: { teams: TeamWithMembers[]; 
         <p className="mb-4 text-[12px] text-astro-text-muted">
           Then: {waiting.map((id) => side(id).greek_name).join(', ')}
         </p>
+      )}
+      {picked.length === 2 && (
+        <div className="mb-4">
+          <BibPicker sides={[side(picked[0]).greek_name, side(picked[1]).greek_name]} bibs={bibs} onChange={setBibOverride} />
+        </div>
       )}
       <div className="mb-4 flex flex-col gap-2">
         <Chips label="First to" values={TARGETS} value={session.goal_target} onChange={(v) => save({ goal_target: v })} fmt={(v) => `${v} goal${v > 1 ? 's' : ''}`} />
@@ -873,9 +1014,15 @@ function NewGame({ teams, pitch, act, matchdayId }: { teams: TeamWithMembers[]; 
           act.mutate(
             async () => {
               if (!saved) await api.saveSession(matchdayId, session)
-              return api.startGame(matchdayId, picked[0], picked[1], session.length_min, session.goal_target)
+              return api.startGame(matchdayId, picked[0], picked[1], session.length_min, session.goal_target, bibs)
             },
-            { onSuccess: () => setOverride(null), onError: fail('start the game') },
+            {
+              onSuccess: () => {
+                setOverride(null)
+                setBibOverride(null)
+              },
+              onError: fail('start the game'),
+            },
           )
         }
         className="min-h-12 w-full rounded-[12px] bg-astro-cyan text-[15px] font-extrabold text-[#04121d] disabled:opacity-40"
@@ -887,7 +1034,7 @@ function NewGame({ teams, pitch, act, matchdayId }: { teams: TeamWithMembers[]; 
 }
 
 /** A finished game edited in place: goals save as you go, Done rewrites the match report. */
-function EditGame({ game, teams, checkedIn, act, onDone }: { game: api.PitchGame; teams: TeamWithMembers[]; checkedIn: Set<string>; act: ReturnType<typeof usePitchAction>; onDone: () => void }) {
+function EditGame({ game, teams, checkedIn, act, onDone }: { game: api.PitchGame; teams: SideTeam[]; checkedIn: Set<string>; act: ReturnType<typeof usePitchAction>; onDone: () => void }) {
   const [picking, setPicking] = useState<Picking | null>(null)
   const [report, setReport] = useState(game.report ?? '')
   const side = (id: string) => teams.find((t) => t.id === id)!
@@ -934,37 +1081,39 @@ function FinishedGames({ games, teams, checkedIn, act }: { games: api.PitchGame[
   const [deleting, setDeleting] = useState<api.PitchGame | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   if (games.length === 0) return null
-  const side = (id: string) => teams.find((t) => t.id === id)!
   return (
     <section>
       <h2 className="mb-2 text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-[#4d5578]">Finished</h2>
       <ul className="flex flex-col gap-2">
         {games.map((g, i) => {
-          const [a, b] = [side(g.team_a_id), side(g.team_b_id)]
+          const sides = withBibs(g, teams)
+          const [a, b] = [sides.find((t) => t.id === g.team_a_id)!, sides.find((t) => t.id === g.team_b_id)!]
           const s = (id: string) => g.goals.filter((x) => x.team_id === id).length
           const missing = g.goals.filter((x) => !x.scorer_id).length
           return (
             <li key={g.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[12px] border border-white/[0.08] bg-astro-admin-card px-3.5 py-2.5">
               <span className="text-[11px] font-extrabold text-astro-text-dim">G{i + 1}</span>
-              <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[14px] font-bold text-astro-text">
+              <span className="flex flex-auto items-center gap-1.5 text-[14px] font-bold text-astro-text">
                 <TeamDot team={a} />
                 {a.greek_name}
                 <span className="font-display px-1 text-[20px] leading-none">
-                  {s(a.id)}&ndash;{s(b.id)}
+                  <span className="whitespace-nowrap">{s(a.id)}&ndash;{s(b.id)}</span>
                 </span>
                 {b.greek_name}
                 <TeamDot team={b} />
               </span>
               {missing > 0 && <span className="text-[11px] font-bold text-astro-amber">{missing} scorer{missing > 1 ? 's' : ''} to add</span>}
-              {editingId !== g.id && (
-                <button type="button" onClick={() => setEditingId(g.id)} className="text-xs font-bold text-astro-cyan hover:underline">
-                  Edit
+              <span className="ml-auto flex items-center">
+                {editingId !== g.id && (
+                  <button type="button" onClick={() => setEditingId(g.id)} className="px-2.5 py-2.5 text-xs font-bold text-astro-cyan hover:underline">
+                    Edit
+                  </button>
+                )}
+                <button type="button" onClick={() => setDeleting(g)} className="px-2.5 py-2.5 text-xs font-bold text-astro-text-dim hover:text-astro-red">
+                  Delete
                 </button>
-              )}
-              <button type="button" onClick={() => setDeleting(g)} className="text-xs font-bold text-astro-text-dim hover:text-astro-red">
-                Delete
-              </button>
-              {editingId === g.id && <EditGame game={g} teams={teams} checkedIn={checkedIn} act={act} onDone={() => setEditingId(null)} />}
+              </span>
+              {editingId === g.id && <EditGame game={g} teams={sides} checkedIn={checkedIn} act={act} onDone={() => setEditingId(null)} />}
             </li>
           )
         })}
@@ -994,9 +1143,28 @@ function DrawStep({ matchdayId, capacity }: { matchdayId: string; capacity: numb
   const [draft, setDraft] = useState<DrawRules | null>(null)
   const [showRules, setShowRules] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [captainsMode, setCaptainsMode] = useState(false)
+  const { data: selection } = useDraft(matchdayId)
   const ready = confirmed.length > 0 && confirmed.length % 6 === 0
   if (isLoading || !savedRules) return <PageLoader />
+  if (selection?.session)
+    return (
+      <section className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card p-4">
+        <h2 className="mb-3 font-display text-[26px] leading-none text-astro-text">Captains pick</h2>
+        <DraftAdminPanel matchdayId={matchdayId} />
+      </section>
+    )
+  if (confirmed.length === 0)
+    return (
+      <section className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card p-4">
+        <h2 className="mb-1 font-display text-[26px] leading-none text-astro-text">The draw</h2>
+        <EmptyState icon={<Scene kind="bench" />} title="Nobody has a spot yet." body="The draw opens up once players have claimed spots for this Sunday." meta={`0 of ${capacity} confirmed`} />
+      </section>
+    )
 
+  const manual = savedRules.manual
+  const setManual = (next: boolean) =>
+    saveRules.mutate({ ...savedRules, manual: next }, { onError: (e) => toast.error(e instanceof Error ? e.message : 'Couldn’t switch it.') })
   const rules = draft ?? savedRules
   const changed = draft != null && JSON.stringify(draft) !== JSON.stringify(savedRules)
   const nameOf = (id: string) => confirmed.find((p) => p.id === id)?.nickname ?? 'Player'
@@ -1010,95 +1178,137 @@ function DrawStep({ matchdayId, capacity }: { matchdayId: string; capacity: numb
   return (
     <section className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card p-4">
       <h2 className="mb-1 font-display text-[26px] leading-none text-astro-text">The draw</h2>
-      <p className="mb-3 text-[12.5px] text-astro-text-muted">
-        {ready
-          ? `Splits the ${confirmed.length} confirmed into ${confirmed.length / 6} teams of 6. You see the sides first, then publish them to everyone.`
-          : `Needs a full squad in sixes. ${confirmed.length} of ${capacity} confirmed so far.`}
-      </p>
-      <div className="mb-3 flex items-baseline gap-2">
-        <span className="font-display text-[34px] leading-none text-astro-text">
-          {confirmed.length}/{capacity}
-        </span>
-        <span className="text-[13px] text-astro-text-muted">paid and confirmed</span>
+      <div className="mb-3 grid grid-cols-3 gap-1 rounded-[12px] border border-white/[0.09] p-1" role="radiogroup" aria-label="How teams are made">
+        {(
+          [
+            ['pick', 'Pick teams'],
+            ['random', 'Random draw'],
+            ['captains', 'Captains pick'],
+          ] as const
+        ).map(([key, label]) => {
+          const active = (captainsMode ? 'captains' : manual ? 'pick' : 'random') === key
+          return (
+            <button
+              key={key}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              disabled={saveRules.isPending}
+              onClick={() => {
+                if (active) return
+                setCaptainsMode(key === 'captains')
+                if (key !== 'captains') setManual(key === 'pick')
+              }}
+              className={cn('min-h-10 rounded-[9px] px-1 text-[13px] font-extrabold', active ? 'bg-astro-cyan/[0.16] text-astro-text' : 'text-astro-text-muted')}
+            >
+              {label}
+            </button>
+          )
+        })}
       </div>
 
-      <div className="mb-3 rounded-[12px] border border-white/[0.08]">
-        <button type="button" onClick={() => setShowRules((v) => !v)} aria-expanded={showRules} className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left">
-          <span className="text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-astro-text-dim">Rules</span>
-          <span className="min-w-0 flex-1 truncate text-[12.5px] font-bold text-astro-text-muted">
-            {on.length ? on.map((k) => RULE_COPY[k].label).join(', ') : 'Pure random'}
-          </span>
-          {changed && <span className="rounded-[4px] bg-astro-amber/20 px-1.5 text-[10px] font-extrabold uppercase text-astro-amber">This draw</span>}
-          <span className="text-[12px] font-bold text-astro-cyan">{showRules ? 'Done' : 'Change'}</span>
-        </button>
-        {showRules && (
-          <div className="border-t border-white/[0.06] p-2">
-            <DrawRulesForm rules={rules} onChange={setRules} />
-            {changed && (
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Draw rules', title: 'Save as the defaults?', body: 'Every draw from now on starts from these rules.', confirmLabel: 'Save defaults' }, () => saveRules.mutate(rules, { onSuccess: () => { setDraft(null); toast.success('Saved as the default') } }))}
-                  className="min-h-9 flex-1 rounded-[10px] border border-astro-cyan/50 text-[12.5px] font-bold text-astro-cyan"
-                >
-                  Save as default
-                </button>
-                <button type="button" onClick={() => setRules(savedRules)} className="min-h-9 flex-1 rounded-[10px] border border-white/[0.1] text-[12.5px] font-bold text-astro-text-muted">
-                  Back to defaults
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {preview.data ? (
+      {captainsMode ? (
+        <DraftAdminPanel matchdayId={matchdayId} />
+      ) : manual ? (
         <>
-          <DrawPreviewCard preview={preview.data} nameOf={nameOf} />
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <button type="button" disabled={preview.isPending} onClick={roll} className="min-h-12 rounded-[12px] border border-white/[0.14] text-[14px] font-extrabold text-astro-text disabled:opacity-40">
-              {preview.isPending ? 'Re-rolling…' : 'Re-roll'}
-            </button>
-            <button type="button" onClick={() => setConfirming(true)} className="min-h-12 rounded-[12px] bg-astro-cyan text-[14px] font-extrabold text-[#04121d]">
-              Publish teams
-            </button>
-          </div>
-          <AdminConfirmDialog
-            open={confirming}
-            onOpenChange={setConfirming}
-            eyebrow="The draw"
-            title="Publish these teams?"
-            body="Posts the sides to the feed and tells every player their team. You can still swap players at check-in."
-            confirmLabel="Publish"
-            isPending={publish.isPending}
-            onConfirm={() =>
-              publish.mutate(preview.data!.teams, {
-                onSuccess: () => {
-                  setConfirming(false)
-                  toast.success('Teams are out')
-                },
-                onError: (e) => toast.error(e instanceof Error ? e.message : 'Couldn’t publish the teams.'),
-              })
-            }
-          />
+          <p className="mb-3 text-[12.5px] text-astro-text-muted">
+            The draw is off. Put each of the {confirmed.length} confirmed on a side, then publish.
+          </p>
+          <PickTeams key={confirmed.length} matchdayId={matchdayId} confirmed={confirmed} />
         </>
       ) : (
         <>
-          <ul className="mb-4 flex flex-wrap gap-1.5">
-            {confirmed.map((p) => (
-              <li key={p.id} className="rounded-full border border-white/[0.09] px-2.5 py-1 text-[12px] font-bold text-astro-text-muted">
-                {p.nickname}
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            disabled={!ready || preview.isPending}
-            onClick={roll}
-            className="min-h-12 w-full rounded-[12px] bg-astro-cyan text-[15px] font-extrabold text-[#04121d] disabled:opacity-40"
-          >
-            {preview.isPending ? 'Drawing the sides…' : 'Run the draw'}
-          </button>
+          <p className="mb-3 text-[12.5px] text-astro-text-muted">
+            {ready
+              ? `Splits the ${confirmed.length} confirmed into ${confirmed.length / 6} teams of 6. You see the sides first, then publish them to everyone.`
+              : `Needs a full squad in sixes. ${confirmed.length} of ${capacity} confirmed so far.`}
+          </p>
+          <div className="mb-3 flex items-baseline gap-2">
+            <span className="font-display text-[34px] leading-none text-astro-text">
+              {confirmed.length}/{capacity}
+            </span>
+            <span className="text-[13px] text-astro-text-muted">paid and confirmed</span>
+          </div>
+
+          <div className="mb-3 rounded-[12px] border border-white/[0.08]">
+            <button type="button" onClick={() => setShowRules((v) => !v)} aria-expanded={showRules} className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left">
+              <span className="text-[10.5px] font-extrabold uppercase tracking-[0.12em] text-astro-text-dim">Rules</span>
+              <span className="min-w-0 flex-1 truncate text-[12.5px] font-bold text-astro-text-muted">
+                {on.length ? on.map((k) => RULE_COPY[k].label).join(', ') : 'Pure random'}
+              </span>
+              {changed && <span className="rounded-[4px] bg-astro-amber/20 px-1.5 text-[10px] font-extrabold uppercase text-astro-amber">This draw</span>}
+              <span className="text-[12px] font-bold text-astro-cyan">{showRules ? 'Done' : 'Change'}</span>
+            </button>
+            {showRules && (
+              <div className="border-t border-white/[0.06] p-2">
+                <DrawRulesForm rules={rules} onChange={setRules} />
+                {changed && (
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Draw rules', title: 'Save as the defaults?', body: 'Every draw from now on starts from these rules.', confirmLabel: 'Save defaults' }, () => saveRules.mutate(rules, { onSuccess: () => { setDraft(null); toast.success('Saved as the default') } }))}
+                      className="min-h-9 flex-1 rounded-[10px] border border-astro-cyan/50 text-[12.5px] font-bold text-astro-cyan"
+                    >
+                      Save as default
+                    </button>
+                    <button type="button" onClick={() => setRules(savedRules)} className="min-h-9 flex-1 rounded-[10px] border border-white/[0.1] text-[12.5px] font-bold text-astro-text-muted">
+                      Back to defaults
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {preview.data ? (
+            <>
+              <DrawPreviewCard preview={preview.data} nameOf={nameOf} />
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button type="button" disabled={preview.isPending} onClick={roll} className="min-h-12 rounded-[12px] border border-white/[0.14] text-[14px] font-extrabold text-astro-text disabled:opacity-40">
+                  {preview.isPending ? 'Re-rolling…' : 'Re-roll'}
+                </button>
+                <button type="button" onClick={() => setConfirming(true)} className="min-h-12 rounded-[12px] bg-astro-cyan text-[14px] font-extrabold text-[#04121d]">
+                  Publish teams
+                </button>
+              </div>
+              <AdminConfirmDialog
+                open={confirming}
+                onOpenChange={setConfirming}
+                eyebrow="The draw"
+                title="Publish these teams?"
+                body="Posts the sides to the feed and tells every player their team. You can still swap players at check-in."
+                confirmLabel="Publish"
+                isPending={publish.isPending}
+                onConfirm={() =>
+                  publish.mutate(preview.data!.teams, {
+                    onSuccess: () => {
+                      setConfirming(false)
+                      toast.success('Teams are out')
+                    },
+                    onError: (e) => toast.error(e instanceof Error ? e.message : 'Couldn’t publish the teams.'),
+                  })
+                }
+              />
+            </>
+          ) : (
+            <>
+              <ul className="mb-4 flex flex-wrap gap-1.5">
+                {confirmed.map((p) => (
+                  <li key={p.id} className="rounded-full border border-white/[0.09] px-2.5 py-1 text-[12px] font-bold text-astro-text-muted">
+                    {p.nickname}
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                disabled={!ready || preview.isPending}
+                onClick={roll}
+                className="min-h-12 w-full rounded-[12px] bg-astro-cyan text-[15px] font-extrabold text-[#04121d] disabled:opacity-40"
+              >
+                {preview.isPending ? 'Drawing the sides…' : 'Run the draw'}
+              </button>
+            </>
+          )}
         </>
       )}
     </section>
@@ -1179,7 +1389,7 @@ export function PitchSidePage() {
         <CheckIn teams={teams} checkedIn={checkedIn} act={act} matchdayId={drawn.id} />
       ) : (
         <div className="flex flex-col gap-5">
-          {live ? <LiveGame key={live.id} game={live} teams={teams} checkedIn={checkedIn} act={act} /> : <NewGame teams={teams} pitch={pitch!} act={act} matchdayId={drawn.id} />}
+          {live ? <LiveGame key={live.id} game={live} teams={withBibs(live, teams)} checkedIn={checkedIn} act={act} /> : <NewGame teams={teams} pitch={pitch!} act={act} matchdayId={drawn.id} />}
           <FinishedGames games={finished} teams={teams} checkedIn={checkedIn} act={act} />
           {pitch && <DayTable teams={teams} pitch={pitch} className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card p-3.5" />}
           {finished.length > 0 && !live && (
