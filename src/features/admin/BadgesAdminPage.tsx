@@ -6,7 +6,9 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { ErrorState } from '@/components/states/ErrorState'
+import { NothingHere } from '@/components/states/NothingHere'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Scene } from '@/components/states/Scene'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { pendingBadges, type BadgeRow } from '@/features/badges/api'
 import { BadgeIcon } from '@/features/badges/BadgeIcon'
@@ -210,7 +212,7 @@ export function BadgesAdminPage() {
             <span className="text-xs text-astro-text-dim">{pending.length}</span>
           </div>
           {pending.length === 0 ? (
-            <p className="text-sm text-astro-text-dim">Nothing waiting.</p>
+            <NothingHere compact className="max-w-3xl" icon={<Scene kind="trophy" />} title="Nothing waiting" body="Yearly and cup badges land here for a week before they go live." />
           ) : (
             <div className="flex max-w-3xl flex-col gap-2.5">
               {pending.map((g) => (

@@ -115,6 +115,14 @@ function DuesRoster({ duesQuarterId, markedBy }: { duesQuarterId: string; marked
         className="mb-3 h-9 w-full rounded-[10px] border border-border bg-astro-surface-2 px-3 text-xs text-astro-text placeholder:text-astro-text-dim"
       />
       <div className="flex max-h-[420px] flex-col gap-1.5 overflow-y-auto pr-1">
+        {filtered.length === 0 && (
+          <NothingHere
+            compact
+            icon={<Scene kind="search" />}
+            title={players.length ? 'Nobody matches' : 'No players yet'}
+            body={players.length ? `No one called "${search.trim()}".` : 'The roster fills as players join.'}
+          />
+        )}
         {filtered.map((p) => {
           const paid = paidIds.has(p.id)
           return (

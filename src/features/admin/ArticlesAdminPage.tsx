@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { ErrorState } from '@/components/states/ErrorState'
+import { NothingHere } from '@/components/states/NothingHere'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Scene } from '@/components/states/Scene'
 import { useArticles, useDrafts, useWriters } from '@/features/articles/hooks'
 
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -25,7 +27,7 @@ function Writers() {
         ) : isError ? (
           <ErrorState onRetry={() => refetch()} />
         ) : writers.length === 0 ? (
-          <p className="py-1 text-[13px] text-astro-text-dim">Nobody besides the admins yet.</p>
+          <NothingHere compact icon={<Scene kind="notebook" />} title="No other writers" body="Only admins can write for now." />
         ) : (
           <ul className="flex flex-col divide-y divide-white/[0.06]">
             {writers.map((w) => (
@@ -58,7 +60,19 @@ function AllArticles() {
       </div>
       <div className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card">
         {rows.length === 0 ? (
-          <p className="p-4 text-[13px] text-astro-text-dim">Nothing written yet.</p>
+          <div className="p-3">
+            <NothingHere
+              compact
+              icon={<Scene kind="notebook" />}
+              title="Nothing written yet"
+              body="Drafts and published pieces show up here."
+              action={
+                <Link to="/articles/new" className="rounded-[10px] border border-astro-cyan/50 px-4 py-2 text-xs font-extrabold text-astro-cyan no-underline hover:bg-astro-cyan/[0.08]">
+                  Write the first one
+                </Link>
+              }
+            />
+          </div>
         ) : (
           <ul className="flex flex-col divide-y divide-white/[0.06]">
             {rows.map((a) => (

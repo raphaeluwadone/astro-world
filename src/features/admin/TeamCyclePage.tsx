@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
+import { NothingHere } from '@/components/states/NothingHere'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Scene } from '@/components/states/Scene'
 import { StandingsTable } from '@/components/tables/StandingsTable'
 import { cycleLastDay, toFinalTable } from '@/features/teams/cycles'
 import { ShirtBadge } from '@/features/teams/components/ShirtBadge'
@@ -36,7 +38,17 @@ export function TeamCyclePage() {
   const [nextEnd, setNextEnd] = useState<string | null>(null)
 
   if (isLoading || tableLoading) return <PageLoader />
-  if (!cycle) return <p className="text-astro-text-muted">No cycle is running.</p>
+  if (!cycle)
+    return (
+      <div className="mx-auto max-w-[640px]">
+        <h1 className="mb-4 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Team year</h1>
+        <NothingHere
+          icon={<Scene kind="trophy" />}
+          title="No team year is open"
+          body="Crowning a champion opens the next year by itself, so this should only show on a fresh set-up."
+        />
+      </div>
+    )
 
   const early = now < new Date(cycle.ends_at)
   const champion = table[0]

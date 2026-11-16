@@ -5,7 +5,9 @@ import { AstroSelect } from '@/components/ui/astro-select'
 import { Button } from '@/components/ui/button'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { ErrorState } from '@/components/states/ErrorState'
+import { NothingHere } from '@/components/states/NothingHere'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Scene } from '@/components/states/Scene'
 import { useActivePlayers } from '@/features/matchday/hooks'
 import { FieldHint, FieldLabel, TextField } from '@/features/edit-profile/components/FieldInput'
 import {
@@ -148,6 +150,8 @@ function SquadsPanel({ cupId }: { cupId: string }) {
   const addPlayer = useAddPlayerToSquad(cupId)
   const removePlayer = useRemovePlayerFromSquad(cupId)
   const [adding, setAdding] = useState<Record<string, string>>({})
+
+  if (squads.length === 0) return <NothingHere icon={<Scene kind="trophy" />} title="No squads yet" body="Squads appear here once the draw has run." />
 
   return (
     <div className="flex flex-col gap-3">
@@ -375,6 +379,7 @@ function FixturesPanel({ cupId }: { cupId: string }) {
       </div>
 
       <div className="flex flex-col gap-2">
+        {matches.length === 0 && <NothingHere compact icon={<Scene kind="goals" />} title="No fixtures yet" body="Add a fixture to start recording scores." />}
         {matches.map((m) => (
           <FixtureRow
             key={m.id}
@@ -445,8 +450,9 @@ export function CupAdminPage() {
               </p>
               {drawError && <p className="mb-3 text-xs text-astro-red">{drawError}</p>}
               <Button onClick={draw} disabled={!canDraw || runDraw.isPending} className="w-fit">
-                {runDraw.isPending ? 'Drawing…' : `Draw ${entrants.length} entrants`}
+                {runDraw.isPending ? 'Drawing…' : entrants.length ? `Draw ${entrants.length} entrants` : 'Draw squads'}
               </Button>
+              {entrants.length === 0 && <p className="mt-2 text-xs text-astro-text-dim">Nobody has entered yet.</p>}
               {!canDraw && entrants.length > 0 && (
                 <p className="mt-2 text-xs text-astro-text-dim">{entrants.length} isn&rsquo;t a multiple of 6 yet.</p>
               )}

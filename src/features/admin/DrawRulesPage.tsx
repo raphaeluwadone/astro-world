@@ -2,7 +2,9 @@ import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AstroSelect } from '@/components/ui/astro-select'
+import { NothingHere } from '@/components/states/NothingHere'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Scene } from '@/components/states/Scene'
 import { useAllPlayers } from '@/features/kitty/hooks'
 import { DrawRulesForm } from '@/features/matchday/draw/components/DrawRulesForm'
 import { useDrawRules, useNeverPairActions, useNeverPairs, useSaveDrawRules } from '@/features/matchday/draw/hooks'
@@ -43,7 +45,7 @@ function NeverPairs() {
         </button>
       </div>
       {pairs.length === 0 ? (
-        <p className="text-[12.5px] text-astro-text-dim">No pairs yet.</p>
+        <NothingHere compact icon={<Scene kind="bench" />} title="No pairs yet" body="Pick two players above to always draw them on different sides." />
       ) : (
         <ul className="flex flex-col gap-1.5">
           {pairs.map((p) => (

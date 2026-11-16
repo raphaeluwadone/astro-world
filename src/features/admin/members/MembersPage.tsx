@@ -1,7 +1,9 @@
 import { cn } from 'cn'
 import { useMemo, useState } from 'react'
 import { ErrorState } from '@/components/states/ErrorState'
+import { NothingHere } from '@/components/states/NothingHere'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Scene } from '@/components/states/Scene'
 import { Pager } from '@/components/ui/pager'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 import type { MemberRow } from './api'
@@ -134,7 +136,30 @@ export function MembersPage({ initialFilter = 'active' }: { initialFilter?: Filt
 
           <div className="overflow-hidden rounded-[14px] border border-white/[0.09] bg-astro-admin-card">
             {rows.length === 0 ? (
-              <p className="p-5 text-[13px] text-astro-text-dim">Nobody matches that.</p>
+              <NothingHere
+                icon={<Scene kind="search" />}
+                title={members.length === 0 ? 'No members yet' : 'Nobody matches'}
+                body={members.length === 0 ? 'Add a player to start the roster.' : query.trim() ? `No one called "${query.trim()}" in this view.` : 'Nobody is in this view right now.'}
+                action={
+                  members.length === 0 ? (
+                    <button type="button" onClick={() => setAdding(true)} className="rounded-[10px] border border-astro-cyan/50 px-4 py-2 text-xs font-extrabold text-astro-cyan hover:bg-astro-cyan/[0.08]">
+                      Add a player
+                    </button>
+                  ) : query.trim() || filter !== 'active' ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery('')
+                        setFilter('active')
+                        setPage(1)
+                      }}
+                      className="rounded-[10px] border border-astro-cyan/50 px-4 py-2 text-xs font-extrabold text-astro-cyan hover:bg-astro-cyan/[0.08]"
+                    >
+                      Clear search and filters
+                    </button>
+                  ) : undefined
+                }
+              />
             ) : (
               <ul className="divide-y divide-white/[0.06]">
                 {visible.map((m) => (
