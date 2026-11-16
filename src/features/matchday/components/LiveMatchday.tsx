@@ -134,7 +134,7 @@ export function LiveMatchday({ className, showTable = true }: { className?: stri
                 {dot(a)}
                 {a.greek_name}
                 <span className="px-1 font-display text-[17px] leading-none text-astro-text">
-                  {s(a.id)}&ndash;{s(b.id)}
+                  <span className="whitespace-nowrap">{s(a.id)}&ndash;{s(b.id)}</span>
                 </span>
                 {b.greek_name}
                 {dot(b)}

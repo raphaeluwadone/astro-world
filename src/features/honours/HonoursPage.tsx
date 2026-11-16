@@ -79,7 +79,7 @@ function LatestView({ feed, posts, totals, hall, year, setYear, playerId, isAdmi
           onYear={setYear}
           footer={
             hall.length > 0 && (
-              <Link to="/honours" search={{ view: 'roll', year }} className="mt-3 inline-block text-[13px] font-bold text-astro-accent-soft hover:underline">
+              <Link to="/honours" search={{ view: 'roll', year }} className="astro-tap mt-3 inline-block text-[13px] font-bold text-astro-accent-soft hover:underline">
                 Full roll of honour
               </Link>
             )

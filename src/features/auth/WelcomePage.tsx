@@ -60,7 +60,7 @@ function LandingHero({ onSignIn }: { onSignIn: () => void }) {
         <div className="mb-[30px] text-center">
           <Wordmark size={76} className="mb-3 justify-center text-astro-text" />
           <p className="mx-auto max-w-[40ch] text-base leading-[1.55] text-astro-text [text-wrap:pretty]">
-            Sunday football at Gbaja Boys. Thirty spots, balloted every Wednesday, and nobody knows who
+            Sunday football at Gbaja Boys. Thirty spots, first to pay gets in, and nobody knows who
             they&rsquo;re playing with until the draw.
           </p>
         </div>

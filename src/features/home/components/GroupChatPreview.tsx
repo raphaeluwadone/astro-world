@@ -31,7 +31,7 @@ export function GroupChatPreview({ posts }: { posts: PostRow[] }) {
     <div className="astro-card p-[22px]">
       <div className="mb-3.5 flex items-center justify-between">
         <h2 className="font-display text-[26px] leading-none text-astro-text">From the Group Chat</h2>
-        <Link to="/community" className="text-xs font-extrabold text-astro-accent">
+        <Link to="/community" className="astro-tap text-xs font-extrabold text-astro-accent">
           Feed
         </Link>
       </div>

@@ -17,7 +17,7 @@ export function BackLink({ to, label, className }: { to: LinkProps['to']; label:
     <Link
       to={to}
       onClick={onClick}
-      className={cn('inline-flex items-center gap-1.5 self-start text-[13px] font-bold text-astro-text-muted no-underline hover:text-astro-text', className)}
+      className={cn('astro-tap inline-flex items-center gap-1.5 self-start text-[13px] font-bold text-astro-text-muted no-underline hover:text-astro-text', className)}
     >
       &larr; {canGoBack ? 'Back' : label}
     </Link>

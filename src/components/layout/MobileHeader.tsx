@@ -8,17 +8,19 @@ export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const unread = useUnreadCount()
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-astro-surface px-4.5 py-3.5 md:hidden">
-      <button type="button" aria-label="Menu" onClick={onMenuClick} className="text-astro-text-muted">
+      <button type="button" aria-label="Menu" onClick={onMenuClick} className="-m-3 flex size-11 items-center justify-center text-astro-text-muted">
         <MenuIcon className="size-5" />
       </button>
       <Wordmark size={23} className="text-astro-text" />
       <Link
         to="/notifications"
         aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
-        className="relative text-astro-text-muted hover:text-astro-text"
+        className="-m-3 flex size-11 items-center justify-center text-astro-text-muted hover:text-astro-text"
       >
-        <BellIcon className="size-5" />
-        <UnreadDot count={unread} className="-right-2.5 -top-2" />
+        <span className="relative">
+          <BellIcon className="size-5" />
+          <UnreadDot count={unread} className="-right-2.5 -top-2" />
+        </span>
       </Link>
     </header>
   )

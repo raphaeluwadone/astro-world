@@ -14,7 +14,7 @@ export function TopOfThePile({ rankings }: { rankings: RankingRow[] }) {
     <div className="astro-card p-[22px]">
       <div className="mb-3.5 flex items-center justify-between">
         <h2 className="font-display text-[26px] leading-none text-astro-text">Top of the Pile</h2>
-        <Link to="/rankings" className="text-xs font-extrabold text-astro-accent">
+        <Link to="/rankings" className="astro-tap text-xs font-extrabold text-astro-accent">
           All
         </Link>
       </div>

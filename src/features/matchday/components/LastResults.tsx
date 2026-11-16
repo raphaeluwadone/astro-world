@@ -22,7 +22,7 @@ export function LastResults({ results }: { results: MatchResultRow[] }) {
         >
           <span className="min-w-0 truncate text-right text-[13px] font-extrabold text-astro-text">{m.team_a.greek_name}</span>
           <span className="font-display row-span-2 shrink-0 self-start rounded-lg bg-astro-bg px-3 py-[5px] text-2xl leading-none text-astro-text">
-            {m.score_a}&ndash;{m.score_b}
+            <span className="whitespace-nowrap">{m.score_a}&ndash;{m.score_b}</span>
           </span>
           <span className="min-w-0 truncate text-[13px] font-extrabold text-astro-text">{m.team_b.greek_name}</span>
           <ScorerList goals={goals.get(m.id)} teamId={m.team_a.id} className="min-w-0 text-right" />

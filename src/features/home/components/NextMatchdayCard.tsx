@@ -222,7 +222,7 @@ export function NextMatchdayCard({
             <PullOut matchdayId={matchday.id} playerId={playerId} kind={me.hasWeeklyClaim ? 'claim' : 'standby'} />
           )}
         </div>
-        <Link to="/matchday" className="text-[13px] font-extrabold text-astro-accent">
+        <Link to="/matchday" className="astro-tap text-[13px] font-extrabold text-astro-accent">
           Ballot &rarr;
         </Link>
       </div>

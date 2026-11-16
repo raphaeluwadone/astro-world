@@ -142,7 +142,7 @@ function TeamGoals({
               type="button"
               aria-label="Remove goal"
               onClick={() => onRemove(gi)}
-              className="px-1 text-sm font-bold text-astro-text-dim hover:text-astro-red"
+              className="px-3 py-2.5 text-sm font-bold text-astro-text-dim hover:text-astro-red"
             >
               &times;
             </button>
@@ -152,7 +152,7 @@ function TeamGoals({
       <button
         type="button"
         onClick={onAdd}
-        className="mt-2.5 text-xs font-bold hover:underline"
+        className="mt-0.5 py-2.5 text-xs font-bold hover:underline"
         style={{ color: team.colour }}
       >
         + Goal for {team.greek_name}
@@ -181,7 +181,7 @@ function TeamGoals({
                 options={members.map((p) => ({ value: p.id, label: p.nickname }))}
                 className="min-w-0 flex-1"
               />
-              <button type="button" aria-label="Remove card" onClick={() => onRemoveCard(ci)} className="px-1 text-sm font-bold text-astro-text-dim hover:text-astro-red">
+              <button type="button" aria-label="Remove card" onClick={() => onRemoveCard(ci)} className="px-3 py-2.5 text-sm font-bold text-astro-text-dim hover:text-astro-red">
                 &times;
               </button>
             </div>
@@ -191,7 +191,7 @@ function TeamGoals({
           )}
         </div>
       )}
-      <button type="button" onClick={onAddCard} className="mt-2 block text-xs font-bold text-astro-text-muted hover:text-astro-text hover:underline">
+      <button type="button" onClick={onAddCard} className="block py-2.5 pr-3 text-xs font-bold text-astro-text-muted hover:text-astro-text hover:underline">
         + Card
       </button>
     </div>
@@ -373,7 +373,7 @@ export function ResultsPage() {
                   Fixture {fi + 1}
                 </div>
                 {draft.length > 1 && (
-                  <button type="button" onClick={() => removeFixture(fi)} className="text-xs font-bold text-astro-text-dim hover:text-astro-red">
+                  <button type="button" onClick={() => removeFixture(fi)} className="px-2 py-2 text-xs font-bold text-astro-text-dim hover:text-astro-red">
                     Remove
                   </button>
                 )}

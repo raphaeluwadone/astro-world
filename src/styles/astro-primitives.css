@@ -158,10 +158,22 @@
 .astro-editor .tiptap h2 { font-family: "Bebas Neue", sans-serif; font-size: 28px; line-height: 1; margin-top: 0.8em; }
 .astro-editor .tiptap h3 { font-size: 17px; font-weight: 800; margin-top: 0.6em; }
 .astro-editor .tiptap blockquote { border-left: 3px solid rgba(166,63,255,0.6); padding-left: 1em; font-style: italic; color: #d7dcef; }
-.astro-editor .tiptap img { max-width: 100%; border-radius: 12px; }
+.astro-editor .tiptap img { display: block; max-width: 100%; border-radius: 12px; cursor: grab; }
 .astro-editor .tiptap img.ProseMirror-selectednode { outline: 2px solid #a63fff; }
 
 /* No spinner arrows on number fields. */
 input[type='number'] { appearance: textfield; -moz-appearance: textfield; }
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Grows a small text link's touch area to about 44px without moving anything. */
+.astro-tap { position: relative; }
+.astro-tap::after { content: ''; position: absolute; inset: -14px -10px; }
+
+/* iPhones zoom the whole page when a field under 16px takes focus. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']):not([type='hidden']),
+  textarea,
+  select,
+  [contenteditable='true'] { font-size: 16px !important; }
+}

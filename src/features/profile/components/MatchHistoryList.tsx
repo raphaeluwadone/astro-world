@@ -46,7 +46,7 @@ export function MatchHistoryList({ history }: { history: MatchHistoryRow[] }) {
                   )}
                 </span>
                 <span className="font-display shrink-0 text-xl leading-none text-astro-text-muted">
-                  {h.score_a}&ndash;{h.score_b}
+                  <span className="whitespace-nowrap">{h.score_a}&ndash;{h.score_b}</span>
                 </span>
                 <span
                   className="font-display shrink-0 rounded-lg border px-2.5 py-1 text-lg leading-none"

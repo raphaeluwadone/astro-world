@@ -23,7 +23,7 @@ function LiveLine({ game, opponent, mine }: { game: PitchGame; opponent: TeamWit
       <span className={cn('size-2 rounded-full', running ? 'animate-pulse bg-astro-red' : 'bg-astro-amber')} aria-hidden />
       {running ? 'On now' : 'Paused'} v {opponent.greek_name}
       <span className="font-display text-[22px] leading-none">
-        {score(game, mine)}&ndash;{score(game, opponent.id)}
+        <span className="whitespace-nowrap">{score(game, mine)}&ndash;{score(game, opponent.id)}</span>
       </span>
       <span className={cn('text-[12px] tabular-nums', over ? 'text-astro-red' : 'text-astro-text-muted')}>
         {label} {over ? 'over' : 'left'}
@@ -146,7 +146,7 @@ export function MyMatchdayCard({ matchdayId, teams, playerId }: { matchdayId: st
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="font-bold text-astro-text">
-                        G{pitch.games.indexOf(g) + 1} v {opp.greek_name} &middot; {score(g, mine.id)}&ndash;{score(g, opp.id)}
+                        G{pitch.games.indexOf(g) + 1} v {opp.greek_name} &middot; <span className="whitespace-nowrap">{score(g, mine.id)}&ndash;{score(g, opp.id)}</span>
                       </span>
                       {scorers.length > 0 && <span className="block text-[12px] text-astro-text-muted">{scorers.join(', ')}</span>}
                     </span>

@@ -100,7 +100,7 @@ export function AwardRaceCard({ race }: { race: AwardRaceRow[] }) {
     <section className="@container astro-card p-5 md:p-6">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-display text-[26px] leading-none text-astro-text">Race for the awards</h2>
-        <Link to="/awards" className="text-[12.5px] font-bold text-astro-accent-soft no-underline hover:underline">
+        <Link to="/awards" className="astro-tap text-[12.5px] font-bold text-astro-accent-soft no-underline hover:underline">
           All awards &rarr;
         </Link>
       </div>

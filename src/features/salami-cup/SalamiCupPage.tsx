@@ -221,7 +221,7 @@ export function SalamiCupPage() {
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="min-w-0 flex-1 text-right text-[13px] font-bold text-astro-text">{m.squad_a_name}</div>
                       <div className="font-display shrink-0 text-2xl text-astro-text">
-                        {m.score_a != null && m.score_b != null ? `${m.score_a}–${m.score_b}` : 'v'}
+                        {m.score_a != null && m.score_b != null ? <span className="whitespace-nowrap">{`${m.score_a}–${m.score_b}`}</span> : 'v'}
                       </div>
                       <div className="min-w-0 flex-1 text-[13px] font-bold text-astro-text">{m.squad_b_name}</div>
                     </div>
