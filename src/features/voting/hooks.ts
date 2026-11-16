@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  fetchDoneGames,
+  fetchMyInputs,
   fetchMyScores,
+  fetchRatingGames,
   fetchRatingMatchday,
   fetchRatingsOpenToEveryone,
   fetchRoster,
+  finishGame,
   ratePlayer,
   setRatingsOpenToEveryone,
 } from './api'
@@ -28,12 +32,46 @@ export function useMyScores(matchdayId: string | undefined) {
   })
 }
 
+export function useRatingGames(matchdayId: string | undefined) {
+  return useQuery({
+    queryKey: ['voting-games', matchdayId],
+    queryFn: () => fetchRatingGames(matchdayId!),
+    enabled: !!matchdayId,
+  })
+}
+
+export function useMyInputs(matchdayId: string | undefined) {
+  return useQuery({
+    queryKey: ['voting-my-inputs', matchdayId],
+    queryFn: () => fetchMyInputs(matchdayId!),
+    enabled: !!matchdayId,
+  })
+}
+
+export function useDoneGames(matchdayId: string | undefined) {
+  return useQuery({
+    queryKey: ['voting-done-games', matchdayId],
+    queryFn: () => fetchDoneGames(matchdayId!),
+    enabled: !!matchdayId,
+  })
+}
+
+export function useFinishGame(matchdayId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (gameId: string) => finishGame(matchdayId!, gameId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['voting-done-games', matchdayId] }),
+  })
+}
+
 export function useSubmitRating(matchdayId: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ subjectId, score }: { subjectId: string; score: number }) => ratePlayer(matchdayId!, subjectId, score),
+    mutationFn: ({ subjectId, score, gameId }: { subjectId: string; score: number | null; gameId?: string }) =>
+      ratePlayer(matchdayId!, subjectId, score, gameId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['voting-my-scores', matchdayId] })
+      queryClient.invalidateQueries({ queryKey: ['voting-my-inputs', matchdayId] })
     },
   })
 }

@@ -1,13 +1,14 @@
 import { Link } from '@tanstack/react-router'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { usePendingRatings } from '../hooks'
+import { APP_TIMEZONE } from '@/lib/timezone'
 
 function closesLabel(closesAt: string) {
-  return new Date(closesAt).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' }).replace(',', '')
+  return new Date(closesAt).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: APP_TIMEZONE }).replace(',', '')
 }
 
 function dayName(playedAt: string) {
-  return new Date(playedAt).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'Europe/London' })
+  return new Date(playedAt).toLocaleDateString('en-GB', { weekday: 'long', timeZone: APP_TIMEZONE })
 }
 
 /** The "go and rate" banner, shown while the signed-in player still has players to rate. */

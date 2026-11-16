@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { useEffect, useRef, useState } from 'react'
 import { Scene } from '@/components/states/Scene'
 import { toast } from 'sonner'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -7,9 +8,10 @@ import { ErrorState } from '@/components/states/ErrorState'
 import { InTheNetIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
-import type { RatingMatchday, RosterPlayer } from './api'
+import { inputKey, type RatingGame, type RatingMatchday, type RosterPlayer } from './api'
 import { RatingRow } from './components/RatingRow'
-import { useMyScores, useRatingMatchday, useRoster, useSubmitRating } from './hooks'
+import { useDoneGames, useFinishGame, useMyInputs, useMyScores, useRatingGames, useRatingMatchday, useRoster, useSubmitRating } from './hooks'
+import { APP_TIMEZONE } from '@/lib/timezone'
 
 const TEAM_ORDER = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta']
 
@@ -20,12 +22,12 @@ function closesLabel(closesAt: string) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Europe/London',
+    timeZone: APP_TIMEZONE,
   })
 }
 
 function dayLabel(playedAt: string) {
-  return new Date(playedAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', timeZone: 'Europe/London' })
+  return new Date(playedAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', timeZone: APP_TIMEZONE })
 }
 
 function groupByTeam(roster: RosterPlayer[], myTeamId: string | undefined) {
@@ -42,6 +44,38 @@ function groupByTeam(roster: RosterPlayer[], myTeamId: string | undefined) {
   })
 }
 
+const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+function dayNote(gameCount: number, wholeDay: boolean) {
+  if (gameCount + Number(wholeDay) === 0) return undefined
+  const parts = [gameCount > 0 && count(gameCount, 'game'), wholeDay && 'whole day'].filter(Boolean).join(' + ')
+  return `Avg from ${parts}`
+}
+
+function Tab({ active, onClick, title, sub }: { active: boolean; onClick: () => void; title: string; sub?: string }) {
+  const ref = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    // Labels widen once team names load, so re-check then too.
+    if (active) ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [active, sub])
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={
+        active
+          ? 'shrink-0 rounded-[11px] bg-astro-accent px-4 py-2.5 text-left text-astro-on-accent'
+          : 'shrink-0 rounded-[11px] border border-border bg-astro-surface-2 px-4 py-2.5 text-left text-astro-text-muted hover:text-astro-text'
+      }
+    >
+      <div className="text-[12.5px] font-extrabold">{title}</div>
+      {sub && <div className={active ? 'text-[11px] font-bold opacity-80' : 'text-[11px] text-astro-text-dim'}>{sub}</div>}
+    </button>
+  )
+}
+
 function Header({ matchday, rated, total }: { matchday: RatingMatchday; rated?: number; total?: number }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -53,7 +87,7 @@ function Header({ matchday, rated, total }: { matchday: RatingMatchday; rated?: 
         </div>
         <h1 className="font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Rate the Lot of Them</h1>
         <p className="mt-1.5 max-w-[62ch] text-sm text-astro-text-muted [text-wrap:pretty]">
-          Anonymous. Everyone&rsquo;s scores get averaged into one rating for the day, so one grudge 1 won&rsquo;t do
+          Anonymous. Everyone&rsquo;s scores get averaged into one rating for the day, so one grudge score of 1 won&rsquo;t do
           much damage.
         </p>
       </div>
@@ -137,7 +171,12 @@ export function VotingPage() {
   const { data: matchday, isLoading, isError, refetch } = useRatingMatchday(playerId)
   const { data: roster = [] } = useRoster(matchday?.matchdayId)
   const { data: scores = new Map<string, number>() } = useMyScores(matchday?.matchdayId)
+  const { data: games = [] } = useRatingGames(matchday?.matchdayId)
+  const { data: inputs = new Map<string, number>() } = useMyInputs(matchday?.matchdayId)
+  const { data: done = new Set<string>() } = useDoneGames(matchday?.matchdayId)
   const submit = useSubmitRating(matchday?.matchdayId)
+  const finish = useFinishGame(matchday?.matchdayId)
+  const [picked, setPicked] = useState<string>()
 
   if (isLoading || !playerId) return <PageLoader />
   if (isError) return <ErrorState onRetry={() => refetch()} />
@@ -166,6 +205,43 @@ export function VotingPage() {
   const teams = groupByTeam(subjects, myTeamId)
   const ratedCount = subjects.filter((p) => scores.has(p.id)).length
   const allRated = subjects.length > 0 && ratedCount === subjects.length
+  const perGame = matchday.perGameOpen && games.length > 0
+  const view = perGame ? (picked ?? games.at(-1)?.id ?? 'day') : 'day'
+  const game = games.find((g) => g.id === view)
+  const teamInfo = new Map(roster.map((p) => [p.team_id, { name: p.team_name, colour: p.team_colour }]))
+  const byId = new Map(roster.map((p) => [p.id, p]))
+  const gameLabel = (g: RatingGame) =>
+    `${teamInfo.get(g.teamAId)?.name ?? '?'} ${g.scoreA}–${g.scoreB} ${teamInfo.get(g.teamBId)?.name ?? '?'}`
+  const mySide = game ? game.players.get(playerId) : myTeamId
+  const locked = !!game && done.has(game.id)
+
+  function finishGame(g: RatingGame) {
+    finish.mutate(g.id, {
+      onSuccess: () => setPicked(games.find((x) => x.no > g.no && !done.has(x.id))?.id ?? 'day'),
+      onError: (err) => toast.error(err instanceof Error ? err.message : 'Couldn’t lock that game.'),
+    })
+  }
+
+  function rate(subjectId: string, score: number | null, gameId?: string) {
+    submit.mutate(
+      { subjectId, score, gameId },
+      { onError: (err) => toast.error(err instanceof Error ? err.message : 'Couldn’t save that rating.') },
+    )
+  }
+
+  const sections = game
+    ? [game.teamAId, game.teamBId]
+        .map((teamId) => ({
+          id: teamId,
+          name: teamInfo.get(teamId)?.name ?? '',
+          colour: teamInfo.get(teamId)?.colour ?? '#6d7496',
+          players: [...game.players]
+            .filter(([pid, tid]) => tid === teamId && pid !== playerId && byId.has(pid))
+            .map(([pid]) => byId.get(pid)!)
+            .sort((a, b) => a.nickname.localeCompare(b.nickname)),
+        }))
+        .sort((a, b) => Number(b.id === mySide) - Number(a.id === mySide))
+    : teams
 
   return (
     <div>
@@ -187,25 +263,54 @@ export function VotingPage() {
         </div>
       )}
 
-      {teams.map((t) => (
+      {perGame && (
+        <div className="mb-5">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            {games.map((g) => (
+              <Tab
+                key={g.id}
+                active={view === g.id}
+                onClick={() => setPicked(g.id)}
+                title={done.has(g.id) ? `Game ${g.no} · done` : `Game ${g.no}`}
+                sub={gameLabel(g)}
+              />
+            ))}
+            <Tab active={view === 'day'} onClick={() => setPicked('day')} title="Whole day" sub="Everyone, one score" />
+          </div>
+          <p className="mt-3 text-[12.5px] text-astro-text-muted">
+            {locked
+              ? 'You pressed Done on this game, so these scores are locked in.'
+              : game
+              ? 'One score per player for this game, or skip them. Press Done when you’re finished; after that this game’s scores can’t change.'
+              : 'One score for the whole day. If you rated someone game by game, this counts as one more score in their average.'}
+          </p>
+        </div>
+      )}
+
+      {!perGame && games.length > 0 && matchday.canRate && (
+        <p className="mb-5 text-[12.5px] text-astro-text-muted">
+          Game-by-game ratings closed with the matchday. Give each player a final rating for the day. Any game scores you already gave still count.
+        </p>
+      )}
+
+      {sections.map((t) => (
         <div key={t.id} className="mb-7">
           <div className="mb-3 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
             <span className="size-2 rounded-full" style={{ background: t.colour }} />
-            {t.id === myTeamId ? `Your side, Team ${t.name}` : `Team ${t.name}`}
+            {t.id === mySide ? `Your side, Team ${t.name}` : `Team ${t.name}`}
           </div>
           <div className="flex flex-col gap-[11px]">
+            {t.players.length === 0 && <div className="text-[12.5px] text-astro-text-dim">Nobody else to rate on this side.</div>}
             {t.players.map((p) => (
               <RatingRow
                 key={p.id}
                 player={p}
-                score={scores.get(p.id)}
-                disabled={!matchday.canRate}
-                onRate={(score) =>
-                  submit.mutate(
-                    { subjectId: p.id, score },
-                    { onError: (err) => toast.error(err instanceof Error ? err.message : 'Couldn’t save that rating.') },
-                  )
-                }
+                score={inputs.get(inputKey(p.id, game?.id))}
+                disabled={!matchday.canRate || finish.isPending}
+                locked={locked}
+                onRate={(score) => rate(p.id, score, game?.id)}
+                avg={scores.get(p.id) ?? null}
+                note={dayNote(games.filter((g) => inputs.has(inputKey(p.id, g.id))).length, inputs.has(inputKey(p.id)))}
               />
             ))}
           </div>
@@ -214,16 +319,31 @@ export function VotingPage() {
 
       <div className="mt-[26px] flex flex-wrap items-center justify-between gap-3.5 rounded-[14px] border border-border bg-astro-surface px-[22px] py-[18px]">
         <div className="text-[13px] text-astro-text-muted">
-          {matchday.canRate
-            ? 'Each score saves the moment you tap it. Change your mind anytime until ratings close.'
-            : 'Ratings are closed for this matchday.'}
+          {!matchday.canRate
+            ? 'Ratings are closed for this matchday.'
+            : game
+            ? locked
+              ? 'This game is locked in. Your final rating for each player is on Whole day.'
+              : 'Scores save as you tap and count towards the average straight away. Done locks them.'
+            : 'Each score saves the moment you tap it. Tap it again to take it back. Change your final rating anytime until ratings close.'}
         </div>
-        <Link
-          to="/matchday"
-          className="shrink-0 rounded-[11px] bg-astro-accent px-[22px] py-3 text-sm font-extrabold text-astro-on-accent transition-transform hover:-translate-y-0.5"
-        >
-          Done
-        </Link>
+        {game && !locked && matchday.canRate ? (
+          <button
+            type="button"
+            disabled={finish.isPending}
+            onClick={() => finishGame(game)}
+            className="shrink-0 rounded-[11px] bg-astro-accent px-[22px] py-3 text-sm font-extrabold text-astro-on-accent transition-transform hover:-translate-y-0.5 disabled:opacity-50"
+          >
+            {finish.isPending ? 'Locking…' : `Done with Game ${game.no}`}
+          </button>
+        ) : (
+          <Link
+            to="/matchday"
+            className="shrink-0 rounded-[11px] bg-astro-accent px-[22px] py-3 text-sm font-extrabold text-astro-on-accent transition-transform hover:-translate-y-0.5"
+          >
+            Done
+          </Link>
+        )}
       </div>
     </div>
   )
