@@ -11,6 +11,7 @@ import {
   fetchMatchResults,
   fetchMonthlyMembers,
   fetchNextMatchday,
+  fetchRecentlyCancelledMatchday,
   fetchStandbyEntries,
   fetchWeeklyClaims,
   fetchWeeklySpotsRemaining,
@@ -25,6 +26,10 @@ type AvailabilityStatus = Database['public']['Enums']['availability_status']
 
 export function useNextMatchday() {
   return useQuery({ queryKey: ['matchday', 'next'], queryFn: fetchNextMatchday })
+}
+
+export function useRecentlyCancelledMatchday(enabled: boolean) {
+  return useQuery({ queryKey: ['matchday', 'recently-cancelled'], queryFn: fetchRecentlyCancelledMatchday, enabled })
 }
 
 export function useLastCompleteMatchday() {
@@ -67,6 +72,7 @@ export function useSetAvailability(matchdayId: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability', matchdayId] })
       queryClient.invalidateQueries({ queryKey: ['weekly-spots-remaining', matchdayId] })
+      queryClient.invalidateQueries({ queryKey: ['standby-entries', matchdayId] })
     },
   })
 }
@@ -86,6 +92,8 @@ export function useClaimMonthlySlot(month: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['monthly-members', month] })
       queryClient.invalidateQueries({ queryKey: ['weekly-spots-remaining'] })
+      queryClient.invalidateQueries({ queryKey: ['availability'] })
+      queryClient.invalidateQueries({ queryKey: ['standby-entries'] })
     },
   })
 }

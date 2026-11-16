@@ -38,6 +38,9 @@ export function useCancelMatchday(matchdayId: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: () => cancelMatchday(matchdayId!),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matchday', 'next'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matchday'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
   })
 }

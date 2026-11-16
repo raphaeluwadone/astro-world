@@ -484,7 +484,7 @@ export function JoinPage() {
             </div>
             <p className="mx-auto max-w-[44ch] text-[15px] leading-[1.6] text-astro-text-muted [text-wrap:pretty]">
               {isNew
-                ? 'New player, no record to argue about. Mark yourself available before Wednesday at eight and you could be playing this Sunday.'
+                ? 'New player, no record to argue about. Claim a spot on Matchday and you could be playing this Sunday.'
                 : `They'll confirm you're ${claimed?.nickname ?? 'who you say you are'} and your record unlocks. Usually the same evening: one of them is always on there.`}
             </p>
           </div>
@@ -496,14 +496,14 @@ export function JoinPage() {
             <div className="flex flex-col gap-3">
               {(isNew
                 ? [
-                    { title: 'Wednesday, 20:00', body: "Availability closes and the ballot draws thirty from everyone who marked themselves in." },
+                    { title: 'Claim a spot', body: 'First to pay gets one of the weekly spots. Sides are drawn at the pitch on game day.' },
                     { title: "You'll be rated", body: 'After your first Sunday, everyone who played with you votes 1–10. That average is your rating: there is no admin scoring you.' },
                     { title: 'Dues are quarterly', body: '₦12,000 a quarter keeps the pitch booked. Nobody chases you on your first week.' },
                   ]
                 : [
                     { title: 'While it’s pending', body: 'You can look around, read the rules and mark yourself available. Your old ratings stay hidden until it’s approved.' },
                     { title: 'If they say no', body: 'You keep the account and start fresh as a new player. Nothing is lost except the record you didn’t own.' },
-                    { title: "Then it's Wednesday", body: 'Availability closes at eight and the ballot draws thirty. Being an old hand doesn’t improve your odds.' },
+                    { title: "Then it's Sunday", body: 'First to pay gets a spot and the sides are drawn at the pitch. Being an old hand doesn’t buy you a team.' },
                   ]
               ).map((n, i) => (
                 <div key={n.title} className="flex items-start gap-3">

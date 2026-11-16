@@ -1,6 +1,7 @@
 import type { AvailabilityRow, MonthlyMemberRow } from '../api'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 import { formatNaira } from '@/features/payments/api'
+import { SUNDAY_FULL_NOTE } from '../confirmCopy'
 
 const MAX_MONTHLY_SLOTS = 10
 
@@ -16,6 +17,7 @@ export function MonthlySlots({
   heldUntil,
   onPay,
   isPaying,
+  sundayFull,
 }: {
   members: MonthlyMemberRow[]
   monthLabel: string
@@ -28,6 +30,7 @@ export function MonthlySlots({
   heldUntil: string | null
   onPay: () => void
   isPaying: boolean
+  sundayFull: boolean
 }) {
   const alreadyClaimed = !!playerId && members.some((m) => m.player_id === playerId)
   const full = members.length >= MAX_MONTHLY_SLOTS
@@ -101,17 +104,21 @@ export function MonthlySlots({
                 type="button"
                 disabled={isClaiming}
                 onClick={onClaim}
-                className="text-xs font-bold text-astro-text-muted hover:text-astro-text disabled:opacity-60"
+                className="min-h-11 px-3 text-xs font-bold text-astro-text-muted hover:text-astro-text disabled:opacity-60"
               >
                 {isClaiming ? 'Claiming…' : 'Claim now, pay later'}
               </button>
             )}
+            {sundayFull && <p className="text-center text-xs text-astro-text-dim">{SUNDAY_FULL_NOTE}</p>}
           </div>
         )
       )}
       {alreadyClaimed && (
         <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[12.5px] font-bold text-astro-green">You&rsquo;re in for {monthLabel}.</div>
+          <div className="text-[12.5px] font-bold text-astro-green">
+            You&rsquo;re in for {monthLabel}.
+            {!isPaid && price !== undefined && <span className="ml-1 font-semibold text-astro-amber">Not paid yet.</span>}
+          </div>
           {isPaid ? (
             <div className="rounded-full border border-[rgba(74,222,128,0.45)] px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.06em] text-[#4ade80]">
               Paid

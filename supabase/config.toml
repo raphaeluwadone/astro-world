@@ -442,3 +442,7 @@ verify_jwt = false
 # Paystack signs its webhook with the secret key; it sends no JWT.
 [functions.paystack-webhook]
 verify_jwt = false
+
+# Called by pg_cron through pg_net, which sends no JWT. It only asks Paystack and records what Paystack confirms.
+[functions.payments-reconcile]
+verify_jwt = false

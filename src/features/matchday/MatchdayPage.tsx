@@ -1,5 +1,6 @@
 import { withConfirm } from '@/components/dialogs/confirm'
-import { CONFIRM_CLAIM, CONFIRM_CLAIM_MONTHLY, CONFIRM_JOIN_STANDBY, confirmPay } from './confirmCopy'
+import { CONFIRM_CLAIM, CONFIRM_CLAIM_MONTHLY, CONFIRM_JOIN_STANDBY, SUNDAY_FULL_NOTE, confirmPay } from './confirmCopy'
+import { payDeadline } from './payDeadline'
 import { toast } from 'sonner'
 import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
@@ -30,6 +31,7 @@ import {
   useDrawnTeams,
   useJoinStandby,
   useLastCompleteMatchday,
+  useRecentlyCancelledMatchday,
   useLeaveStandby,
   useMatchResults,
   useMonthlyMembers,
@@ -54,6 +56,7 @@ export function MatchdayPage() {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const { data: matchday, isLoading: matchdayLoading, isError: matchdayError, refetch: refetchMatchday } = useNextMatchday()
   const { data: lastComplete } = useLastCompleteMatchday()
+  const { data: recentlyCancelled } = useRecentlyCancelledMatchday(!matchdayLoading && !matchday)
 
   const { data: availability = [] } = useAvailability(matchday?.id)
   const { data: teams = [] } = useDrawnTeams(matchday?.id)
@@ -95,8 +98,12 @@ export function MatchdayPage() {
         <RatingsBanner className="mb-5" />
         <EmptyState
           icon={<Scene kind="calendar" />}
-          title="Nobody's said yes yet."
-          body="There's no upcoming matchday on the books. Check back once the admin opens one."
+          title={recentlyCancelled ? `${formatMatchdayDate(recentlyCancelled.played_at)} was called off.` : "Nobody's said yes yet."}
+          body={
+            recentlyCancelled
+              ? 'Anyone who paid for a weekly spot is down for a refund. The next matchday shows here once an admin opens it.'
+              : "There's no upcoming matchday on the books. Check back once the admin opens one."
+          }
         />
       </div>
     )
@@ -120,6 +127,9 @@ export function MatchdayPage() {
   const weeklyHold = weeklyPayments.find(isActiveHold)?.hold_until ?? null
   const monthlyHold = monthlyPayments.find(isActiveHold)?.hold_until ?? null
   const paying = startPayment.isPending || startPayment.isSuccess
+  const deadline = payDeadline(matchday.played_at)
+  const sundayFull = spotsRemaining <= 0
+  const withFullNote = (c: typeof CONFIRM_CLAIM_MONTHLY) => (sundayFull ? { ...c, body: `${c.body} ${SUNDAY_FULL_NOTE}` } : c)
 
   return (
     <div className="space-y-5">
@@ -198,6 +208,9 @@ export function MatchdayPage() {
           isLeavingStandby={leaveStandby.isPending}
           weeklyPrice={prices.weekly}
           isPaid={weeklyPaid}
+          isMonthlyPaid={monthlyPaid}
+          monthlyPrice={prices.monthly}
+          payDeadline={deadline}
           heldUntil={weeklyHold}
           onPay={() => withConfirm(confirmPay('weekly', prices.weekly), () => startPayment.mutate({ kind: 'weekly', matchday_id: matchday.id }))}
           isPaying={paying && startPayment.variables?.kind === 'weekly'}
@@ -211,14 +224,15 @@ export function MatchdayPage() {
               members={monthlyMembers}
               monthLabel={new Date(matchday.played_at).toLocaleDateString('en-GB', { month: 'long' })}
               playerId={player?.id ?? null}
-              onClaim={() => player?.id && withConfirm(CONFIRM_CLAIM_MONTHLY, () => claimMonthlySlot.mutate(player.id))}
+              onClaim={() => player?.id && withConfirm(withFullNote(CONFIRM_CLAIM_MONTHLY), () => claimMonthlySlot.mutate(player.id))}
               isClaiming={claimMonthlySlot.isPending}
               availability={availability}
               price={prices.monthly}
               isPaid={monthlyPaid}
               heldUntil={monthlyHold}
-              onPay={() => withConfirm(confirmPay('monthly', prices.monthly), () => startPayment.mutate({ kind: 'monthly', month }))}
+              onPay={() => withConfirm(withFullNote(confirmPay('monthly', prices.monthly)), () => startPayment.mutate({ kind: 'monthly', month }))}
               isPaying={paying && startPayment.variables?.kind === 'monthly'}
+              sundayFull={sundayFull}
             />
           )}
 
@@ -294,7 +308,13 @@ export function MatchdayPage() {
                 Teams of 6 &middot; {matchday.capacity / 6} sides
               </InfoPill>
               <InfoPill color="#38bdf8" icon="info">First to pay, never a lottery</InfoPill>
+              {drawRules?.manual && (
+                <InfoPill color="#4ade80" icon="check">
+                  Teams picked by the admins
+                </InfoPill>
+              )}
               {drawRules &&
+                !drawRules.manual &&
                 RULE_ORDER.filter((k) => drawRules[k]).map((k) => (
                   <InfoPill key={k} color="#4ade80" icon="check">
                     {RULE_COPY[k].label}

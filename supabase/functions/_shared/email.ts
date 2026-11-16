@@ -2,7 +2,7 @@
 import { BADGES } from './badges.ts'
 
 export const APP_URL = (Deno.env.get('APP_URL') ?? 'http://localhost:5175').replace(/\/$/, '')
-const TZ = Deno.env.get('APP_TIMEZONE') ?? 'Europe/London'
+const TZ = Deno.env.get('APP_TIMEZONE') ?? 'Africa/Lagos'
 
 const C = { purple: '#a63fff', green: '#4ade80', cyan: '#38bdf8', amber: '#f2a93b', gold: '#f2a93b', grey: '#4d5578' }
 const TIER_STUB = { week: C.green, month: C.cyan, year: C.purple, cup: C.gold } as const
@@ -108,14 +108,49 @@ export function buildTicket(template: string, d: Data): Ticket | null {
     case 'spot':
       return {
         subject: `You're on for Sunday ${dayMonth(d.played_at)}`,
-        preheader: `Spot ${d.spot} of ${d.capacity}. Teams drawn Saturday.`,
+        preheader: `Spot ${d.spot} of ${d.capacity}. Teams drawn on game day.`,
         stub: C.purple,
         ref: ['MATCHDAY', `SPOT ${d.spot}/${d.capacity}`],
         head: "You're on the list",
-        body: [`You grabbed <b>spot ${esc(d.spot)} of ${esc(d.capacity)}</b>. Teams are drawn on Saturday evening and nobody knows who they're with until then.`],
+        body: [`You grabbed <b>spot ${esc(d.spot)} of ${esc(d.capacity)}</b>. Teams are drawn at the pitch on game day and nobody knows who they're with until then.`],
         facts: [['Sunday', dayMonth(d.played_at)], ['Kick-off', time(d.played_at)], ['Spot', `${d.spot} / ${d.capacity}`]],
         cta: { label: 'See the matchday', url: url(d.link) },
-        small: "Can't make it? Drop out before Saturday so someone on standby gets in.",
+        small: "Can't make it? Pull out as early as you can so someone on standby gets in.",
+        optIn: true,
+      }
+
+    case 'spot-dropped':
+      return {
+        subject: `Your spot for Sunday ${dayMonth(d.played_at)} has gone`,
+        preheader: 'It wasn’t paid by Saturday 20:00.',
+        stub: C.amber,
+        ref: ['MATCHDAY', 'UNPAID'],
+        head: 'Spot released',
+        body: [
+          d.kind === 'monthly'
+            ? `Your monthly spot wasn't paid by Saturday 20:00, so this Sunday's place went to standby. Pay <b>${esc(naira(d.amount))}</b> for the month to get back in.`
+            : `Your spot for Sunday ${esc(dayMonth(d.played_at))} wasn't paid by Saturday 20:00, so it went to standby. Join standby if you still want to play.`,
+        ],
+        cta: { label: 'See the matchday', url: url(d.link) },
+        optIn: true,
+      }
+
+    case 'matchday-cancelled':
+      return {
+        subject: `Sunday ${dayMonth(d.played_at)} is off`,
+        preheader: d.refund ? `Your ${naira(d.refund)} is flagged for a refund.` : 'The matchday was cancelled.',
+        stub: C.amber,
+        ref: ['MATCHDAY', 'CANCELLED'],
+        head: 'Matchday cancelled',
+        body: [
+          `Sunday ${esc(dayMonth(d.played_at))} won't go ahead.` +
+            (d.refund
+              ? ` You paid <b>${esc(naira(d.refund))}</b> for your spot. It's flagged for a refund and an admin will send it back.`
+              : d.role === 'monthly'
+                ? ' Your monthly spot still covers the other Sundays this month.'
+                : ''),
+        ],
+        cta: { label: 'See the matchday', url: url(d.link) },
         optIn: true,
       }
 

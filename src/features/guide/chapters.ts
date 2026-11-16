@@ -23,7 +23,7 @@ export const SPOT_CHAPTER: GuideChapter = {
   body: 'Thirty play each Sunday. Ten are the monthly ten, the other twenty are weekly spots, and they go to whoever claims them first. No lottery, no favours.',
   points: [
     'Pay in the app and your spot is held for fifteen minutes while Paystack finishes. Or claim now and pay later.',
-    'Claims close Wednesday at 20:00. Pull out before then and nothing happens.',
+    'Claimed but not paid? Pay by Saturday 20:00 or the spot goes to standby. Pull out before the draw and a paid spot is refunded.',
     'All twenty gone? Join standby. If a spot frees up, everyone on standby hears at once and the first to claim it plays.',
   ],
   scene: { kind: 'bench', variant: 1 },
@@ -38,8 +38,8 @@ export const GUIDE_CHAPTERS: GuideChapter[] = [
     body: 'Everything in Astro hangs off a single Sunday game. The week runs the same way every time.',
     points: [
       'Sunday evening: spots for next Sunday open.',
-      'Wednesday 20:00: claims close and the sides are drawn.',
-      'Sunday 07:40 selection, 07:45 kick-off at Gbaja Boys Junior High School.',
+      'Saturday 20:00: unpaid spots are dropped and offered to standby.',
+      'Sunday 07:40 check-in and the draw, 07:45 kick-off at Gbaja Boys Junior High School.',
       'Monday to Tuesday 23:59: rate the players you played with.',
     ],
     scene: 'week',
@@ -63,7 +63,7 @@ export const GUIDE_CHAPTERS: GuideChapter[] = [
     id: 'draw',
     name: 'The draw',
     title: 'THIRTY NAMES, FIVE SIDES.',
-    body: 'At Wednesday 20:00 everyone who holds a spot is drawn into five sides of six, Alpha through Epsilon.',
+    body: 'On game day, once everyone has checked in at the pitch, the thirty are drawn into five sides of six, Alpha through Epsilon.',
     points: [
       'The draw is random. Ratings are never used to balance sides.',
       'Paying early buys you a game, never a team.',
@@ -131,7 +131,7 @@ export const GUIDE_CHAPTERS: GuideChapter[] = [
     body: 'The admin portal is where the week is run. Everything players see on Matchday comes from here.',
     points: [
       'Matchday control opens and closes claims and handles swaps on the day.',
-      'The draw runs at Wednesday 20:00, results and goals go in after each game.',
+      'The draw runs at the pitch on game day, results and goals go in after each game.',
       'Payments flags refunds to settle by hand. Dues and causes are set up here too.',
     ],
     scene: { kind: 'whistle', variant: 2 },

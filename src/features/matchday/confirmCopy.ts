@@ -3,7 +3,7 @@ import { formatNaira } from '@/features/payments/api'
 
 export const CONFIRM_CLAIM: ConfirmOptions = {
   title: 'Claim a spot for Sunday?',
-  body: 'You take one of the weekly spots now and pay before Sunday. Pull out before Wednesday 20:00 and nothing happens.',
+  body: 'You take one of the weekly spots now. Pay by Saturday 20:00 or it goes to someone on standby.',
   confirmLabel: 'Claim my spot',
 }
 
@@ -26,6 +26,8 @@ export const CONFIRM_CLAIM_MONTHLY: ConfirmOptions = {
   body: 'You’re in every Sunday this month. It’s one payment for the month, and a missed Sunday isn’t refunded.',
   confirmLabel: 'Take the month',
 }
+
+export const SUNDAY_FULL_NOTE = 'This Sunday is full, so you’ll start on standby for it and play every Sunday after.'
 
 export const confirmPay = (kind: 'weekly' | 'monthly' | 'dues', amount: number | undefined): ConfirmOptions => ({
   title: `Pay ${amount === undefined ? '' : formatNaira(amount)}${kind === 'weekly' ? ' for Sunday' : kind === 'monthly' ? ' for the month' : ' in dues'}?`.replace('Pay  ', 'Pay '),

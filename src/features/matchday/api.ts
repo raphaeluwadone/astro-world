@@ -63,6 +63,20 @@ export async function fetchNextMatchday() {
   return data
 }
 
+export async function fetchRecentlyCancelledMatchday() {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase
+    .from('matchdays')
+    .select('id, played_at')
+    .eq('status', 'cancelled')
+    .gte('played_at', weekAgo)
+    .order('played_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
 export interface NewMatchdayFields {
   playedAt: string
   venue: string | null

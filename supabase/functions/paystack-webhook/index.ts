@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
     await verifyAndSettle(serviceClient(), reference)
     return new Response('ok')
   } catch (e) {
+    console.error('paystack-webhook', reference, e)
     // A non-2xx makes Paystack retry later.
     return new Response(e instanceof Error ? e.message : String(e), { status: 500 })
   }

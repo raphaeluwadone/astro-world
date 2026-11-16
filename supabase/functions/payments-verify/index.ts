@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
     const payment = await verifyAndSettle(serviceClient(), reference)
     return json({ status: payment?.status, kind: payment?.kind, note: payment?.note })
   } catch (e) {
+    console.error('payments-verify', reference, e)
     return json({ error: e instanceof Error ? e.message : String(e) }, 502)
   }
 })

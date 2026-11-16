@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/types/database'
+import { APP_TIMEZONE } from '@/lib/timezone'
 
 type PositionType = Database['public']['Enums']['position_type']
 
@@ -35,9 +36,9 @@ export interface CompareData {
 }
 
 export function seasonStart(now = new Date()) {
-  const year = Number(now.toLocaleString('en-GB', { year: 'numeric', timeZone: 'Europe/London' }))
-  // Midnight 1 Jan, London time. In January London is on GMT, so this is exact.
-  return { year, iso: new Date(Date.UTC(year, 0, 1)).toISOString() }
+  const year = Number(now.toLocaleString('en-GB', { year: 'numeric', timeZone: APP_TIMEZONE }))
+  // Midnight 1 Jan in Lagos (UTC+1, no daylight saving).
+  return { year, iso: new Date(Date.UTC(year, 0, 1) - 60 * 60 * 1000).toISOString() }
 }
 
 export async function fetchCompare(scope: CompareScope): Promise<CompareData> {

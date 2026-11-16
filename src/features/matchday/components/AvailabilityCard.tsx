@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils'
 import { PullOutDialog } from './PullOutDialog'
 import { useSetAvailability } from '../hooks'
 import { formatNaira } from '@/features/payments/api'
+import { toast } from 'sonner'
+import { formatDeadline } from '../payDeadline'
 
 const BASE_BUTTON =
   'min-h-11 flex-1 rounded-[10px] px-4 text-sm font-extrabold transition-colors disabled:opacity-60'
@@ -31,6 +33,9 @@ interface Props {
   isLeavingStandby: boolean
   weeklyPrice: number | undefined
   isPaid: boolean
+  isMonthlyPaid: boolean
+  monthlyPrice: number | undefined
+  payDeadline: Date
   heldUntil: string | null
   onPay: () => void
   isPaying: boolean
@@ -59,6 +64,9 @@ export function AvailabilityCard({
   isLeavingStandby,
   weeklyPrice,
   isPaid,
+  isMonthlyPaid,
+  monthlyPrice,
+  payDeadline,
   heldUntil,
   onPay,
   isPaying,
@@ -66,6 +74,12 @@ export function AvailabilityCard({
   const { mutate: setMonthlyOptStatus, isPending: settingOptStatus } = useSetAvailability(_matchdayId)
   const [confirming, setConfirming] = useState<'claim' | 'standby' | null>(null)
   const isIn = hasWeeklyClaim || (isMonthlyMember && monthlyOptStatus !== 'out')
+  const deadlineLabel = formatDeadline(payDeadline)
+  const [now] = useState(Date.now)
+  const pastDeadline = now >= payDeadline.getTime()
+  const monthlyUnpaid = monthlyPrice !== undefined && !isMonthlyPaid
+  const setOptStatus = (status: 'in' | 'out') =>
+    setMonthlyOptStatus({ playerId: playerId!, status }, { onError: (e) => toast.error(e.message) })
 
   return (
     <div
@@ -108,12 +122,33 @@ export function AvailabilityCard({
               ? 'Claims are closed. Can’t make it now? Tell an admin and find your own replacement.'
               : 'Spots for this matchday are no longer open.'}
           </p>
+        ) : isMonthlyMember && monthlyOptStatus === 'out' && isOnStandby ? (
+          <div className="mt-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="rounded-full border border-border bg-astro-surface-2 px-3.5 py-2 text-[12.5px] font-extrabold text-astro-text-muted">
+                Sunday&rsquo;s full · standby{standbyPosition ? ` #${standbyPosition}` : ''}
+              </div>
+              {spotsRemaining > 0 && (
+                <button
+                  type="button"
+                  disabled={settingOptStatus}
+                  onClick={() => setOptStatus('in')}
+                  className="rounded-[10px] px-3.5 py-2 text-[12.5px] font-extrabold disabled:opacity-60"
+                  style={{ background: '#4ade80', color: '#08130c' }}
+                >
+                  A spot opened · I&rsquo;m in
+                </button>
+              )}
+            </div>
+            <p className="mt-2 text-xs text-astro-text-dim">Your monthly spot covers every Sunday after this one. If a spot opens here, you&rsquo;ll hear.</p>
+          </div>
         ) : isMonthlyMember ? (
-          <div className="mt-5 flex gap-3">
+          <div className="mt-5">
+          <div className="flex gap-3">
             <button
               type="button"
               disabled={settingOptStatus}
-              onClick={() => setMonthlyOptStatus({ playerId: playerId!, status: 'in' })}
+              onClick={() => setOptStatus('in')}
               className={cn(BASE_BUTTON, monthlyOptStatus !== 'out' ? undefined : UNSELECTED_BUTTON)}
               style={monthlyOptStatus !== 'out' ? { background: '#4ade80', color: '#08130c' } : undefined}
             >
@@ -122,15 +157,23 @@ export function AvailabilityCard({
             <button
               type="button"
               disabled={settingOptStatus}
-              onClick={() => monthlyOptStatus !== 'out' && withConfirm(CONFIRM_OPT_OUT, () => setMonthlyOptStatus({ playerId: playerId!, status: 'out' }))}
+              onClick={() => monthlyOptStatus !== 'out' && withConfirm(CONFIRM_OPT_OUT, () => setOptStatus('out'))}
               className={cn(BASE_BUTTON, monthlyOptStatus === 'out' ? undefined : UNSELECTED_BUTTON)}
               style={monthlyOptStatus === 'out' ? { background: '#e0483f', color: '#fff' } : undefined}
             >
               Can&rsquo;t make it
             </button>
           </div>
+          {monthlyUnpaid && (
+            <p className="mt-2 text-xs font-semibold text-astro-amber">
+              {pastDeadline && monthlyOptStatus === 'out'
+                ? `Dropped at ${deadlineLabel} for not paying. Pay for the month to get back in.`
+                : `Not paid yet. Pay by ${deadlineLabel} or this Sunday’s spot goes to standby.`}
+            </p>
+          )}
+          </div>
         ) : hasWeeklyClaim ? (
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 rounded-full border border-[rgba(74,222,128,0.45)] bg-[rgba(74,222,128,0.14)] px-3.5 py-2 text-[12.5px] font-extrabold text-[#4ade80]">
               You&rsquo;re in
             </div>
@@ -158,8 +201,11 @@ export function AvailabilityCard({
             >
               Pull out
             </button>
+            {!isPaid && weeklyPrice !== undefined && (
+              <p className="basis-full text-xs font-semibold text-astro-amber">Pay by {deadlineLabel} or your spot goes to standby.</p>
+            )}
           </div>
-        ) : isOnStandby ? (
+        ) : isOnStandby && spotsRemaining <= 0 ? (
           <div className="mt-5 flex items-center gap-3">
             <div className="rounded-full border border-border bg-astro-surface-2 px-3.5 py-2 text-[12.5px] font-extrabold text-astro-text-muted">
               On standby{standbyPosition ? ` · #${standbyPosition}` : ''}
@@ -187,6 +233,7 @@ export function AvailabilityCard({
           </div>
         ) : spotsRemaining > 0 && weeklyPrice !== undefined ? (
           <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+            {isOnStandby && <p className="basis-full text-xs font-semibold text-astro-green">A spot opened. First to claim it plays.</p>}
             <button
               type="button"
               disabled={isPaying}
@@ -199,7 +246,7 @@ export function AvailabilityCard({
               type="button"
               disabled={isClaiming}
               onClick={onClaim}
-              className="text-xs font-bold text-astro-text-muted hover:text-astro-text disabled:opacity-60"
+              className="min-h-11 px-3 text-xs font-bold text-astro-text-muted hover:text-astro-text disabled:opacity-60"
             >
               {isClaiming ? 'Claiming…' : 'Claim now, pay later'}
             </button>

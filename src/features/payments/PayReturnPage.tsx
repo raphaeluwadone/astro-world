@@ -24,7 +24,7 @@ const PAID: Record<PaymentKind, Copy> = {
   weekly: {
     kicker: 'Payment confirmed',
     title: 'YOU’RE IN FOR SUNDAY.',
-    body: 'Your spot is paid and locked in. Sides are drawn Wednesday at 20:00, so check back then to see who you’re with.',
+    body: 'Your spot is paid and locked in. Sides are drawn at the pitch on game day, so nobody knows who they’re with until then.',
     cta: { label: 'See Matchday', to: '/matchday' },
     more: { label: 'How the draw works', to: '/guide', search: { c: 'draw' } },
   },
@@ -52,7 +52,7 @@ function copyFor(status: PaymentStatus | undefined, kind: PaymentKind, note: str
     return { kicker: 'Refund due', title: 'PAID, BUT THE SPOT HAD GONE.', body: `${note ?? 'Someone got there first'}. An admin will refund you, nothing else to do.`, cta }
   }
   if (status === 'pending') {
-    return { kicker: 'Checking with Paystack', title: 'ALMOST THERE.', body: 'If you finished paying, this updates on its own within a minute. You can leave this page.', cta }
+    return { kicker: 'Checking with Paystack', title: 'ALMOST THERE.', body: 'If you finished paying, Astro records it within 5 minutes, even if you close this page.', cta }
   }
   return { kicker: 'Payment not taken', title: 'THAT DIDN’T GO THROUGH.', body: 'Nothing was taken from your account. Try again from the page you started on.', cta }
 }
@@ -82,7 +82,7 @@ export function PayReturnPage() {
     return <Shell tone="bad" copy={{ kicker: 'Payment', title: 'NOT YOUR PAYMENT.', body: 'This receipt belongs to whoever paid. Signed in as someone else? Your own payments show on Matchday and the Kitty.', cta: { label: 'See Matchday', to: '/matchday' } }} />
   }
   if (isError || !data) {
-    return <Shell tone="bad" copy={{ kicker: 'Payment', title: 'WE COULDN’T CHECK THAT.', body: error?.message ?? 'Try again in a minute.', cta: { label: 'See Matchday', to: '/matchday' } }} />
+    return <Shell tone="wait" copy={{ kicker: 'Checking with Paystack', title: 'STILL CONFIRMING.', body: 'If Paystack took the money, Astro records it within 5 minutes, even if you close this page.', cta: { label: 'See Matchday', to: '/matchday' } }} />
   }
 
   const tone = toneOf(data.status)

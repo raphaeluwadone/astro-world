@@ -9,8 +9,19 @@ import { PageLoader } from '@/components/states/PageLoader'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { monthOf } from '@/features/matchday/api'
 import { useNextMatchday } from '@/features/matchday/hooks'
-import { formatNaira, type AdminPaymentRow, type PriceKind } from '@/features/payments/api'
-import { useAdminPayments, useMarkRefunded, usePrices, useSetPrice, useSlotRoster } from '@/features/payments/hooks'
+import { formatDeadline, payDeadline } from '@/features/matchday/payDeadline'
+import { formatNaira, type AdminPaymentRow, type PriceKind, type UnmatchedPayment } from '@/features/payments/api'
+import {
+  useAdminPayments,
+  useMarkRefunded,
+  useMarkSpotPaid,
+  usePrices,
+  useReconcileNow,
+  useResolveUnmatched,
+  useSetPrice,
+  useSlotRoster,
+  useUnmatched,
+} from '@/features/payments/hooks'
 
 const KIND_LABEL = { weekly: 'Weekly spot', monthly: 'Monthly spot', dues: 'Dues' } as const
 
@@ -67,6 +78,54 @@ function PaymentLine({ p, action }: { p: AdminPaymentRow; action?: ReactNode }) 
   )
 }
 
+function UnmatchedRow({ u }: { u: UnmatchedPayment }) {
+  const [resolving, setResolving] = useState(false)
+  const [note, setNote] = useState('')
+  const resolve = useResolveUnmatched()
+  return (
+    <div className="rounded-lg border border-astro-amber/30 bg-astro-surface-2 px-3.5 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[13px] font-bold text-astro-text">
+            {naira(u.amount_kobo)} &middot; {u.customer_email ?? 'No email'}
+          </span>
+          <span className="block text-[11.5px] text-astro-text-dim">
+            {u.paid_at ? shortDate(u.paid_at) : 'Unknown date'} &middot; {u.reason} &middot; {u.reference}
+          </span>
+        </span>
+        {!resolving && (
+          <button
+            type="button"
+            onClick={() => setResolving(true)}
+            className="rounded-md border border-border bg-astro-surface px-2.5 py-1 text-[11px] font-bold text-astro-text-muted hover:text-astro-text"
+          >
+            Resolve
+          </button>
+        )}
+      </div>
+      {resolving && (
+        <form
+          className="mt-2 flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault()
+            resolve.mutate({ id: u.id, note }, { onSuccess: () => toast.success('Marked resolved') })
+          }}
+        >
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="What you did, e.g. refunded in Paystack"
+            className="h-9 min-w-0 flex-1 rounded-[10px] border border-border bg-astro-surface px-3 text-xs text-astro-text placeholder:text-astro-text-dim"
+          />
+          <button type="submit" disabled={resolve.isPending} className="h-9 rounded-[10px] bg-astro-accent px-3 text-xs font-extrabold text-astro-on-accent disabled:opacity-60">
+            Save
+          </button>
+        </form>
+      )}
+    </div>
+  )
+}
+
 export function PaymentsAdminPage() {
   const { player } = useCurrentPlayer()
   const { data: prices, isLoading, isError, refetch } = usePrices()
@@ -75,6 +134,9 @@ export function PaymentsAdminPage() {
   const month = matchday ? monthOf(matchday.played_at) : undefined
   const { data: roster = [] } = useSlotRoster(matchday?.id, month)
   const markRefunded = useMarkRefunded()
+  const markSpotPaid = useMarkSpotPaid()
+  const { data: unmatched = [] } = useUnmatched()
+  const reconcile = useReconcileNow()
 
   if (isLoading) return <PageLoader />
   if (isError || !prices) return <ErrorState onRetry={() => refetch()} />
@@ -89,8 +151,34 @@ export function PaymentsAdminPage() {
       <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">Money</div>
       <h1 className="mb-1.5 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Payments</h1>
       <p className="mb-6 max-w-lg text-sm text-astro-text-muted">
-        Players pay through Paystack. A spot or a quarter only shows as paid once Paystack has confirmed the money. Refunds are settled by hand.
+        Players pay through Paystack. A spot or a quarter only shows as paid once Paystack has confirmed the money. Astro re-checks with Paystack every 5 minutes, so a payment is recorded even if the player closed the tab. Refunds are settled by hand.
       </p>
+
+      <div className="astro-card mb-5 p-6" style={unmatched.length ? { borderColor: 'rgba(242,169,59,0.5)' } : undefined}>
+        <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="font-display text-2xl leading-none text-astro-text">Paystack has, Astro doesn&rsquo;t</div>
+            <p className="mt-1 text-[12px] text-astro-text-dim">Money Paystack took that Astro couldn&rsquo;t match to a spot or quarter.</p>
+          </div>
+          <button
+            type="button"
+            disabled={reconcile.isPending}
+            onClick={() => reconcile.mutate()}
+            className="rounded-[10px] border border-border bg-astro-surface-2 px-3.5 py-2 text-[12.5px] font-extrabold text-astro-text disabled:opacity-60"
+          >
+            {reconcile.isPending ? 'Checking…' : 'Check with Paystack now'}
+          </button>
+        </div>
+        {unmatched.length === 0 ? (
+          <NothingHere compact icon={<Scene kind="kitty" />} title="All clear" body="Everything Paystack took is recorded." />
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {unmatched.map((u) => (
+              <UnmatchedRow key={u.id} u={u} />
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <div className="flex flex-col gap-5">
@@ -148,17 +236,35 @@ export function PaymentsAdminPage() {
                 </div>
               </div>
               <div className="flex max-h-[420px] flex-col gap-1.5 overflow-y-auto pr-1">
+                {roster.length === 0 && <NothingHere compact icon={<Scene kind="bench" />} title="Nobody has a spot yet" body="Players show up here as they claim a spot." />}
                 {roster.map((r) => (
                   <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg bg-astro-surface-2 px-3.5 py-2">
                     <span className="truncate text-[13px] font-bold text-astro-text">{r.nickname}</span>
                     <span className="flex shrink-0 items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.06em]">
                       <span className="text-astro-text-dim">{r.kind}</span>
                       <span className={r.paid ? 'text-[#4ade80]' : 'text-astro-amber'}>{r.paid ? 'Paid' : 'Not paid'}</span>
+                      {!r.paid && prices[r.kind] !== undefined && (
+                        <button
+                          type="button"
+                          disabled={markSpotPaid.isPending}
+                          onClick={() =>
+                            withConfirm(
+                              { tone: 'admin', eyebrow: 'Payments', title: `Mark ${r.nickname} paid?`, body: `Only once you have the ${formatNaira(prices[r.kind]!)} in cash or by transfer. Their spot then stays after the deadline.`, confirmLabel: 'Mark paid' },
+                              () => markSpotPaid.mutate({ kind: r.kind, id: r.id }, { onSuccess: () => toast.success(`Marked ${r.nickname} paid`) }),
+                            )
+                          }
+                          className="rounded-md border border-border bg-astro-surface px-2 py-0.5 text-[10.5px] font-bold normal-case tracking-normal text-astro-text-muted hover:text-astro-text disabled:opacity-60"
+                        >
+                          Mark paid
+                        </button>
+                      )}
                     </span>
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-[11.5px] text-astro-text-dim">Not paid means no online payment. They may have paid you in cash or by transfer.</p>
+              <p className="mt-3 text-[11.5px] text-astro-text-dim">
+                Not paid means no online payment. If they paid you in cash or by transfer, mark them paid. Unpaid spots are dropped at {formatDeadline(payDeadline(matchday.played_at))} and go to standby.
+              </p>
             </div>
           )}
 

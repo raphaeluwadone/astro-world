@@ -87,6 +87,7 @@ export type Database = {
           author_id: string | null
           body: string
           cover_image_url: string | null
+          cover_position: string | null
           created_at: string
           id: string
           kicker: string | null
@@ -98,6 +99,7 @@ export type Database = {
           author_id?: string | null
           body: string
           cover_image_url?: string | null
+          cover_position?: string | null
           created_at?: string
           id?: string
           kicker?: string | null
@@ -109,6 +111,7 @@ export type Database = {
           author_id?: string | null
           body?: string
           cover_image_url?: string | null
+          cover_position?: string | null
           created_at?: string
           id?: string
           kicker?: string | null
@@ -574,6 +577,133 @@ export type Database = {
             columns: ["cup_quarter_id"]
             isOneToOne: false
             referencedRelation: "cup_quarters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draft_captains: {
+        Row: {
+          player_id: string
+          session_id: string
+          slot: number
+        }
+        Insert: {
+          player_id: string
+          session_id: string
+          slot: number
+        }
+        Update: {
+          player_id?: string
+          session_id?: string
+          slot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draft_captains_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draft_captains_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "draft_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draft_picks: {
+        Row: {
+          created_at: string
+          pick_no: number
+          picked_by: string | null
+          player_id: string
+          session_id: string
+          slot: number
+        }
+        Insert: {
+          created_at?: string
+          pick_no: number
+          picked_by?: string | null
+          player_id: string
+          session_id: string
+          slot: number
+        }
+        Update: {
+          created_at?: string
+          pick_no?: number
+          picked_by?: string | null
+          player_id?: string
+          session_id?: string
+          slot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draft_picks_picked_by_fkey"
+            columns: ["picked_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draft_picks_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draft_picks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "draft_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draft_sessions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          matchday_id: string
+          pool: string[]
+          status: string
+          team_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          matchday_id: string
+          pool: string[]
+          status?: string
+          team_count: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          matchday_id?: string
+          pool?: string[]
+          status?: string
+          team_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draft_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draft_sessions_matchday_id_fkey"
+            columns: ["matchday_id"]
+            isOneToOne: false
+            referencedRelation: "matchdays"
             referencedColumns: ["id"]
           },
         ]
@@ -1275,6 +1405,8 @@ export type Database = {
       payments: {
         Row: {
           amount_kobo: number
+          check_count: number
+          checked_at: string | null
           created_at: string
           dues_payment_id: string | null
           dues_quarter_id: string | null
@@ -1296,6 +1428,8 @@ export type Database = {
         }
         Insert: {
           amount_kobo: number
+          check_count?: number
+          checked_at?: string | null
           created_at?: string
           dues_payment_id?: string | null
           dues_quarter_id?: string | null
@@ -1317,6 +1451,8 @@ export type Database = {
         }
         Update: {
           amount_kobo?: number
+          check_count?: number
+          checked_at?: string | null
           created_at?: string
           dues_payment_id?: string | null
           dues_quarter_id?: string | null
@@ -1384,6 +1520,69 @@ export type Database = {
             columns: ["weekly_claim_id"]
             isOneToOne: false
             referencedRelation: "weekly_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      paystack_unmatched: {
+        Row: {
+          amount_kobo: number
+          currency: string
+          customer_email: string | null
+          first_seen_at: string
+          id: string
+          paid_at: string | null
+          payment_id: string | null
+          provider_ref: string
+          reason: string
+          reference: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          amount_kobo: number
+          currency: string
+          customer_email?: string | null
+          first_seen_at?: string
+          id?: string
+          paid_at?: string | null
+          payment_id?: string | null
+          provider_ref: string
+          reason: string
+          reference: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          amount_kobo?: number
+          currency?: string
+          customer_email?: string | null
+          first_seen_at?: string
+          id?: string
+          paid_at?: string | null
+          payment_id?: string | null
+          provider_ref?: string
+          reason?: string
+          reference?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paystack_unmatched_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paystack_unmatched_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]
@@ -1498,6 +1697,8 @@ export type Database = {
       }
       pitch_games: {
         Row: {
+          bib_a: string | null
+          bib_b: string | null
           created_at: string
           edited_at: string | null
           elapsed_ms: number
@@ -1512,6 +1713,8 @@ export type Database = {
           team_b_id: string
         }
         Insert: {
+          bib_a?: string | null
+          bib_b?: string | null
           created_at?: string
           edited_at?: string | null
           elapsed_ms?: number
@@ -1526,6 +1729,8 @@ export type Database = {
           team_b_id: string
         }
         Update: {
+          bib_a?: string | null
+          bib_b?: string | null
           created_at?: string
           edited_at?: string | null
           elapsed_ms?: number
@@ -2300,10 +2505,17 @@ export type Database = {
         Update: { id?: boolean; open_to_everyone?: boolean; updated_at?: string }
         Relationships: []
       }
-      ratings: {
+      rating_games_done: {
+        Row: { done_at: string; game_id: string; matchday_id: string; rater_id: string }
+        Insert: { done_at?: string; game_id: string; matchday_id: string; rater_id: string }
+        Update: { done_at?: string; game_id?: string; matchday_id?: string; rater_id?: string }
+        Relationships: []
+      }
+      rating_inputs: {
         Row: {
           created_at: string
-          match_id: string
+          game_id: string | null
+          id: string
           matchday_id: string
           rater_id: string
           score: number
@@ -2312,7 +2524,39 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          match_id: string
+          game_id?: string | null
+          id?: string
+          matchday_id: string
+          rater_id: string
+          score: number
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          matchday_id?: string
+          rater_id?: string
+          score?: number
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          created_at: string
+          match_id: string | null
+          matchday_id: string
+          rater_id: string
+          score: number
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          match_id?: string | null
           matchday_id?: string
           rater_id: string
           score: number
@@ -2321,7 +2565,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          match_id?: string
+          match_id?: string | null
           matchday_id?: string
           rater_id?: string
           score?: number
@@ -2593,6 +2837,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_team_player: { Args: { p_in: string; p_team: string }; Returns: undefined }
       award_badges: { Args: { p_year?: number }; Returns: number }
       award_cup_extras: { Args: never; Returns: number }
       award_race: {
@@ -2688,6 +2933,12 @@ export type Database = {
       cup_entries_open: { Args: { p_cup_quarter_id: string }; Returns: boolean }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       dispatch_emails: { Args: never; Returns: undefined }
+      draft_cancel: { Args: { p_session: string }; Returns: undefined }
+      draft_mark_published: { Args: { p_session: string }; Returns: undefined }
+      draft_notify_turn: { Args: { p_session: string }; Returns: undefined }
+      draft_pick: { Args: { p_player: string; p_session: string }; Returns: undefined }
+      draft_slot_for_pick: { Args: { p_pick: number; p_teams: number }; Returns: number }
+      draft_undo: { Args: { p_session: string }; Returns: undefined }
       draw_player_stats: {
         Args: {
           p_matchday?: string
@@ -2832,9 +3083,19 @@ export type Database = {
       matchday_ratings_open: { Args: { p_matchday: string }; Returns: boolean }
       part_of_matchday: { Args: { p_matchday: string; p_player: string }; Returns: boolean }
       rate_player: {
-        Args: { p_matchday: string; p_score: number; p_subject: string }
+        Args: { p_game?: string; p_matchday: string; p_score: number | null; p_subject: string }
         Returns: undefined
       }
+      rating_game_players: {
+        Args: { p_matchday: string }
+        Returns: { game_id: string; player_id: string; team_id: string }[]
+      }
+      rating_games: {
+        Args: { p_matchday: string }
+        Returns: { game_id: string; game_no: number; score_a: number; score_b: number; team_a_id: string; team_b_id: string }[]
+      }
+      finish_game_ratings: { Args: { p_game: string; p_matchday: string }; Returns: undefined }
+      per_game_ratings_open: { Args: { p_matchday: string }; Returns: boolean }
       rating_match_for: { Args: { p_matchday: string; p_subject: string }; Returns: string }
       rating_matchday: {
         Args: never
@@ -2845,6 +3106,7 @@ export type Database = {
           matchday_id: string
           open_to_everyone: boolean
           part_of: boolean
+          per_game_open: boolean
           played_at: string
           venue: string | null
         }[]
@@ -2867,6 +3129,10 @@ export type Database = {
       record_cup_result: {
         Args: { p_goals: Json; p_match: string; p_score_a: number; p_score_b: number }
         Returns: undefined
+      }
+      start_draft: {
+        Args: { p_captains: string[]; p_matchday: string; p_pool: string[]; p_team_count: number }
+        Returns: string
       }
       swap_team_player: {
         Args: { p_in: string; p_out: string; p_team: string }
@@ -2894,6 +3160,10 @@ export type Database = {
         Returns: Database["public"]["Tables"]["payments"]["Row"]
       }
       monthly_spots_remaining: { Args: { p_month: string }; Returns: number }
+      resolve_paystack_unmatched: {
+        Args: { p_id: string; p_note: string }
+        Returns: Database["public"]["Tables"]["paystack_unmatched"]["Row"]
+      }
       settle_payment: {
         Args: {
           p_amount_kobo: number
@@ -2911,6 +3181,10 @@ export type Database = {
           p_month?: string
         }
         Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      mark_spot_paid: {
+        Args: { p_kind: Database['public']['Enums']['payment_kind']; p_target: string }
+        Returns: Database['public']['Tables']['payments']['Row']
       }
       weekly_spots_remaining: {
         Args: { p_matchday_id: string }

@@ -5,8 +5,12 @@ import {
   fetchMyPayments,
   fetchPaymentReceipt,
   fetchSlotRoster,
+  fetchUnmatched,
+  reconcileNow,
+  resolveUnmatched,
   fetchPrices,
   markRefunded,
+  markSpotPaid,
   setPrice,
   startPayment,
   verifyPayment,
@@ -77,6 +81,45 @@ export function useMarkRefunded() {
   return useMutation({
     mutationFn: markRefunded,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payments'] }),
+    onError: (e) => toast.error(e.message),
+  })
+}
+
+export function useMarkSpotPaid() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ kind, id }: { kind: PriceKind; id: string }) => markSpotPaid(kind, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payments'] }),
+    onError: (e) => toast.error(e.message),
+  })
+}
+
+export function useUnmatched() {
+  return useQuery({ queryKey: ['payments', 'unmatched'], queryFn: fetchUnmatched })
+}
+
+export function useResolveUnmatched() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note: string }) => resolveUnmatched(id, note),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payments'] }),
+    onError: (e) => toast.error(e.message),
+  })
+}
+
+export function useReconcileNow() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: reconcileNow,
+    onSuccess: (s) => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+      toast.success(
+        s.recorded
+          ? `Recorded ${s.recorded} payment${s.recorded > 1 ? 's' : ''} Paystack had`
+          : `Checked ${s.checked} open payment${s.checked === 1 ? '' : 's'}, nothing missing`,
+      )
+      if (s.errors.length) toast.error(`Couldn’t check ${s.errors.length}: ${s.errors[0]}`)
+    },
     onError: (e) => toast.error(e.message),
   })
 }

@@ -94,6 +94,43 @@ export async function fetchSlotRoster(matchdayId: string, month: string): Promis
   return [...rows('monthly', monthly.data), ...rows('weekly', weekly.data)]
 }
 
+export type UnmatchedPayment = Database['public']['Tables']['paystack_unmatched']['Row']
+
+export async function fetchUnmatched(): Promise<UnmatchedPayment[]> {
+  const { data, error } = await supabase
+    .from('paystack_unmatched')
+    .select('*')
+    .is('resolved_at', null)
+    .order('paid_at', { ascending: false })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function resolveUnmatched(id: string, note: string) {
+  const { error } = await supabase.rpc('resolve_paystack_unmatched', { p_id: id, p_note: note })
+  if (error) throw error
+}
+
+export interface ReconcileSummary {
+  checked: number
+  recorded: number
+  expired: number
+  unmatched: number
+  errors: string[]
+}
+
+/** Runs the same re-check the scheduler runs every 5 minutes. */
+export async function reconcileNow() {
+  const { data, error } = await supabase.functions.invoke<ReconcileSummary>('payments-reconcile', { body: {} })
+  if (error) throw await functionError(error)
+  return data!
+}
+
+export async function markSpotPaid(kind: PriceKind, targetId: string) {
+  const { error } = await supabase.rpc('mark_spot_paid', { p_kind: kind, p_target: targetId })
+  if (error) throw error
+}
+
 export async function markRefunded(paymentId: string) {
   const { error } = await supabase.rpc('mark_payment_refunded', { p_payment_id: paymentId })
   if (error) throw error
