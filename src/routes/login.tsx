@@ -1,4 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Suspense, useState } from 'react'
+import { DevSignInAs } from '@/features/auth/dev'
 import { supabase } from '@/lib/supabase'
 import { LEFT_NOTICE, WelcomePage } from '@/features/auth/WelcomePage'
 
@@ -18,5 +20,15 @@ export const Route = createFileRoute('/login')({
 
 function LoginRoute() {
   const { redirect, view, left } = Route.useSearch()
+  const [real, setReal] = useState(false)
+  if (DevSignInAs && !real && !left) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-astro-bg p-4">
+        <Suspense fallback={null}>
+          <DevSignInAs redirectTo={redirect} onRealSignIn={() => setReal(true)} />
+        </Suspense>
+      </div>
+    )
+  }
   return <WelcomePage redirectTo={redirect} initialView={view} notice={left ? LEFT_NOTICE : undefined} />
 }
