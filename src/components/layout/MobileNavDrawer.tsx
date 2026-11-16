@@ -1,8 +1,17 @@
+import { useNavigate } from '@tanstack/react-router'
 import { Dialog as DialogPrimitive } from 'radix-ui'
-import { CloseIcon } from '@/components/icons/nav-icons'
+import { CloseIcon, SignOutIcon } from '@/components/icons/nav-icons'
+import { signOut } from '@/features/auth/api'
 import { SidebarNavContent } from './SidebarNavContent'
 
 export function MobileNavDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const navigate = useNavigate()
+  const handleSignOut = async () => {
+    await signOut()
+    onOpenChange(false)
+    await navigate({ to: '/login' })
+  }
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
@@ -18,6 +27,14 @@ export function MobileNavDrawer({ open, onOpenChange }: { open: boolean; onOpenC
             <CloseIcon className="size-4" />
           </DialogPrimitive.Close>
           <SidebarNavContent onNavigate={() => onOpenChange(false)} />
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="astro-tap mt-auto flex min-h-11 items-center gap-3 rounded-[9px] px-2.5 text-[14px] font-bold text-astro-text-muted hover:bg-astro-red/10 hover:text-astro-red"
+          >
+            <SignOutIcon className="size-[19px]" />
+            Sign out
+          </button>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

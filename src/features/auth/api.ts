@@ -25,7 +25,8 @@ export async function signIn({ email, password }: { email: string; password: str
 
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
-  if (error) throw error
+  // If the server can't be reached, still end the session on this device.
+  if (error) await supabase.auth.signOut({ scope: 'local' })
 }
 
 /** The one number the signed-out landing page can show: everything else
