@@ -1,9 +1,28 @@
 // Runs every 5 minutes from pg_cron, and on demand from the admin Payments page.
 // Re-verifies open payments with Paystack, then sweeps Paystack's own list of successful charges for anything Astro hasn't recorded.
-import { cors, json, paystack, serviceClient, verifyAndSettle, type Payment } from '../_shared/paystack.ts'
+import { cors, json, paystack, serviceClient, userClient, verifyAndSettle, type Payment } from '../_shared/paystack.ts'
 
 const SWEEP_DAYS = 3
 const STALE_HOURS = 24
+
+function sameSecret(a: string, b: string) {
+  if (a.length !== b.length) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return diff === 0
+}
+
+// verify_jwt is off because pg_cron sends no JWT, so the caller is checked here: the cron secret, or a signed-in admin.
+async function isAllowed(req: Request, admin: ReturnType<typeof serviceClient>) {
+  const given = req.headers.get('x-reconcile-secret')
+  if (given) {
+    const { data } = await admin.from('app_config').select('value').eq('key', 'payments_reconcile_secret').maybeSingle()
+    if (data?.value && sameSecret(given, data.value)) return true
+  }
+  if (!req.headers.get('Authorization')) return false
+  const { data: isAdmin } = await userClient(req).rpc('is_requesting_admin')
+  return isAdmin === true
+}
 
 interface PaystackListItem {
   id: number
@@ -17,7 +36,8 @@ interface PaystackListItem {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const admin = serviceClient()
-  const summary = { checked: 0, recorded: 0, expired: 0, unmatched: 0, errors: [] as string[] }
+  if (!(await isAllowed(req, admin))) return json({ error: 'Not allowed' }, 401)
+  const summary ={ checked: 0, recorded: 0, expired: 0, unmatched: 0, errors: [] as string[] }
 
   const { data: open, error } = await admin.rpc('payments_to_reconcile', { p_limit: 25 })
   if (error) return json({ error: error.message }, 500)

@@ -1,6 +1,6 @@
 -- The 5-minute re-check: which payments it picks up, backoff, recovery of a stuck payment and the unmatched list.
 begin;
-select plan(13);
+select plan(16);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'rec-admin@test.local'),
@@ -81,7 +81,13 @@ select throws_ok(
   $$select payments_to_reconcile(25)$$,
   '42501', null, 'the browser can''t run the re-check batch'
 );
+select is((select count(*)::int from app_config where key = 'payments_reconcile_secret'), 0, 'players can''t read the cron secret');
+select throws_ok($$select dispatch_payments_reconcile()$$, '42501', null, 'the browser can''t trigger the cron dispatch');
 reset role;
+select ok(
+  (select length(value) >= 64 from app_config where key = 'payments_reconcile_secret'),
+  'the cron secret exists and is long enough'
+);
 
 select * from finish();
 rollback;

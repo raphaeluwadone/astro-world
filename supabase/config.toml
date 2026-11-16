@@ -443,6 +443,6 @@ verify_jwt = false
 [functions.paystack-webhook]
 verify_jwt = false
 
-# Called by pg_cron through pg_net, which sends no JWT. It only asks Paystack and records what Paystack confirms.
+# Called by pg_cron through pg_net, which sends no JWT. The function checks a shared secret or an admin session itself.
 [functions.payments-reconcile]
 verify_jwt = false
