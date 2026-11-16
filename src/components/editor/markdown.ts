@@ -2,7 +2,7 @@ import type { JSONContent } from '@tiptap/react'
 import type { MentionKind, Mentionable } from '@/features/community/mentions/tokens'
 
 // Posts, replies, tributes and articles store a small Markdown subset: **bold**, _italic_,
-// [links](url), "- " and "1. " lists, plus "## ", "### ", "> " and ![images](url) in articles.
+// [links](url), "- " and "1. " lists, plus "## ", "### ", "> " and ![images](url "medium left") in articles.
 // A blank line splits paragraphs and a single newline is a line break, so older plain text reads the same.
 
 export type Variant = 'basic' | 'article'
@@ -17,14 +17,33 @@ export type Block =
   | { type: 'h'; level: 2 | 3; inline: Inline[] }
   | { type: 'quote'; inline: Inline[] }
   | { type: 'ul' | 'ol'; items: Inline[][] }
-  | { type: 'img'; src: string; alt: string }
+  | { type: 'img'; src: string; alt: string; size: ImageSize; align: ImageAlign }
+
+export const IMAGE_SIZES = ['small', 'medium', 'full'] as const
+export const IMAGE_ALIGNS = ['left', 'center', 'right'] as const
+export type ImageSize = (typeof IMAGE_SIZES)[number]
+export type ImageAlign = (typeof IMAGE_ALIGNS)[number]
 
 const TOKEN = /@\[([^\]\n]+)\]\((player|tag|achievement|memorial|cup):([^)\n]*)\)/y
 const ESCAPABLE = new Set(['\\', '*', '_', '[', ']', '-', '#', '>', '!', '.'])
 const SAFE_URL = /^(https?:\/\/|mailto:|\/)[^\s)]+$/
 const UL = /^[-*] (.*)$/
 const OL = /^\d+\. (.*)$/
-const IMG = /^!\[([^\]\n]*)\]\(((?:https?:\/\/|\/)[^\s)]+)\)$/
+const IMG = /^!\[([^\]\n]*)\]\(((?:https?:\/\/|\/)[^\s)]+)(?: "([a-z ]*)")?\)$/
+
+// Unknown words in an image's layout are ignored, so a bad title falls back to full width.
+function imageLayout(title: string | undefined): { size: ImageSize; align: ImageAlign } {
+  const words = (title ?? '').split(' ')
+  const size = IMAGE_SIZES.find((s) => words.includes(s)) ?? 'full'
+  const align = IMAGE_ALIGNS.find((a) => words.includes(a)) ?? 'center'
+  return { size, align }
+}
+
+export function imageTitle(size: unknown, align: unknown) {
+  const { size: s, align: a } = imageLayout(`${size} ${align}`)
+  if (s === 'full') return ''
+  return a === 'center' ? s : `${s} ${a}`
+}
 
 function tokenAt(s: string, i: number) {
   TOKEN.lastIndex = i
@@ -148,7 +167,7 @@ export function parseBlocks(src: string, variant: Variant = 'basic'): Block[] {
     const img = full ? IMG.exec(line.trim()) : null
     if (img) {
       endPara()
-      blocks.push({ type: 'img', alt: img[1], src: img[2] })
+      blocks.push({ type: 'img', alt: img[1], src: img[2], ...imageLayout(img[3]) })
       continue
     }
     if (full && /^> ?/.test(line)) {
@@ -228,7 +247,7 @@ export function markdownToDoc(src: string, variant: Variant): JSONContent {
       case 'quote':
         return { type: 'blockquote', content: [para(b.inline)] }
       case 'img':
-        return { type: 'image', attrs: { src: b.src, alt: b.alt } }
+        return { type: 'image', attrs: { src: b.src, alt: b.alt, size: b.size, align: b.align } }
       default:
         return { type: b.type === 'ul' ? 'bulletList' : 'orderedList', content: b.items.map((it) => ({ type: 'listItem', content: [para(it)] })) }
     }
@@ -312,8 +331,11 @@ function blockToMarkdown(b: JSONContent): string[] {
       endQuote()
       return out
     }
-    case 'image':
-      return b.attrs?.src ? [`![${String(b.attrs.alt ?? '').replace(/[[\]]/g, '')}](${b.attrs.src})`] : []
+    case 'image': {
+      if (!b.attrs?.src) return []
+      const title = imageTitle(b.attrs.size, b.attrs.align)
+      return [`![${String(b.attrs.alt ?? '').replace(/[[\]]/g, '')}](${b.attrs.src}${title ? ` "${title}"` : ''})`]
+    }
     case 'bulletList':
     case 'orderedList':
       return [

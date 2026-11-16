@@ -75,7 +75,13 @@ export function ArticlesPage() {
               className="astro-card group block overflow-hidden no-underline transition-colors hover:border-astro-accent/40"
             >
               {a.cover_image_url ? (
-                <img src={a.cover_image_url} alt="" loading="lazy" className="h-[150px] w-full object-cover" />
+                <img
+                  src={a.cover_image_url}
+                  alt=""
+                  loading="lazy"
+                  style={{ objectPosition: a.cover_position ?? undefined }}
+                  className="h-[150px] w-full object-cover"
+                />
               ) : (
                 <div className="h-[150px]" style={{ background: 'linear-gradient(150deg, #243463, #131c3a)' }} />
               )}

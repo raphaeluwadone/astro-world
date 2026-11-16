@@ -6,11 +6,12 @@ export interface ArticleRow {
   kicker: string | null
   body: string
   cover_image_url: string | null
+  cover_position: string | null
   published_at: string | null
   author: { id: string; nickname: string } | null
 }
 
-const COLUMNS = 'id, title, kicker, body, cover_image_url, published_at, author:players!articles_author_id_fkey(id, nickname)'
+const COLUMNS = 'id, title, kicker, body, cover_image_url, cover_position, published_at, author:players!articles_author_id_fkey(id, nickname)'
 
 export async function fetchArticles(): Promise<ArticleRow[]> {
   const { data, error } = await supabase
@@ -49,10 +50,11 @@ export interface ArticleDraft {
   kicker: string
   body: string
   cover_image_url: string | null
+  cover_position: string | null
 }
 
 export async function saveArticle(id: string | null, authorId: string, draft: ArticleDraft): Promise<string> {
-  const row = { title: draft.title.trim(), kicker: draft.kicker.trim() || null, body: draft.body, cover_image_url: draft.cover_image_url }
+  const row = { title: draft.title.trim(), kicker: draft.kicker.trim() || null, body: draft.body, cover_image_url: draft.cover_image_url, cover_position: draft.cover_position }
   if (id) {
     const { error } = await supabase.from('articles').update(row).eq('id', id)
     if (error) throw error

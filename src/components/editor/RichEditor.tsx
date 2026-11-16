@@ -1,19 +1,52 @@
-import { Extension } from '@tiptap/core'
+import { Extension, mergeAttributes } from '@tiptap/core'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Mention from '@tiptap/extension-mention'
 import Placeholder from '@tiptap/extension-placeholder'
-import { EditorContent, useEditor, type Editor } from '@tiptap/react'
+import { NodeSelection } from '@tiptap/pm/state'
+import { BubbleMenu, EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import type { SuggestionProps } from '@tiptap/suggestion'
 import { cn } from 'cn'
-import { AtSign, Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Quote } from 'lucide-react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  ArrowDown,
+  ArrowUp,
+  AtSign,
+  Bold,
+  Heading2,
+  Heading3,
+  ImagePlus,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
+  Quote,
+  Trash2,
+} from 'lucide-react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useMentionables } from '@/features/community/hooks'
 import { KindGlyph, mentionText, tierSwatch } from '@/features/community/mentions/MentionChip'
 import { filter, GROUPS } from '@/features/community/mentions/MentionField'
 import { SALAMI, SALAMI_CUP, sigil, type MentionKind, type Mentionable } from '@/features/community/mentions/tokens'
-import { docToMarkdown, markdownToDoc, type Variant } from './markdown'
+import { imageLayoutClass } from './imageLayout'
+import { docToMarkdown, IMAGE_ALIGNS, IMAGE_SIZES, markdownToDoc, type ImageAlign, type ImageSize, type Variant } from './markdown'
+
+const ArticleImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      size: { default: 'full', parseHTML: (el) => el.dataset.size, renderHTML: (a) => ({ 'data-size': a.size }) },
+      align: { default: 'center', parseHTML: (el) => el.dataset.align, renderHTML: (a) => ({ 'data-align': a.align }) },
+    }
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { class: imageLayoutClass(node.attrs.size, node.attrs.align) })]
+  },
+}).configure({ inline: false })
 
 const AstroMention = Mention.extend({
   addAttributes() {
@@ -63,9 +96,13 @@ function normalizeUrl(raw: string) {
   return `https://${t}`
 }
 
-function Toolbar({ editor, variant, onImage }: { editor: Editor; variant: Variant; onImage?: () => void }) {
+/** "bubble" floats over highlighted text, so it leaves out what would replace the selection. "context" opens on right-click. */
+type ToolbarMode = 'bar' | 'bubble' | 'context'
+
+function Toolbar({ editor, variant, onImage, mode = 'bar' }: { editor: Editor; variant: Variant; onImage?: () => void; mode?: ToolbarMode }) {
   const [linking, setLinking] = useState<string | null>(null)
   const c = () => editor.chain().focus()
+  const floating = mode !== 'bar'
 
   const applyLink = () => {
     const href = normalizeUrl(linking ?? '')
@@ -78,7 +115,7 @@ function Toolbar({ editor, variant, onImage }: { editor: Editor; variant: Varian
   if (linking !== null)
     return (
       <form
-        className="flex items-center gap-1.5"
+        className={cn('flex items-center gap-1.5', floating && 'w-64 max-w-full')}
         onSubmit={(e) => {
           e.preventDefault()
           applyLink()
@@ -135,15 +172,165 @@ function Toolbar({ editor, variant, onImage }: { editor: Editor; variant: Varian
       <ToolButton label="Link" active={editor.isActive('link')} onClick={() => setLinking(editor.getAttributes('link').href ?? '')}>
         <Link2 size={15} />
       </ToolButton>
-      {onImage && (
+      {onImage && mode !== 'bubble' && (
         <ToolButton label="Image" onClick={onImage}>
           <ImagePlus size={15} />
         </ToolButton>
       )}
-      <ToolButton label="Tag someone" onClick={() => c().insertContent(editor.state.selection.$from.nodeBefore?.text?.endsWith(' ') === false ? ' @' : '@').run()}>
-        <AtSign size={14} />
-      </ToolButton>
+      {mode !== 'bubble' && (
+        <ToolButton
+          label="Tag someone"
+          onClick={() => {
+            // Right-clicking a word selects it; tagging goes after it instead of replacing it.
+            const { selection, doc } = editor.state
+            const at = mode === 'context' ? selection.to : selection.from
+            const spaced = doc.resolve(at).nodeBefore?.text?.endsWith(' ') === false ? ' @' : '@'
+            if (mode === 'context' && !selection.empty) c().setTextSelection(at).insertContent(spaced).run()
+            else c().insertContent(spaced).run()
+          }}
+        >
+          <AtSign size={14} />
+        </ToolButton>
+      )}
     </div>
+  )
+}
+
+const FLOAT_MENU = 'flex max-w-[calc(100vw-16px)] items-center rounded-lg border border-white/[0.1] bg-astro-surface-2 p-1 shadow-[0_12px_30px_rgba(0,0,0,0.45)]'
+
+/** Selects the word under the pointer so a right-click formats it, unless the click landed inside an existing selection. */
+function selectWordAt(editor: Editor, x: number, y: number) {
+  const { state, view } = editor
+  const hit = view.posAtCoords({ left: x, top: y })
+  if (!hit) return
+  const { from, to } = state.selection
+  if (from !== to && hit.pos >= from && hit.pos <= to) return
+  const $pos = state.doc.resolve(hit.pos)
+  if (!$pos.parent.isTextblock) return
+  const text = $pos.parent.textBetween(0, $pos.parent.content.size, undefined, '￼')
+  const isWord = (ch: string) => /[\p{L}\p{N}'’_-]/u.test(ch)
+  let a = $pos.parentOffset
+  let b = a
+  while (a > 0 && isWord(text[a - 1])) a--
+  while (b < text.length && isWord(text[b])) b++
+  if (a === b) editor.commands.setTextSelection(hit.pos)
+  else editor.commands.setTextSelection({ from: $pos.start() + a, to: $pos.start() + b })
+}
+
+/** The full formatting toolbar, opened at the pointer by a right-click. */
+function ContextMenu({ at, editor, variant, onImage, onClose }: { at: { x: number; y: number }; editor: Editor; variant: Variant; onImage?: () => void; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState({ left: at.x, top: at.y + 8 })
+
+  useLayoutEffect(() => {
+    const r = ref.current?.getBoundingClientRect()
+    if (!r) return
+    setPos({ left: Math.max(8, Math.min(at.x, window.innerWidth - r.width - 8)), top: Math.max(8, Math.min(at.y + 8, window.innerHeight - r.height - 8)) })
+  }, [at])
+
+  useEffect(() => {
+    const down = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && onClose()
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      onClose()
+      editor.commands.focus()
+    }
+    document.addEventListener('mousedown', down, true)
+    document.addEventListener('keydown', key, true)
+    window.addEventListener('scroll', onClose, true)
+    window.addEventListener('resize', onClose)
+    editor.on('update', onClose)
+    return () => {
+      document.removeEventListener('mousedown', down, true)
+      document.removeEventListener('keydown', key, true)
+      window.removeEventListener('scroll', onClose, true)
+      window.removeEventListener('resize', onClose)
+      editor.off('update', onClose)
+    }
+  }, [editor, onClose])
+
+  return createPortal(
+    <div ref={ref} role="dialog" aria-label="Formatting" style={pos} className={cn(FLOAT_MENU, 'fixed z-[100]')}>
+      <Toolbar editor={editor} variant={variant} mode="context" onImage={onImage} />
+    </div>,
+    document.body,
+  )
+}
+
+/** Swaps the selected image with the block above or below it, within the same parent. */
+function moveImage(editor: Editor, dir: -1 | 1) {
+  const { state } = editor
+  const sel = state.selection
+  if (!(sel instanceof NodeSelection)) return
+  const $pos = state.doc.resolve(sel.from)
+  const target = $pos.index() + dir
+  if (target < 0 || target >= $pos.parent.childCount) return
+  const sibling = $pos.parent.child(target)
+  const at = dir < 0 ? sel.from - sibling.nodeSize : sel.from + sibling.nodeSize
+  const tr = state.tr.delete(sel.from, sel.to).insert(at, sel.node)
+  tr.setSelection(NodeSelection.create(tr.doc, at))
+  editor.view.dispatch(tr.scrollIntoView())
+  editor.commands.focus()
+}
+
+const SIZE_LABEL: Record<ImageSize, string> = { small: 'S', medium: 'M', full: 'Full' }
+const ALIGN_ICON: Record<ImageAlign, typeof AlignLeft> = { left: AlignLeft, center: AlignCenter, right: AlignRight }
+
+function ImageMenu({ editor }: { editor: Editor }) {
+  const { size, align } = editor.getAttributes('image') as { size: ImageSize; align: ImageAlign }
+  const set = (attrs: Partial<{ size: ImageSize; align: ImageAlign }>) => editor.chain().focus().updateAttributes('image', attrs).run()
+  const divider = <span className="mx-0.5 h-4 w-px bg-white/[0.1]" />
+
+  return (
+    <BubbleMenu
+      editor={editor}
+      pluginKey="imageMenu"
+      shouldShow={({ editor }) => editor.isEditable && editor.isActive('image')}
+      tippyOptions={{ placement: 'top', maxWidth: 'none' }}
+      className="flex items-center gap-0.5 rounded-lg border border-white/[0.1] bg-astro-surface-2 p-1 shadow-[0_12px_30px_rgba(0,0,0,0.45)]"
+    >
+      {IMAGE_SIZES.map((s) => (
+        <button
+          key={s}
+          type="button"
+          aria-pressed={size === s}
+          title={`${s[0].toUpperCase()}${s.slice(1)} size`}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => set({ size: s })}
+          className={cn(
+            'h-7 min-w-7 rounded-md px-1.5 text-[11.5px] font-extrabold text-astro-text-dim hover:bg-white/[0.06] hover:text-astro-text',
+            size === s && 'bg-astro-accent/20 text-astro-text',
+          )}
+        >
+          {SIZE_LABEL[s]}
+        </button>
+      ))}
+      {size !== 'full' && (
+        <>
+          {divider}
+          {IMAGE_ALIGNS.map((a) => {
+            const Icon = ALIGN_ICON[a]
+            return (
+              <ToolButton key={a} label={`Align ${a}`} active={align === a} onClick={() => set({ align: a })}>
+                <Icon size={15} />
+              </ToolButton>
+            )
+          })}
+        </>
+      )}
+      {divider}
+      <ToolButton label="Move up" onClick={() => moveImage(editor, -1)}>
+        <ArrowUp size={15} />
+      </ToolButton>
+      <ToolButton label="Move down" onClick={() => moveImage(editor, 1)}>
+        <ArrowDown size={15} />
+      </ToolButton>
+      {divider}
+      <ToolButton label="Remove image" onClick={() => editor.chain().focus().deleteSelection().run()}>
+        <Trash2 size={14} />
+      </ToolButton>
+    </BubbleMenu>
   )
 }
 
@@ -228,8 +415,8 @@ export function RichEditor({
   onSubmit?: () => void
   onEscape?: () => void
   onImageUpload?: (file: File) => Promise<string>
-  /** "focus" keeps the toolbar hidden until the editor is used. */
-  toolbar?: 'always' | 'focus'
+  /** "focus" keeps the toolbar hidden until the editor is used. "selection" has no bar: formatting floats over highlighted text and opens at the pointer on right-click. */
+  toolbar?: 'always' | 'focus' | 'selection'
   className?: string
   contentClassName?: string
   'aria-label'?: string
@@ -242,6 +429,13 @@ export function RichEditor({
   const [active, setActive] = useState(0)
   const [focused, setFocused] = useState(!!autoFocus)
   const [uploading, setUploading] = useState(false)
+  const [ctx, setCtx] = useState<{ x: number; y: number } | null>(null)
+  // Read by the floating menu's shouldShow, which TipTap registers once, so it has to be a ref.
+  const ctxOpen = useRef(false)
+  const closeCtx = useCallback(() => {
+    ctxOpen.current = false
+    setCtx(null)
+  }, [])
   const wrapRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const lastEmitted = useRef(value)
@@ -268,7 +462,7 @@ export function RichEditor({
       }),
       Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true, defaultProtocol: 'https', HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' } }),
       Placeholder.configure({ placeholder: placeholder ?? '' }),
-      ...(variant === 'article' ? [Image.configure({ inline: false })] : []),
+      ...(variant === 'article' ? [ArticleImage] : []),
       AstroMention.configure({
         suggestion: {
           char: '@',
@@ -374,13 +568,34 @@ export function RichEditor({
     }
   }
 
-  const showToolbar = editor && (toolbar === 'always' || focused || !!value.trim())
+  const showToolbar = editor && toolbar !== 'selection' && (toolbar === 'always' || focused || !!value.trim())
+  const floating = toolbar === 'selection'
+
+  const onContextMenu = (e: ReactMouseEvent) => {
+    const target = e.target as HTMLElement
+    // Shift + right-click keeps the browser's own menu, for spelling help.
+    if (!editor || !floating || !editor.isEditable || e.shiftKey || !target.closest('.tiptap') || target.closest('img')) return
+    e.preventDefault()
+    const byKeyboard = e.button !== 2 && !e.ctrlKey
+    const caret = byKeyboard ? editor.view.coordsAtPos(editor.state.selection.to) : null
+    // Flag it before the selection moves, so the highlight bubble never flashes up behind the menu.
+    ctxOpen.current = true
+    if (!byKeyboard) selectWordAt(editor, e.clientX, e.clientY)
+    setCtx(caret ? { x: caret.left, y: caret.bottom } : { x: e.clientX, y: e.clientY })
+  }
+
+  const chooseImage = () => {
+    if (editor && !editor.state.selection.empty) editor.commands.setTextSelection(editor.state.selection.to)
+    closeCtx()
+    fileRef.current?.click()
+  }
 
   return (
     <div
       ref={wrapRef}
       onFocus={() => setFocused(true)}
       onBlur={(e) => !wrapRef.current?.contains(e.relatedTarget as Node | null) && setFocused(false)}
+      onContextMenu={onContextMenu}
       className={cn('astro-editor relative min-w-0 flex-1', disabled && 'opacity-60', className)}
     >
       {showToolbar && (
@@ -390,6 +605,22 @@ export function RichEditor({
         </div>
       )}
       <EditorContent editor={editor} />
+      {editor && floating && (
+        <BubbleMenu
+          editor={editor}
+          pluginKey="formatMenu"
+          shouldShow={({ editor, state }) => editor.isEditable && !state.selection.empty && !(state.selection instanceof NodeSelection) && !ctxOpen.current}
+          tippyOptions={{ placement: 'top', maxWidth: 'calc(100vw - 16px)' }}
+          className={FLOAT_MENU}
+        >
+          <Toolbar editor={editor} variant={variant} mode="bubble" />
+        </BubbleMenu>
+      )}
+      {editor && floating && ctx && (
+        <ContextMenu at={ctx} editor={editor} variant={variant} onImage={onImageUpload ? chooseImage : undefined} onClose={closeCtx} />
+      )}
+      {editor && uploading && floating && <span className="mt-1 block text-[11px] text-astro-text-dim">Uploading&hellip;</span>}
+      {editor && variant === 'article' && <ImageMenu editor={editor} />}
       {onImageUpload && <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pickImage(e.target.files?.[0])} />}
       {menu && <Picker menu={menu} active={active} setActive={setActive} />}
     </div>

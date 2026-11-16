@@ -67,7 +67,12 @@ export function ArticlePage({ articleId }: { articleId: string }) {
         </div>
       )}
       {article.cover_image_url ? (
-        <img src={article.cover_image_url} alt="" className="mb-7 aspect-[16/9] w-full rounded-[14px] object-cover" />
+        <img
+          src={article.cover_image_url}
+          alt=""
+          style={{ objectPosition: article.cover_position ?? undefined }}
+          className="mb-7 aspect-[16/9] w-full rounded-[14px] object-cover"
+        />
       ) : (
         <div className="mb-7 aspect-[16/7] w-full rounded-[14px]" style={{ background: 'linear-gradient(150deg, #243463, #131c3a)' }} />
       )}

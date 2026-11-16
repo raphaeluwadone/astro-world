@@ -11,6 +11,7 @@ import { NothingHere } from '@/components/states/NothingHere'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { uploadArticleImage, type ArticleDetail, type ArticleDraft } from './api'
+import { CoverPositioner } from './CoverPositioner'
 import { useArticle, useCanWrite, useDeleteArticle, useSaveArticle, useSetPublished } from './hooks'
 
 const errText = (e: unknown) => (e instanceof Error && e.message ? e.message : 'Something went wrong. Try again.')
@@ -27,6 +28,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
     kicker: article?.kicker ?? '',
     body: article?.body ?? '',
     cover_image_url: article?.cover_image_url ?? null,
+    cover_position: article?.cover_position ?? null,
   })
   const [saved, setSaved] = useState(draft)
   const [published, setPublishedState] = useState(!!article?.published_at)
@@ -60,6 +62,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
     try {
       await persist()
       toast.success(published ? 'Changes are live.' : 'Draft saved.')
+      navigate({ to: '/articles', ignoreBlocker: true })
     } catch (e) {
       toast.error(errText(e))
     }
@@ -79,6 +82,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
       undoToast(next ? 'Published. It’s on the Articles page now.' : 'Unpublished. Back to a draft.', () =>
         publish.mutate({ id: target, published: !next }, { onSuccess: () => setPublishedState(!next) }),
       )
+      if (next) navigate({ to: '/articles/$articleId', params: { articleId: target }, ignoreBlocker: true })
     } catch (e) {
       toast.error(errText(e))
     }
@@ -88,7 +92,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
     if (!file) return
     setCoverBusy(true)
     try {
-      set({ cover_image_url: await upload(file) })
+      set({ cover_image_url: await upload(file), cover_position: null })
     } catch (e) {
       toast.error(errText(e))
     } finally {
@@ -174,7 +178,12 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
 
       <div className="relative mb-6 overflow-hidden rounded-[14px] border border-dashed border-white/[0.14]">
         {draft.cover_image_url ? (
-          <img src={draft.cover_image_url} alt="" className="aspect-[16/9] w-full object-cover" />
+          <CoverPositioner
+            key={draft.cover_image_url}
+            src={draft.cover_image_url}
+            position={draft.cover_position}
+            onChange={(cover_position) => set({ cover_position })}
+          />
         ) : (
           <div className="flex aspect-[16/7] w-full items-center justify-center bg-[linear-gradient(150deg,#243463,#131c3a)] text-[13px] text-astro-text-dim">
             No cover image
@@ -184,7 +193,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
           {draft.cover_image_url && (
             <button
               type="button"
-              onClick={() => set({ cover_image_url: null })}
+              onClick={() => set({ cover_image_url: null, cover_position: null })}
               className="rounded-lg bg-astro-bg/85 px-3 py-1.5 text-xs font-bold text-astro-text-muted backdrop-blur hover:text-astro-text"
             >
               Remove
@@ -207,6 +216,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
           value={draft.body}
           onChange={(body) => set({ body })}
           variant="article"
+          toolbar="selection"
           onSubmit={onSave}
           onImageUpload={async (file) => {
             try {
@@ -221,7 +231,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
           contentClassName="min-h-[360px] text-[16px] leading-[1.7] text-astro-text"
         />
       </div>
-      <p className="mt-2 text-[11.5px] text-astro-text-dim">⌘/Ctrl + Enter saves.</p>
+      <p className="mt-2 text-[11.5px] text-astro-text-dim">Highlight text or right-click to format (Shift + right-click for the browser menu). ⌘/Ctrl + Enter saves.</p>
 
       <MemberModal open={confirmDelete} onOpenChange={setConfirmDelete} title="Delete this article?" body="It goes for good, drafts and all. This can’t be undone.">
         <div className="mt-5 flex justify-end gap-2">

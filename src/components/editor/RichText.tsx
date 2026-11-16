@@ -1,6 +1,7 @@
 import { cn } from 'cn'
 import { Fragment, useMemo, type ReactNode } from 'react'
 import { MentionChip } from '@/features/community/mentions/MentionChip'
+import { imageLayoutClass } from './imageLayout'
 import { parseBlocks, type Inline, type Variant } from './markdown'
 
 function renderInline(inline: Inline[]): ReactNode[] {
@@ -54,7 +55,7 @@ export function RichText({ content, variant = 'basic', className, gap = 'gap-2' 
               </blockquote>
             )
           case 'img':
-            return <img key={i} src={b.src} alt={b.alt} loading="lazy" className="my-1 w-full rounded-[12px] object-cover" />
+            return <img key={i} src={b.src} alt={b.alt} loading="lazy" className={cn('my-1 rounded-[12px] object-cover', imageLayoutClass(b.size, b.align))} />
           case 'ul':
           case 'ol': {
             const List = b.type === 'ul' ? 'ul' : 'ol'
