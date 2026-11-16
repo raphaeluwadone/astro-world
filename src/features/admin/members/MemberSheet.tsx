@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
 import { Switch } from '@/components/ui/switch'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
+import { togglePosition } from '@/lib/positions'
 import type { MemberPatch, MemberRow } from './api'
 import { useSetRole, useUpdateMember } from './hooks'
 import { MemberChips } from './MembersPage'
@@ -182,7 +183,7 @@ function SheetBody({ m }: { m: MemberRow }) {
                     key={p}
                     type="button"
                     aria-pressed={on}
-                    onClick={() => set({ positions: on ? form.positions.filter((x) => x !== p) : [...form.positions, p] })}
+                    onClick={() => set({ positions: togglePosition(form.positions, p) })}
                     className={cn(
                       'min-h-8 flex-1 rounded-[8px] border text-xs font-extrabold',
                       on ? 'border-astro-cyan/60 bg-astro-cyan/[0.12] text-astro-text' : 'border-white/[0.1] text-astro-text-dim hover:text-astro-text',

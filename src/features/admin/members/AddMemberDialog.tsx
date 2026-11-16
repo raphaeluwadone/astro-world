@@ -2,6 +2,7 @@ import { Dialog as DialogPrimitive } from 'radix-ui'
 import { cn } from 'cn'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { togglePosition } from '@/lib/positions'
 import { useCreateMember } from './hooks'
 
 const POSITIONS = ['GK', 'DEF', 'ATT', 'UTIL'] as const
@@ -70,7 +71,7 @@ export function AddMemberDialog({ open, onOpenChange, onCreated }: { open: boole
                     key={p}
                     type="button"
                     aria-pressed={on}
-                    onClick={() => setPositions(on ? positions.filter((x) => x !== p) : [...positions, p])}
+                    onClick={() => setPositions(togglePosition(positions, p))}
                     className={cn(
                       'min-h-9 flex-1 rounded-[8px] border text-xs font-extrabold',
                       on ? 'border-astro-cyan/60 bg-astro-cyan/[0.12] text-astro-text' : 'border-white/[0.1] text-astro-text-dim hover:text-astro-text',

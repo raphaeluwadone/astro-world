@@ -28,7 +28,7 @@ export const STEPS: OnboardingStep[] = [
     points: [
       'Your nickname is what appears in team draws, rankings and the feed.',
       "Pick a favourite number too. It isn't exclusive, so take one that's already taken if you like.",
-      'Positions are GK, DEF, ATT or UTIL, and you can claim more than one.',
+      'Pick one position: DEF, ATT or UTIL. If you will go in goal, you can add GK as well.',
     ],
     next: 'Next: getting a game',
   },

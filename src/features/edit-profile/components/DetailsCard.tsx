@@ -1,3 +1,4 @@
+import { togglePosition as pickPosition } from '@/lib/positions'
 import type { Database } from '@/types/database'
 import { ClubSearchSelect } from './ClubSearchSelect'
 import { FieldHint, FieldLabel, TextField } from './FieldInput'
@@ -36,10 +37,7 @@ export function DetailsCard({
   onChange: (patch: Partial<DraftFields>) => void
 }) {
   function togglePosition(p: PositionType) {
-    const has = draft.positions.includes(p)
-    onChange({
-      positions: has ? draft.positions.filter((x) => x !== p) : [...draft.positions, p],
-    })
+    onChange({ positions: pickPosition(draft.positions, p) })
   }
 
   return (
@@ -109,7 +107,7 @@ export function DetailsCard({
               </button>
             ))}
           </div>
-          <FieldHint>Pick as many as you honestly play. Utility means you&rsquo;ll go anywhere.</FieldHint>
+          <FieldHint>Pick the one you play. Utility means you&rsquo;ll go anywhere. Add GK as well if you&rsquo;ll go in goal.</FieldHint>
         </div>
 
         <div>
