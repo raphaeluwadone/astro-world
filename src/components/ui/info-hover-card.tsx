@@ -1,7 +1,7 @@
 import { cn } from 'cn'
 import { HoverCard } from 'radix-ui'
-import { useRef, useState, type ReactNode } from 'react'
-import { useHoverCards } from '@/lib/hoverCards'
+import { useRef, type ReactNode } from 'react'
+import { useHoverCardOpen } from '@/lib/hoverCards'
 
 /**
  * Hover or focus shows the card after a short pause; a click goes to `onOpenFull`.
@@ -24,12 +24,11 @@ export function InfoHoverCard({
   side?: 'bottom' | 'right' | 'top'
   triggerClassName?: string
 }) {
-  const [open, setOpen] = useState(false)
+  const { cards, open, onOpenChange, toggle } = useHoverCardOpen()
   const pointer = useRef('mouse')
-  const cards = useHoverCards()
 
   return (
-    <HoverCard.Root open={cards && open} onOpenChange={(o) => setOpen(cards && o)} openDelay={400} closeDelay={80}>
+    <HoverCard.Root open={open} onOpenChange={onOpenChange} openDelay={400} closeDelay={80}>
       <HoverCard.Trigger asChild>
         <span
           tabIndex={0}
@@ -40,7 +39,7 @@ export function InfoHoverCard({
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            if (cards && pointer.current === 'touch') setOpen((o) => !o)
+            if (cards && pointer.current === 'touch') toggle()
             else onOpenFull?.()
           }}
           onKeyDown={(e) => {

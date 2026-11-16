@@ -1,18 +1,9 @@
-import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { signOut } from '@/features/auth/api'
-import { useCurrentPlayer } from '@/features/auth/useSession'
 import { useNextMatchday } from '@/features/matchday/hooks'
+import { AdminUserMenu } from './AdminUserMenu'
 import { ADMIN_NAV, type AdminNavItem } from './adminNav'
 import { useAdminAttention, type AttentionItem, type AttentionTone } from './useAdminAttention'
 
@@ -110,8 +101,6 @@ function NeedsYou({ items }: { items: AttentionItem[] }) {
 /** The admin portal's own chrome: a separate app from the member shell, cyan not purple, no card motif. */
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const { player } = useCurrentPlayer()
-  const navigate = useNavigate()
   const { data: matchday } = useNextMatchday()
   const attention = useAdminAttention()
   const attentionFor = (id: string) => attention.find((a) => a.section === id)
@@ -163,45 +152,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </svg>
             <span className="hidden sm:inline">Back to the app</span>
           </Link>
-          {player && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button type="button" aria-label="Account menu" className="flex items-center gap-[9px] rounded-[9px] px-1.5 py-1 text-left hover:bg-white/[0.05]">
-                  <span className="flex size-[30px] items-center justify-center rounded-lg bg-[linear-gradient(140deg,#243463,#182448)] font-display text-[12px] text-astro-cyan">
-                    {player.nickname.slice(0, 2).toUpperCase()}
-                  </span>
-                  <span className="hidden leading-[1.2] md:block">
-                    <span className="block text-[12.5px] font-extrabold">{player.nickname}</span>
-                    <span className="block text-[10.5px] text-astro-text-dim">Admin</span>
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>{player.full_name}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/" className="font-bold text-astro-accent-soft">
-                    Switch to the app
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/notifications">Notifications</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={async () => {
-                    await signOut()
-                    await navigate({ to: '/login' })
-                  }}
-                >
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <AdminUserMenu />
         </div>
       </header>
 

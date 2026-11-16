@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 
 const KEY = 'astro:hover-cards'
 const listeners = new Set<() => void>()
@@ -34,4 +34,19 @@ function subscribe(listener: () => void) {
 /** Whether info cards show on hover. On by default; saved per device. */
 export function useHoverCards() {
   return useSyncExternalStore(subscribe, read, () => true)
+}
+
+/**
+ * Open state for one hover card. While cards are off, hovers are ignored rather than queued:
+ * Radix never reports a close for a card it thinks is already closed, so they would all open at once.
+ */
+export function useHoverCardOpen() {
+  const cards = useHoverCards()
+  const [open, setOpen] = useState(false)
+  return {
+    cards,
+    open: cards && open,
+    onOpenChange: (o: boolean) => setOpen(cards && o),
+    toggle: () => setOpen((o) => cards && !o),
+  }
 }

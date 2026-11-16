@@ -1,8 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { HoverCard } from 'radix-ui'
-import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { useHoverCards } from '@/lib/hoverCards'
+import { useRef, type CSSProperties, type ReactNode } from 'react'
+import { useHoverCardOpen } from '@/lib/hoverCards'
 import { isNewBadge, type Badge } from '../api'
 import { badgeDef, TIER_COLOR, TIER_LABEL, TIER_LASTS } from '../definitions'
 import { useBadgesByPlayer } from '../hooks'
@@ -61,9 +61,8 @@ export function BadgeHoverCard({
   side?: 'bottom' | 'right' | 'top'
   triggerClassName?: string
 }) {
-  const [open, setOpen] = useState(false)
+  const { cards, open, onOpenChange, toggle } = useHoverCardOpen()
   const pointer = useRef<string>('mouse')
-  const cards = useHoverCards()
   const navigate = useNavigate()
   const key = badge?.badge_key ?? awardKey ?? ''
   const def = badge?.def ?? badgeDef(key, null)
@@ -73,7 +72,7 @@ export function BadgeHoverCard({
   const isCup = tier === 'cup'
 
   return (
-    <HoverCard.Root open={cards && open} onOpenChange={setOpen} openDelay={400} closeDelay={80}>
+    <HoverCard.Root open={open} onOpenChange={onOpenChange} openDelay={400} closeDelay={80}>
       <HoverCard.Trigger asChild>
         <span
           tabIndex={0}
@@ -85,7 +84,7 @@ export function BadgeHoverCard({
             e.preventDefault()
             e.stopPropagation()
             // On touch the first tap shows the card, which has its own link through.
-            if (cards && pointer.current === 'touch') setOpen((o) => !o)
+            if (cards && pointer.current === 'touch') toggle()
             else goToAward()
           }}
           onKeyDown={(e) => {
