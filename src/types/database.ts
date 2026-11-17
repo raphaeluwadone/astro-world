@@ -495,6 +495,7 @@ export type Database = {
           entries_close_at: string
           id: string
           label: string
+          recap: Json | null
           scheduled_at: string
           status: Database["public"]["Enums"]["cup_status"]
           venue: string | null
@@ -505,6 +506,7 @@ export type Database = {
           entries_close_at: string
           id?: string
           label: string
+          recap?: Json | null
           scheduled_at: string
           status?: Database["public"]["Enums"]["cup_status"]
           venue?: string | null
@@ -515,6 +517,7 @@ export type Database = {
           entries_close_at?: string
           id?: string
           label?: string
+          recap?: Json | null
           scheduled_at?: string
           status?: Database["public"]["Enums"]["cup_status"]
           venue?: string | null
@@ -1868,6 +1871,38 @@ export type Database = {
             columns: ["matchday_id"]
             isOneToOne: true
             referencedRelation: "matchdays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_almanac: {
+        Row: {
+          facts: string[]
+          months: Json
+          player_id: string
+          updated_at: string
+          write_up: string | null
+        }
+        Insert: {
+          facts?: string[]
+          months?: Json
+          player_id: string
+          updated_at?: string
+          write_up?: string | null
+        }
+        Update: {
+          facts?: string[]
+          months?: Json
+          player_id?: string
+          updated_at?: string
+          write_up?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_almanac_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]

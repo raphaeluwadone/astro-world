@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Database } from '@/types/database'
+import { fetchPlayerAlmanac } from './almanac'
 import {
   castVote,
   createComparison,
@@ -58,6 +59,15 @@ export function useCareerStats(playerId: string | undefined, since?: string) {
       return { appearances, ...goalsAssists, motm, ...cards }
     },
     enabled: !!playerId,
+  })
+}
+
+export function usePlayerAlmanac(playerId: string | undefined) {
+  return useQuery({
+    queryKey: ['player-almanac', playerId],
+    queryFn: () => fetchPlayerAlmanac(playerId!),
+    enabled: !!playerId,
+    staleTime: 10 * 60 * 1000,
   })
 }
 

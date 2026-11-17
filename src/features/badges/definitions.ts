@@ -113,6 +113,7 @@ export const MONTHLY_DEFS: Record<string, BadgeDef> = {
   'month-player-of-the-month': { name: 'Player of the Month', tier: 'month', icon: 'star', for: 'Best average rating of the month' },
   'month-golden-boot': { name: 'Golden Boot', tier: 'month', icon: 'boot', for: 'Most goals of the month' },
   'month-playmaker': { name: 'Playmaker', tier: 'month', icon: 'assist', for: 'Most assists of the month' },
+  'month-defender-of-the-month': { name: 'Defender of the Month', tier: 'month', icon: 'shield', for: 'Best defending score of the month' },
   'month-golden-glove': { name: 'Golden Glove', tier: 'month', icon: 'glove', for: 'Most clean sheets of the month' },
   'month-most-booked': { name: 'Most Booked', tier: 'month', icon: 'cards', for: 'Most cards of the month' },
 }

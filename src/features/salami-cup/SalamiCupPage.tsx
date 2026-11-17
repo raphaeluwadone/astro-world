@@ -1,4 +1,6 @@
 import { toast } from 'sonner'
+import { cupRecap } from './recap'
+import { RecapHighlights, RecapTable } from './components/CupRecap'
 import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { NothingHere } from '@/components/states/NothingHere'
 import { Scene } from '@/components/states/Scene'
@@ -75,6 +77,9 @@ export function SalamiCupPage() {
   const myEntry = entrants.find((e) => e.player_id === player?.id)
   const entriesOpen = cup.status === 'open' && new Date() < new Date(cup.entries_close_at)
   const standings = computeCupStandings(squads, matches)
+  const recap = cupRecap(cup)
+  const hasResults = standings.some((s) => s.played > 0)
+  const recapColour = (club: string) => squads.find((s) => s.name === club)?.colour ?? '#f2a93b'
   const nicknames = new Map(squads.flatMap((sq) => sq.members.map((p) => [p.id, p.nickname] as const)))
 
   return (
@@ -149,12 +154,13 @@ export function SalamiCupPage() {
           </div>
         )}
 
-        {cup.status === 'played' && standings.find((s) => s.played > 0) && (
+        {cup.status === 'played' && (standings.find((s) => s.played > 0) || recap) && (
           <div className="mt-5">
             <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.15em] text-astro-text-dim">Winners</div>
             <div className="font-display text-[40px] leading-[0.88] text-astro-amber">
-              {standings.find((s) => s.played > 0)!.name.toUpperCase()}
+              {(standings.find((s) => s.played > 0)?.name ?? recap!.champion).toUpperCase()}
             </div>
+            {recap?.champion_note && <p className="mt-2 text-[12.5px] text-astro-text-muted">{recap.champion_note}</p>}
           </div>
         )}
       </div>
@@ -240,7 +246,7 @@ export function SalamiCupPage() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
-          {standings.length > 0 && (
+          {standings.length > 0 && (hasResults || !recap) && (
             <div className="astro-card overflow-x-auto p-0">
               <div className="font-display px-6 pt-6 text-[28px] leading-none text-astro-text">TABLE</div>
               <div className="grid min-w-[420px] grid-cols-[minmax(120px,1fr)_repeat(5,40px)_48px] gap-2 px-6 py-3.5 text-[10px] font-extrabold uppercase tracking-[0.1em] text-astro-text-dim">
@@ -269,6 +275,9 @@ export function SalamiCupPage() {
               <div className="h-3" />
             </div>
           )}
+
+          {!hasResults && recap && <RecapTable recap={recap} colourOf={recapColour} />}
+          {recap && <RecapHighlights recap={recap} />}
 
           <div className="astro-card p-6">
             <div className="font-display mb-4 text-[28px] leading-none text-astro-text">HONOURS</div>

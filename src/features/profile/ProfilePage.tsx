@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
+import { AlmanacCard } from './components/AlmanacCard'
 import { Comparisons } from './components/Comparisons'
 import { HeroCard } from './components/HeroCard'
 import { InfoPanel } from './components/InfoPanel'
@@ -112,6 +113,8 @@ export function ProfilePage({ playerId, isOwnProfile }: { playerId: string; isOw
       <BadgeCabinet badges={badges} nickname={player.nickname} />
 
       {combinedCareerStats && <StatsSection matchRatings={matchRatings} careerStats={combinedCareerStats} seasonStats={seasonStats} />}
+
+      <AlmanacCard playerId={playerId} />
 
       <div className="grid gap-5 xl:grid-cols-2">
         <RecentForm matchRatings={matchRatings} compact showStats />

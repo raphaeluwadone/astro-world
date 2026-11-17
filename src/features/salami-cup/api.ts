@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import type { Database, Json } from '@/types/database'
 
 export type CupStatus = Database['public']['Enums']['cup_status']
+import { cupRecap } from './recap'
+
 export type CupQuarter = Database['public']['Tables']['cup_quarters']['Row']
 
 export interface CupEntrantRow {
@@ -282,6 +284,8 @@ export interface CupWinner {
  * scored fixtures (nothing to crown). */
 export async function fetchCupWinner(quarter: CupQuarter): Promise<CupWinner> {
   const [squads, matches] = await Promise.all([fetchSquads(quarter.id), fetchMatches(quarter.id)])
+  const recorded = cupRecap(quarter)
+  if (recorded) return { quarter, winnerName: recorded.champion, winnerColour: squads.find((s) => s.name === recorded.champion)?.colour ?? null }
   const { computeCupStandings } = await import('./standings')
   const [top] = computeCupStandings(squads, matches).filter((s) => s.played > 0)
   return { quarter, winnerName: top?.name ?? null, winnerColour: top?.colour ?? null }

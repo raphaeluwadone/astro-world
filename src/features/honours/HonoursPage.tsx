@@ -11,6 +11,7 @@ import type { ClubTotals, HonoursPost } from './api'
 import { ClubCounters } from './components/ClubCounters'
 import { BadgeDropRow, MomentRow, useMomentNames } from './components/FeedRows'
 import { HallOfFameCompact, HonoursBoard, MonthlyRoll } from './components/HallOfFame'
+import { LeagueRecords } from './components/LeagueRecords'
 import { HonoursComposer } from './components/HonoursComposer'
 import { HonoursPostCard } from './components/HonoursPostCard'
 import { buildFeed, buildHallOfFame, groupDrops, type FeedFilter, type FeedItem, type HallYear } from './feed'
@@ -96,6 +97,7 @@ function RollView({ totals, hall, year, setYear }: ViewProps) {
       <HonoursBoard hall={hall} year={year} onYear={setYear} />
       {totals && <ClubCounters totals={totals} layout="strip" />}
       <MonthlyRoll year={hall.find((h) => h.year === year)} />
+      <LeagueRecords />
     </div>
   )
 }
