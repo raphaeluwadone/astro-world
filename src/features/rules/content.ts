@@ -269,14 +269,14 @@ export interface Punishment {
 export const PUNISHMENTS: Punishment[] = [
   {
     name: 'No-show without notice',
-    sanction: 'Miss the next ballot',
-    detail: "Balloted in, didn't turn up, told nobody before 07:30.",
+    sanction: 'Sit out the next Sunday',
+    detail: "Held a spot, didn't turn up, told nobody before 07:30.",
     severity: 'Heavy',
   },
   {
     name: 'Late withdrawal',
     sanction: 'Back of the standby queue',
-    detail: 'Pulled out after the draw but in time for a replacement.',
+    detail: 'Pulled out after the teams were made but in time for a replacement.',
     severity: 'Light',
   },
   {
