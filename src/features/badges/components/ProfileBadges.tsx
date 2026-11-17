@@ -52,6 +52,7 @@ export function BadgeSleeve({ badges }: { badges: Badge[] }) {
 const GROUPS: { key: BadgeTier | 'past'; title: string }[] = [
   { key: 'cup', title: 'Salami Cup' },
   { key: 'year', title: 'Yearly' },
+  { key: 'wild', title: 'Wildcards' },
   { key: 'month', title: 'This month' },
   { key: 'week', title: 'This week' },
   { key: 'past', title: 'Past badges' },
@@ -153,7 +154,7 @@ function BadgeCollection({
     const y = /^\d{4}$/.test(b.period_key) ? Number(b.period_key) : wonOn(b).getFullYear()
     years.set(y, [...(years.get(y) ?? []), b])
   }
-  const tally = (['cup', 'year', 'month', 'week'] as BadgeTier[])
+  const tally = (['cup', 'year', 'wild', 'month', 'week'] as BadgeTier[])
     .map((t) => ({ t, n: badges.filter((b) => b.tier === t).length }))
     .filter((x) => x.n > 0)
 

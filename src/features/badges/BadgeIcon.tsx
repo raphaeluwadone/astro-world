@@ -24,10 +24,17 @@ export const PATHS: Record<BadgeIconName, string> = {
   repeat: 'M17 2.5 21 6.5l-4 4V8H7.5A2.5 2.5 0 0 0 5 10.5V12H3v-1.5A4.5 4.5 0 0 1 7.5 6H17ZM7 21.5 3 17.5l4-4V16h9.5a2.5 2.5 0 0 0 2.5-2.5V12h2v1.5a4.5 4.5 0 0 1-4.5 4.5H7Z',
   spoon: 'M16.2 2.2c2.6.2 4.3 2.4 3.6 5.1-.6 2.4-2.9 4.1-5.1 4l-8.3 8.6a1.9 1.9 0 0 1-2.7-2.7l8.5-8.2c-.1-2.5 1.6-6.9 4-6.8Z',
   goal: 'M2 5h20v15h-2V7H4v13H2ZM12 12a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
+  ban: 'M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19Zm-6.5 9.5a6.5 6.5 0 0 1 10.6-5l-9.1 9.1A6.5 6.5 0 0 1 5.5 12Zm6.5 6.5a6.5 6.5 0 0 1-4.1-1.4l9.1-9.1a6.5 6.5 0 0 1-5 10.5Z',
+  door: 'M4 3h10v2H6v14h8v2H4Zm12.5 4.5L21.5 12l-5 4.5v-3H9v-3h7.5Z',
+  bandage: 'M7.5 3.5 20.5 16.5a3.5 3.5 0 0 1-5 5L2.5 8.5a3.5 3.5 0 0 1 5-5ZM9.8 9.2 8.4 10.6l1 1 1.4-1.4Zm2.1 2.1-1.4 1.4 1 1 1.4-1.4Zm2.1 2.1-1.4 1.4 1 1 1.4-1.4Z',
+  swap: 'M4 7h12V3.5l5 4.5-5 4.5V9H4Zm16 8H8v-3.5L3 16l5 4.5V17h12Z',
+  mystery: 'M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19Zm0 4a3 3 0 0 1 1.7 5.5c-.5.4-.7.7-.7 1.2v.3h-2v-.5c0-1.1.6-1.8 1.4-2.3A1.1 1.1 0 0 0 12 8.7a1.2 1.2 0 0 0-1.2 1H8.8A3.1 3.1 0 0 1 12 6.5ZM11 16h2v2h-2Z',
+  bath: 'M12 2.5c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11Zm-2.2 11.2a2.4 2.4 0 0 0 2.2 2.8v-2a.8.8 0 0 1-.8-.8Z',
+  uturn: 'M7 3.5a5.5 5.5 0 0 1 5.5 5.5v6.2l2.3-2.3 1.7 1.7-5 5-5-5 1.7-1.7 2.3 2.3V9a2.5 2.5 0 0 0-5 0v1H3V9A5.5 5.5 0 0 1 8.5 3.5Z',
   medal: 'M6.5 2h4.2L12 5.6 13.3 2h4.2l-3.2 7.4a6 6 0 1 1-4.6 0ZM12 11.2a3.9 3.9 0 1 0 0 7.8 3.9 3.9 0 0 0 0-7.8Z',
 }
 
-export const EVEN_ODD = new Set<BadgeIconName>(['medal', 'target', 'calendar', 'clock', 'coin', 'chat', 'hundred', 'three'])
+export const EVEN_ODD = new Set<BadgeIconName>(['ban', 'mystery', 'medal', 'target', 'calendar', 'clock', 'coin', 'chat', 'hundred', 'three'])
 
 export function BadgeIcon({ name, ...props }: { name: BadgeIconName } & SVGProps<SVGSVGElement>) {
   return (

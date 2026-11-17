@@ -175,7 +175,7 @@ export async function fetchSwapCandidates() {
 /** A walk-in with no account: a player record with just a nickname, claimable later. */
 export async function addWalkIn(nickname: string) {
   const name = nickname.trim()
-  const { data, error } = await supabase.from('players').insert({ nickname: name, full_name: name }).select('id').single()
+  const { data, error } = await supabase.from('players').insert({ nickname: name, full_name: name, added_as_guest: true }).select('id').single()
   if (error) throw error
   return data.id
 }

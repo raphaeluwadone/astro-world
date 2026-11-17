@@ -1,4 +1,4 @@
-export type BadgeTier = 'week' | 'month' | 'year' | 'cup'
+export type BadgeTier = 'week' | 'month' | 'year' | 'cup' | 'wild'
 
 export type BadgeIconName =
   | 'trophy'
@@ -24,6 +24,13 @@ export type BadgeIconName =
   | 'spoon'
   | 'medal'
   | 'goal'
+  | 'ban'
+  | 'door'
+  | 'bandage'
+  | 'swap'
+  | 'mystery'
+  | 'bath'
+  | 'uturn'
 
 export interface BadgeDef {
   name: string
@@ -40,6 +47,7 @@ export const TIER_LABEL: Record<BadgeTier, string> = {
   month: 'Monthly',
   year: 'Yearly',
   cup: 'Salami Cup',
+  wild: 'Wildcard',
 }
 
 export const TIER_LASTS: Record<BadgeTier, string> = {
@@ -47,6 +55,7 @@ export const TIER_LASTS: Record<BadgeTier, string> = {
   month: 'Through the following month',
   year: '12 months, renewed if won again',
   cup: 'Until the next cup',
+  wild: '12 months',
 }
 
 export const TIER_COLOR: Record<BadgeTier, string> = {
@@ -54,9 +63,10 @@ export const TIER_COLOR: Record<BadgeTier, string> = {
   month: '#38bdf8',
   year: '#a63fff',
   cup: '#f2a93b',
+  wild: '#f472b6',
 }
 
-export const TIER_RANK: Record<BadgeTier, number> = { cup: 0, year: 1, month: 2, week: 3 }
+export const TIER_RANK: Record<BadgeTier, number> = { cup: 0, year: 1, wild: 2, month: 3, week: 4 }
 
 export const BADGE_DEFS: Record<string, BadgeDef> = {
   'week-motm': { name: 'Man of the Match', tier: 'week', icon: 'star', for: 'Voted best player on the day' },
@@ -79,6 +89,15 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   'heart-of-the-team': { name: 'Heart of the Team', tier: 'year', icon: 'heart', for: 'Chosen by the admins for team spirit', manual: true },
   'card-collector': { name: 'Card Collector', tier: 'year', icon: 'cards', for: 'Most cards of the year' },
   'fair-play': { name: 'Fair Play', tier: 'year', icon: 'heart', for: 'Most appearances of the year without a card' },
+
+  // Hidden badges, handed out by the app the moment the thing happens (see the wildcard_badges migration).
+  'wild-declined': { name: 'Computer Says No', tier: 'wild', icon: 'ban', for: 'Paid with a card that got declined' },
+  'wild-left-pitch': { name: 'Left the Pitch', tier: 'wild', icon: 'door', for: 'Started paying, then walked away' },
+  'wild-pulled-out': { name: 'Pulled a Hamstring', tier: 'wild', icon: 'bandage', for: 'Paid for a spot, then pulled out before the draw' },
+  'wild-super-sub': { name: 'Super Sub', tier: 'wild', icon: 'swap', for: 'Came off standby and took the spot' },
+  'wild-trialist': { name: 'Mystery Trialist', tier: 'wild', icon: 'mystery', for: 'Turned up as a guest and got a shirt' },
+  'wild-early-bath': { name: 'Early Bath', tier: 'wild', icon: 'bath', for: 'A yellow and a red in one game' },
+  'wild-wrong-end': { name: 'Wrong End', tier: 'wild', icon: 'uturn', for: 'Scored at the wrong end' },
 
   silverware: { name: 'Silverware', tier: 'cup', icon: 'trophy', for: 'Won the Salami Cup' },
   'cup-hero': { name: 'Cup Hero', tier: 'cup', icon: 'goal', for: 'Top scorer across the Salami Cup' },
@@ -115,5 +134,5 @@ export const MANUAL_BADGES = Object.entries(BADGE_DEFS)
 
 /** Badge names people can @-mention, with the tier that colours them. */
 export const MENTIONABLE_BADGES = Object.values(BADGE_DEFS)
-  .filter((d) => d.tier !== 'week')
+  .filter((d) => d.tier !== 'week' && d.tier !== 'wild')
   .map((d) => ({ name: d.name, tier: d.tier }))

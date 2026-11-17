@@ -9,7 +9,8 @@ import { BadgeIcon } from './BadgeIcon'
 import { BADGE_DEFS, MONTHLY_DEFS, TIER_COLOR, TIER_LABEL, TIER_LASTS, type BadgeDef, type BadgeTier } from './definitions'
 import { useBadgeRows, useBadgesByPlayer } from './hooks'
 
-const TIERS: BadgeTier[] = ['cup', 'year', 'month', 'week']
+const WILD_COUNT = Object.values(BADGE_DEFS).filter((d) => d.tier === 'wild').length
+const TIERS: BadgeTier[] = ['cup', 'year', 'wild', 'month', 'week']
 const CUP_FILL = 'linear-gradient(170deg,#ffe2a1,#f2a93b 55%,#a8650f)'
 
 type Filter = 'all' | 'todo' | 'won'
@@ -37,6 +38,7 @@ export function AwardsPage() {
 
   const awards = useMemo(() => {
     const all = [...byPlayer.values()].flat()
+    // Wildcards stay hidden until someone finds them.
     return Object.entries({ ...BADGE_DEFS, ...MONTHLY_DEFS }).map(([key, def]): AwardSummary => {
       const won = all.filter((b) => b.badge_key === key)
       const mine = won.filter((b) => b.player_id === player?.id)
@@ -48,7 +50,7 @@ export function AwardsPage() {
         holdingNow: mine.some((b) => b.active),
         everAwarded: new Set(won.map((b) => b.period_key)).size,
       }
-    })
+    }).filter((a) => a.def.tier !== 'wild' || a.mine > 0)
   }, [byPlayer, player?.id])
 
   if (isLoading) return <PageLoader />
@@ -117,6 +119,12 @@ export function AwardsPage() {
           </section>
         )
       })}
+
+      {filter === 'all' && (
+        <p className="text-center text-xs text-astro-text-dim">
+          There are hidden Wildcard badges too. {awards.filter((x) => x.def.tier === 'wild').length} of {WILD_COUNT} found by you. They only show up once you earn them.
+        </p>
+      )}
 
       {shown.length === 0 && (
         <p className="rounded-2xl border border-dashed border-white/[0.1] px-5 py-8 text-center text-sm text-astro-text-dim">

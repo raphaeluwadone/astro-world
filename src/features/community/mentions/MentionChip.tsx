@@ -17,6 +17,7 @@ const TIER_TEXT: Record<BadgeTier, string> = {
   month: 'text-astro-cyan',
   year: 'text-[#b980ff]',
   cup: 'text-[#f7c25e]',
+  wild: 'text-[#f472b6]',
 }
 
 const AWARD_KEY_BY_NAME = new Map(Object.entries({ ...BADGE_DEFS, ...MONTHLY_DEFS }).map(([key, d]) => [d.name, key]))

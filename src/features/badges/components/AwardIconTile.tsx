@@ -150,6 +150,13 @@ const ART: Record<string, () => ReactNode> = {
   firepower: () => <Icon name="flame" style={run('ai-flare', 900, '12px 20px', 0, 'ease-in-out')} />,
   'back-to-back': () => <Icon name="repeat" style={run('ai-sweep', 800, undefined, 0, 'cubic-bezier(.5,0,.2,1)')} />,
   'wooden-spoon': () => <Icon name="spoon" style={run('ai-stir', 900, '4px 20px', 0, 'ease-in-out')} />,
+  'wild-declined': () => <Icon name="ban" style={run('ai-pendulum', 1100, '12px 12px')} />,
+  'wild-left-pitch': () => <Icon name="door" style={run('ai-sweep', 800, undefined, 0, 'cubic-bezier(.5,0,.2,1)')} />,
+  'wild-pulled-out': () => <Icon name="bandage" style={run('ai-pendulum', 1100, '12px 12px')} />,
+  'wild-super-sub': () => <Icon name="swap" style={run('ai-sweep', 800, undefined, 0, 'cubic-bezier(.5,0,.2,1)')} />,
+  'wild-trialist': () => <Icon name="mystery" style={run('ai-flare', 900, '12px 20px', 0, 'ease-in-out')} />,
+  'wild-early-bath': () => <Icon name="bath" style={run('ai-flare', 900, '12px 20px', 0, 'ease-in-out')} />,
+  'wild-wrong-end': () => <Icon name="uturn" style={run('ai-sweep', 800, undefined, 0, 'cubic-bezier(.5,0,.2,1)')} />,
 }
 
 /** Awards not in the list above (custom monthly ones) borrow the art of an award with the same icon. */
@@ -177,6 +184,13 @@ const BY_ICON: Record<BadgeIconName, string> = {
   flame: 'firepower',
   repeat: 'back-to-back',
   spoon: 'wooden-spoon',
+  ban: 'wild-declined',
+  door: 'wild-left-pitch',
+  bandage: 'wild-pulled-out',
+  swap: 'wild-super-sub',
+  mystery: 'wild-trialist',
+  bath: 'wild-early-bath',
+  uturn: 'wild-wrong-end',
 }
 
 /** The award's icon in its tier colour, playing that award's short animation once when it mounts. */

@@ -2145,6 +2145,7 @@ export type Database = {
           legacy_clean_sheets: number
           legacy_goals: number
           legacy_red_cards: number
+          added_as_guest: boolean
           legacy_yellow_cards: number
           nickname: string
           onboarded_at: string | null
@@ -2179,6 +2180,7 @@ export type Database = {
           legacy_clean_sheets?: number
           legacy_goals?: number
           legacy_red_cards?: number
+          added_as_guest?: boolean
           legacy_yellow_cards?: number
           nickname: string
           onboarded_at?: string | null
@@ -2213,6 +2215,7 @@ export type Database = {
           legacy_clean_sheets?: number
           legacy_goals?: number
           legacy_red_cards?: number
+          added_as_guest?: boolean
           legacy_yellow_cards?: number
           nickname?: string
           onboarded_at?: string | null
