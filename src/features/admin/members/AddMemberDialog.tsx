@@ -3,6 +3,7 @@ import { cn } from 'cn'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { togglePosition } from '@/lib/positions'
+import { useGuardedClose } from '@/hooks/useUnsavedGuard'
 import { useCreateMember } from './hooks'
 
 const POSITIONS = ['GK', 'DEF', 'ATT', 'UTIL'] as const
@@ -20,6 +21,16 @@ export function AddMemberDialog({ open, onOpenChange, onCreated }: { open: boole
     setFullName('')
     setPositions([])
   }
+
+  const dirty = open && (nickname.trim().length > 0 || fullName.trim().length > 0 || positions.length > 0)
+  const closeGuarded = useGuardedClose(
+    dirty,
+    () => {
+      reset()
+      onOpenChange(false)
+    },
+    { body: 'This player hasn’t been added yet. If you close now, what you entered is lost.' },
+  )
 
   const submit = () =>
     create.mutate(
@@ -39,8 +50,8 @@ export function AddMemberDialog({ open, onOpenChange, onCreated }: { open: boole
     <DialogPrimitive.Root
       open={open}
       onOpenChange={(o) => {
-        if (!o) reset()
-        onOpenChange(o)
+        if (o) onOpenChange(true)
+        else closeGuarded()
       }}
     >
       <DialogPrimitive.Portal>

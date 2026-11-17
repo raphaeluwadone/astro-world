@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { InlineLoader } from '@/components/states/InlineLoader'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { RichEditor } from '@/components/editor/RichEditor'
@@ -17,6 +18,7 @@ export function PostComposer({
 }) {
   const { player } = useCurrentPlayer()
   const [content, setContent] = useState('')
+  useUnsavedGuard(content.trim().length > 0, { title: 'Leave without posting?', body: 'Your post hasn’t been posted. If you leave now, it’s lost.', confirmLabel: 'Discard' })
 
   function submit() {
     const trimmed = content.trim()

@@ -3,6 +3,7 @@ import { withConfirm } from '@/components/dialogs/confirm'
 import { useState, type ReactNode } from 'react'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { useAllPlayers } from '@/features/kitty/hooks'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { toast } from 'sonner'
 import { Scene } from '@/components/states/Scene'
 import { NothingHere } from '@/components/states/NothingHere'
@@ -35,6 +36,7 @@ function PriceField({ kind, current, updatedBy }: { kind: PriceKind; current: nu
   const [value, setValue] = useState(current ? String(current) : '')
   const save = useSetPrice(updatedBy)
   const amount = Number(value)
+  useUnsavedGuard(value !== (current ? String(current) : ''), { body: `The ${KIND_LABEL[kind].toLowerCase()} price hasn’t been saved. If you leave now, it’s lost.` })
   return (
     <form
       className="flex items-end gap-2"

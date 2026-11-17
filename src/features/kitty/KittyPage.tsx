@@ -1,6 +1,7 @@
 import { withConfirm } from '@/components/dialogs/confirm'
 import { confirmPay } from '@/features/matchday/confirmCopy'
 import { useState } from 'react'
+import { useGuardedClose, useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { Scene } from '@/components/states/Scene'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { EmptyState } from '@/components/states/EmptyState'
@@ -78,6 +79,9 @@ function SuggestCauseForm({ suggestedBy }: { suggestedBy: string }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const suggest = useSuggestCause()
+  const dirty = open && (title.trim().length > 0 || description.trim().length > 0)
+  useUnsavedGuard(dirty, { title: 'Leave without sending?', body: 'Your cause hasn’t been sent. If you leave now, it’s lost.', confirmLabel: 'Discard' })
+  const closeForm = useGuardedClose(dirty, () => { setOpen(false); setTitle(''); setDescription('') }, { title: 'Discard this cause?', body: 'It hasn’t been sent.', confirmLabel: 'Discard' })
 
   if (!open) {
     return (
@@ -119,7 +123,7 @@ function SuggestCauseForm({ suggestedBy }: { suggestedBy: string }) {
               () =>
                 suggest.mutate(
                   { title: title.trim(), description: description.trim(), suggestedBy },
-                  { onSuccess: () => setOpen(false) },
+                  { onSuccess: () => { setOpen(false); setTitle(''); setDescription('') } },
                 ),
             )
           }
@@ -127,7 +131,7 @@ function SuggestCauseForm({ suggestedBy }: { suggestedBy: string }) {
         >
           {suggest.isPending ? 'Sending…' : 'Send it'}
         </button>
-        <button type="button" onClick={() => setOpen(false)} className="text-xs font-bold text-astro-text-dim">
+        <button type="button" onClick={closeForm} className="text-xs font-bold text-astro-text-dim">
           Cancel
         </button>
       </div>

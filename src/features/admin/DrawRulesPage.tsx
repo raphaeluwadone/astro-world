@@ -1,5 +1,6 @@
 import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { toast } from 'sonner'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { NothingHere } from '@/components/states/NothingHere'
@@ -67,9 +68,10 @@ export function DrawRulesPage() {
   const { data: saved, isLoading } = useDrawRules()
   const save = useSaveDrawRules()
   const [draft, setDraft] = useState<DrawRules | null>(null)
+  const dirty = !!saved && draft != null && JSON.stringify(draft) !== JSON.stringify(saved)
+  useUnsavedGuard(dirty, { body: 'Your draw rules haven’t been saved. If you leave now, they’re lost.' })
   if (isLoading || !saved) return <PageLoader />
   const rules = draft ?? saved
-  const dirty = draft != null && JSON.stringify(draft) !== JSON.stringify(saved)
 
   return (
     <div className="mx-auto flex max-w-[640px] flex-col gap-4">

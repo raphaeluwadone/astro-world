@@ -1,5 +1,6 @@
 import { confirmAction, undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { toast } from 'sonner'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { Button } from '@/components/ui/button'
@@ -41,6 +42,12 @@ function CreateQuarterForm() {
   const [entriesCloseAt, setEntriesCloseAt] = useState(inDaysAt(11, '20:00'))
   const [withdrawalDeadline, setWithdrawalDeadline] = useState(inDaysAt(13, '19:00'))
   const [error, setError] = useState<string | null>(null)
+  const [initial] = useState({ label, venue, scheduledAt, entriesCloseAt, withdrawalDeadline })
+  useUnsavedGuard(
+    !createQuarter.isSuccess &&
+      (label !== initial.label || venue.trim() !== initial.venue || scheduledAt !== initial.scheduledAt || entriesCloseAt !== initial.entriesCloseAt || withdrawalDeadline !== initial.withdrawalDeadline),
+    { body: 'This cup hasn’t been opened yet. If you leave now, what you entered is lost.' },
+  )
 
   async function open() {
     if (!label.trim()) {

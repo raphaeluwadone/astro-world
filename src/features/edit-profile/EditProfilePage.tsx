@@ -2,6 +2,7 @@ import { undoToast } from '@/components/dialogs/confirm'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { BackLink } from '@/components/navigation/BackLink'
 import { InlineLoader } from '@/components/states/InlineLoader'
 import { PageLoader } from '@/components/states/PageLoader'
@@ -53,11 +54,14 @@ export function EditProfilePage() {
   const removeSelfTag = useRemoveSelfTag(playerId)
 
   const [draft, setDraft] = useState<DraftFields | null>(null)
+  const [initial, setInitial] = useState<DraftFields | null>(null)
+  useUnsavedGuard(!!draft && !!initial && JSON.stringify(draft) !== JSON.stringify(initial), { body: 'Your profile changes haven’t been saved. If you leave now, they’re lost.' })
   if (player && !draft) {
     // Initialize local edit state from the fetched player the first time
     // it's available: a conditional setState during render, not an
     // effect, since this only ever needs to run once per player load.
     setDraft(toDraft(player))
+    setInitial(toDraft(player))
   }
 
   if (!player || !draft) {
@@ -89,7 +93,7 @@ export function EditProfilePage() {
       positions: draft.positions,
       preferred_foot: draft.preferred_foot,
     })
-    navigate({ to: '/profile' })
+    navigate({ to: '/profile', ignoreBlocker: true })
   }
 
   return (
@@ -151,7 +155,7 @@ export function EditProfilePage() {
             fields={[
               { label: 'Overall rating', why: 'Averaged from everyone else’s scores.', value: careerAvg?.toString() ?? '—' },
               { label: 'Appearances', why: 'Past appearances plus every match recorded.', value: ((careerStats?.appearances ?? 0) + player.legacy_appearances).toString() },
-              { label: 'Goals / assists', why: 'Logged from the matchday record.', value: `${careerStats?.goals ?? 0} / ${careerStats?.assists ?? 0}` },
+              { label: 'Goals / assists', why: 'Past totals plus the matchday record.', value: `${(careerStats?.goals ?? 0) + player.legacy_goals} / ${(careerStats?.assists ?? 0) + player.legacy_assists}` },
               { label: 'Man of the Match', why: 'Voted by the group, tallied per matchday.', value: (careerStats?.motm ?? 0).toString() },
               {
                 label: 'Traits from the group',

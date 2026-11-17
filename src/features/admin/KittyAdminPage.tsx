@@ -3,6 +3,7 @@ import { confirmAction, undoToast, withConfirm } from '@/components/dialogs/conf
 import { NothingHere } from '@/components/states/NothingHere'
 import { Scene } from '@/components/states/Scene'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { Button } from '@/components/ui/button'
@@ -49,6 +50,8 @@ function OpenQuarterForm({ lastAmount }: { lastAmount: number }) {
   const [amount, setAmount] = useState(String(lastAmount || 12000))
   const [dueDate, setDueDate] = useState(localDateInput(year, quarter * 3 - 3, 1))
   const [error, setError] = useState<string | null>(null)
+  const [initial] = useState({ amount, dueDate })
+  useUnsavedGuard(!createQuarter.isSuccess && (amount !== initial.amount || dueDate !== initial.dueDate), { body: 'These dues haven’t been opened yet. If you leave now, what you entered is lost.' })
 
   async function open() {
     const parsed = Number(amount)
@@ -164,6 +167,7 @@ function CauseAdminRow({ cause, markedBy }: { cause: Cause; markedBy: string }) 
   const [deadline, setDeadline] = useState('')
   const [contributorId, setContributorId] = useState('')
   const [contributionAmount, setContributionAmount] = useState('')
+  useUnsavedGuard(!!targetAmount || !!deadline || !!contributorId || !!contributionAmount, { body: 'You started changing this cause but haven’t saved it. If you leave now, it’s lost.' })
 
   const contributedIds = new Set(contributors.map((c) => c.player_id))
 

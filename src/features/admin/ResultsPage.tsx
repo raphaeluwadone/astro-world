@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { Scene } from '@/components/states/Scene'
 import { AstroSelect } from '@/components/ui/astro-select'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
@@ -206,6 +207,7 @@ export function ResultsPage() {
 
   const [fixtures, setFixtures] = useState<FixtureDraft[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  useUnsavedGuard(fixtures !== null && !fileResults.isSuccess, { body: 'You changed these results but haven’t filed them. If you leave now, your changes are lost.' })
 
   if (matchdayLoading || teamsLoading || pitchLoading) return <PageLoader />
   if (matchdayError) return <ErrorState onRetry={() => refetchMatchday()} />

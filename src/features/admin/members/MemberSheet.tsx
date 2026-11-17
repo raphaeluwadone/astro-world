@@ -1,7 +1,8 @@
 import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { useGuardedClose, useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { toast } from 'sonner'
 import { AdminConfirmDialog } from '@/components/dialogs/AdminConfirmDialog'
 import { AstroSelect } from '@/components/ui/astro-select'
@@ -94,7 +95,7 @@ function toPatch(f: Form): MemberPatch {
   }
 }
 
-function SheetBody({ m }: { m: MemberRow }) {
+function SheetBody({ m, onDirtyChange }: { m: MemberRow; onDirtyChange: (dirty: boolean) => void }) {
   const { player } = useCurrentPlayer()
   const update = useUpdateMember()
   const role = useSetRole()
@@ -103,6 +104,8 @@ function SheetBody({ m }: { m: MemberRow }) {
   const [confirmLeave, setConfirmLeave] = useState(false)
   const isMe = m.id === player?.id
   const dirty = JSON.stringify(form) !== JSON.stringify(saved)
+  useUnsavedGuard(dirty, { body: 'This member’s changes haven’t been saved. If you leave now, they’re lost.' })
+  useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange])
   const valid = form.nickname.trim().length > 0 && form.full_name.trim().length > 0
   const set = (patch: Partial<Form>) => setForm((f) => ({ ...f, ...patch }))
 
@@ -309,10 +312,19 @@ function SheetBody({ m }: { m: MemberRow }) {
 }
 
 export function MemberSheet({ member, onOpenChange }: { member: MemberRow | null; onOpenChange: (open: boolean) => void }) {
+  const [dirty, setDirty] = useState(false)
+  const closeGuarded = useGuardedClose(
+    dirty,
+    () => {
+      setDirty(false)
+      onOpenChange(false)
+    },
+    { body: 'This member’s changes haven’t been saved. If you close now, they’re lost.' },
+  )
   return (
-    <Sheet open={!!member} onOpenChange={onOpenChange}>
+    <Sheet open={!!member} onOpenChange={(o) => (o ? onOpenChange(true) : closeGuarded())}>
       <SheetContent side="right" className="w-full gap-0 overflow-y-auto border-white/[0.09] bg-astro-admin-chrome p-0 text-astro-text data-[side=right]:w-full sm:max-w-md data-[side=right]:sm:max-w-md">
-        {member && <SheetBody key={member.id} m={member} />}
+        {member && <SheetBody key={member.id} m={member} onDirtyChange={setDirty} />}
       </SheetContent>
     </Sheet>
   )

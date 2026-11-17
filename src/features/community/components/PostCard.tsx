@@ -1,5 +1,6 @@
 import { withConfirm } from '@/components/dialogs/confirm'
 import { useEffect, useState, type ReactNode } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { toast } from 'sonner'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { BadgeMark } from '@/features/badges/components/BadgeMark'
@@ -57,6 +58,7 @@ function Replies({ postId, canReply, onCancel }: { postId: string; canReply: boo
   const create = useCreateReply(postId, player?.id ?? null)
   const remove = useDeleteReply(postId)
   const [text, setText] = useState('')
+  useUnsavedGuard(text.trim().length > 0, { title: 'Leave without posting?', body: 'Your reply hasn’t been posted. If you leave now, it’s lost.', confirmLabel: 'Discard' })
 
   const send = () => {
     if (!text.trim() || text.length > 1000 || create.isPending) return

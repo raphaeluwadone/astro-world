@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { RichEditor } from '@/components/editor/RichEditor'
 import { MemorialModal } from '@/components/dialogs/MemorialModal'
 import { VigilLoaderSmall } from '@/components/states/VigilLoader'
@@ -14,6 +15,7 @@ export function TributeComposer({
 }) {
   const [open, setOpen] = useState(false)
   const [content, setContent] = useState('')
+  useUnsavedGuard(content.trim().length > 0, { title: 'Leave without posting?', body: 'Your tribute hasn’t been posted. If you leave now, it’s lost.', confirmLabel: 'Discard' })
 
   function submit() {
     const trimmed = content.trim()

@@ -1,5 +1,6 @@
 import { confirmAction, undoToast } from '@/components/dialogs/confirm'
-import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { Scene } from '@/components/states/Scene'
 import { cn } from 'cn'
 import { useRef, useState } from 'react'
@@ -40,10 +41,7 @@ function EditorForm({ article }: { article: ArticleDetail | null }) {
   const busy = save.isPending || publish.isPending || remove.isPending
   const ready = draft.title.trim().length > 0 && draft.body.trim().length > 0
 
-  useBlocker({
-    shouldBlockFn: () => dirty && !window.confirm('You have unsaved changes. Leave anyway?'),
-    enableBeforeUnload: () => dirty,
-  })
+  useUnsavedGuard(dirty, { body: 'Your changes to this article haven’t been saved. If you leave now, they’re lost.' })
 
   const set = (patch: Partial<ArticleDraft>) => setDraft((d) => ({ ...d, ...patch }))
   const upload = (file: File) => uploadArticleImage(player!.id, file)

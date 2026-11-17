@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useGuardedClose, useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { MentionField, taggedIn } from '@/features/community/mentions/MentionField'
@@ -14,6 +15,8 @@ export function HonoursComposer({ authorId, editing, onDone }: { authorId: strin
   const [text, setText] = useState(initial.text)
   const [picked, setPicked] = useState<Mentionable[]>(initial.picked)
   const save = useSaveHonoursPost(authorId)
+  const dirty = open && (title.trim() !== (editing?.title ?? '').trim() || text.trim() !== initial.text.trim())
+  useUnsavedGuard(dirty, { title: 'Leave without posting?', body: 'Your honours post hasn’t been saved. If you leave now, it’s lost.', confirmLabel: 'Discard' })
 
   function close() {
     setOpen(false)
@@ -22,6 +25,8 @@ export function HonoursComposer({ authorId, editing, onDone }: { authorId: strin
     setPicked([])
     onDone?.()
   }
+
+  const cancel = useGuardedClose(dirty, close, { title: 'Discard this post?', body: 'It hasn’t been saved.', confirmLabel: 'Discard' })
 
   function submit() {
     if (!title.trim() || !text.trim()) return
@@ -77,7 +82,7 @@ export function HonoursComposer({ authorId, editing, onDone }: { authorId: strin
         />
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-        <Button variant="ghost" onClick={close} disabled={save.isPending}>
+        <Button variant="ghost" onClick={cancel} disabled={save.isPending}>
           Cancel
         </Button>
         <Button onClick={submit} disabled={!title.trim() || !text.trim() || save.isPending}>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { Button } from '@/components/ui/button'
+import { useGuardedClose } from '@/hooks/useUnsavedGuard'
 import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 
@@ -88,6 +89,8 @@ export function PhotoCropDialog({
   const [dragging, setDragging] = useState(false)
   const [blurOn, setBlurOn] = useState(false)
   const [strength, setStrength] = useState(DEFAULT_STRENGTH)
+  const [touched, setTouched] = useState(false)
+  const requestCancel = useGuardedClose(touched && !saving, onCancel, { title: 'Discard your photo changes?', body: 'Your edits to this photo haven’t been saved. If you close now, they’re lost.', confirmLabel: 'Discard' })
   const effect = blurOn ? strength : 0
   const blur = blurFor(effect)
 
@@ -95,6 +98,7 @@ export function PhotoCropDialog({
     if (!source) return
     const edit = 'url' in source ? source.edit : null
     setImg(null)
+    setTouched(false)
     setZoom(edit?.zoom ?? 1)
     setOffset({ x: edit?.x ?? 0, y: edit?.y ?? 0 })
     setBlurOn(edit?.blur ?? false)
@@ -119,6 +123,7 @@ export function PhotoCropDialog({
   }
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     if (!drag.current || !img) return
+    setTouched(true)
     setOffset(clampOffset(drag.current.ox + e.clientX - drag.current.x, drag.current.oy + e.clientY - drag.current.y, img, scale))
   }
   const onUp = () => {
@@ -127,6 +132,7 @@ export function PhotoCropDialog({
   }
 
   const setZoomClamped = (z: number) => {
+    setTouched(true)
     setZoom(z)
     if (img) setOffset((o) => clampOffset(o.x, o.y, img, cover * z))
   }
@@ -169,7 +175,7 @@ export function PhotoCropDialog({
   }
 
   return (
-    <Dialog open={!!source} onOpenChange={(open) => !open && !saving && onCancel()}>
+    <Dialog open={!!source} onOpenChange={(open) => !open && !saving && requestCancel()}>
       <DialogContent className="max-w-[360px] gap-0 border border-white/[0.08] bg-astro-surface p-5 text-astro-text sm:max-w-[360px]">
         <DialogTitle className="font-display text-[28px] font-normal leading-none text-astro-text">{source && 'url' in source ? 'Edit your photo' : 'Position your photo'}</DialogTitle>
         <DialogDescription className="mb-4 mt-1 text-[12.5px] text-astro-text-muted">Drag to move it, use the slider to zoom.</DialogDescription>
@@ -224,7 +230,7 @@ export function PhotoCropDialog({
 
         <div className="mt-3 flex items-center gap-3 text-xs font-bold text-astro-text-muted">
           <span id="photo-blur-label">Blur</span>
-          <Switch checked={blurOn} onCheckedChange={setBlurOn} aria-labelledby="photo-blur-label" />
+          <Switch checked={blurOn} onCheckedChange={(on) => { setTouched(true); setBlurOn(on) }} aria-labelledby="photo-blur-label" />
           {blurOn && (
             <input
               type="range"
@@ -232,7 +238,7 @@ export function PhotoCropDialog({
               max={1}
               step={0.01}
               value={strength}
-              onChange={(e) => setStrength(Number(e.target.value))}
+              onChange={(e) => { setTouched(true); setStrength(Number(e.target.value)) }}
               className="flex-1 accent-[#a63fff]"
               aria-label="Blur strength"
             />
@@ -240,7 +246,7 @@ export function PhotoCropDialog({
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={onCancel} disabled={saving}>
+          <Button variant="ghost" onClick={requestCancel} disabled={saving}>
             Cancel
           </Button>
           <Button onClick={save} disabled={!img || saving}>

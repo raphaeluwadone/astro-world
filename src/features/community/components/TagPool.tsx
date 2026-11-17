@@ -1,6 +1,7 @@
 import { withConfirm } from '@/components/dialogs/confirm'
 import { cn } from 'cn'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { toast } from 'sonner'
 import { TagHoverCard } from '@/components/hover/InfoCards'
 import { AstroSelect } from '@/components/ui/astro-select'
@@ -29,6 +30,7 @@ export function TagPool({ tags }: { tags: TagPoolRow[] }) {
   const voteIn = useTraitVote(me)
   const [label, setLabel] = useState('')
   const [teammate, setTeammate] = useState('')
+  useUnsavedGuard(label.trim().length > 0, { title: 'Leave without sending?', body: 'Your trait suggestion hasn’t been put up for a vote. If you leave now, it’s lost.', confirmLabel: 'Discard' })
   const { data: teammateVotes = [] } = usePlayerTraitVotes(teammate || undefined, me)
   const voteOn = usePlayerTraitVote(me)
   const teammateCard = players.find((p) => p.id === teammate)

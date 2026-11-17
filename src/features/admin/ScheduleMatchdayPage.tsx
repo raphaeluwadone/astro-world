@@ -2,6 +2,7 @@ import { confirmAction } from '@/components/dialogs/confirm'
 import { RatingSettingsCard } from '@/features/voting/components/RatingSettingsCard'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/states/ErrorState'
 import { PageLoader } from '@/components/states/PageLoader'
@@ -23,6 +24,11 @@ export function ScheduleMatchdayPage() {
   const [venue, setVenue] = useState('')
   const [capacity, setCapacity] = useState<30 | 36>(30)
   const [error, setError] = useState<string | null>(null)
+  const [initial] = useState({ date, time, venue, capacity })
+  useUnsavedGuard(
+    !createMatchday.isSuccess && (date !== initial.date || time !== initial.time || venue.trim() !== initial.venue || capacity !== initial.capacity),
+    { body: 'This matchday hasn’t been opened yet. If you leave now, what you entered is lost.' },
+  )
 
   async function open() {
     if (!date || !time) {
