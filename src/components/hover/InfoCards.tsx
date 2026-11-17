@@ -195,10 +195,10 @@ function MemorialCardBody() {
   const { data: tributes = [] } = useTributes()
   return (
     <>
-      <HoverCardEyebrow color="#cbd5f5">In memory · No. 13</HoverCardEyebrow>
+      <HoverCardEyebrow color="#cbd5f5">In memory · No. 4</HoverCardEyebrow>
       <div className="font-display text-[24px] leading-none text-astro-text">Ade Salami</div>
       <div className="mb-2 mt-1 text-xs text-astro-text-muted [text-wrap:pretty]">
-        Started the group chat and bought the first set of bibs. Thirteen was retired in his memory.
+        Started the group chat and bought the first set of bibs. Four was retired in his memory.
       </div>
       <div className="text-[11px] text-astro-text-dim">
         {tributes.length} {tributes.length === 1 ? 'tribute' : 'tributes'} left so far

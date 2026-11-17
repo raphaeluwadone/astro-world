@@ -53,7 +53,7 @@ export function KindGlyph({ kind, className }: { kind: MentionKind; className?: 
         className={cn('font-display inline-flex size-[15px] items-center justify-center self-center rounded-[4px] border border-[#cbd5f5]/50 text-[10px] leading-none text-[#e8ecfa]', className)}
         style={{ clipPath: 'polygon(0 0,100% 0,100% 72%,72% 100%,0 100%)' }}
       >
-        13
+        4
       </span>
     )
   if (kind === 'cup' || kind === 'achievement')

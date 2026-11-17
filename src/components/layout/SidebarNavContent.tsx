@@ -137,7 +137,7 @@ function MemorialLink({ active, onNavigate }: { active: boolean; onNavigate?: ()
         )}
         style={{ clipPath: 'polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%)' }}
       >
-        13
+        4
       </div>
       <div className="min-w-0">
         <div className={cn('text-[9.5px] font-extrabold uppercase tracking-[0.13em]', active ? 'text-[#cbd5f5]' : 'text-astro-text-dim')}>In memory</div>

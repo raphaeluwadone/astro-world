@@ -64,5 +64,5 @@ export function encodeMentions(text: string, picked: Mentionable[]) {
   }
 }
 
-export const SALAMI: Mentionable = { kind: 'memorial', ref: '', label: 'Salami', sub: 'In memory · #13' }
+export const SALAMI: Mentionable = { kind: 'memorial', ref: '', label: 'Salami', sub: 'In memory · #4' }
 export const SALAMI_CUP: Mentionable = { kind: 'cup', ref: '', label: 'Salami Cup', sub: 'Quarterly tournament' }

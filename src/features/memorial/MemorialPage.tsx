@@ -24,7 +24,7 @@ export function MemorialPage() {
           className="pointer-events-none absolute right-[-30px] top-[-40px] font-display text-[220px] leading-none"
           style={{ color: 'rgba(255,255,255,0.04)' }}
         >
-          13
+          4
         </div>
         <div className="relative flex items-center gap-2.5 pb-4">
           <div className="h-px w-[26px] bg-astro-accent" />
@@ -36,11 +36,11 @@ export function MemorialPage() {
           ADE SALAMI
         </h1>
         <p className="relative mt-2 text-sm text-astro-text-muted">
-          No. 13, his number, and anyone&rsquo;s who wants it
+          No. 4, his number, retired in his memory
         </p>
         <p className="relative mt-5 max-w-[68ch] text-[15px] leading-[1.65] text-astro-text [text-wrap:pretty]">
           Ade Salami played with us for years. He started the group chat and bought the first set of
-          bibs. Thirteen was retired in his memory, and four times a year the Salami Cup is played in
+          bibs. Four was retired in his memory, and four times a year the Salami Cup is played in
           his name, with squads picked by hand rather than drawn.
         </p>
       </div>
