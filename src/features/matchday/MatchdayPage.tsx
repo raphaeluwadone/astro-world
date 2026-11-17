@@ -122,7 +122,8 @@ export function MatchdayPage() {
   const confirmedCount = weeklyClaims.length + monthlyInCount
   const weeklyPayments = myPayments.filter((p) => p.kind === 'weekly' && p.matchday_id === matchday.id)
   const monthlyPayments = myPayments.filter((p) => p.kind === 'monthly' && p.month === month)
-  const weeklyPaid = hasWeeklyClaim && weeklyPayments.some((p) => p.status === 'paid')
+  const weeklyWaived = !!player && weeklyClaims.some((w) => w.player_id === player.id && w.waived_by)
+  const weeklyPaid = hasWeeklyClaim && (weeklyWaived || weeklyPayments.some((p) => p.status === 'paid'))
   const monthlyPaid = isMonthlyMember && monthlyPayments.some((p) => p.status === 'paid')
   const weeklyHold = weeklyPayments.find(isActiveHold)?.hold_until ?? null
   const monthlyHold = monthlyPayments.find(isActiveHold)?.hold_until ?? null
@@ -208,6 +209,7 @@ export function MatchdayPage() {
           isLeavingStandby={leaveStandby.isPending}
           weeklyPrice={prices.weekly}
           isPaid={weeklyPaid}
+          isWaived={weeklyWaived}
           isMonthlyPaid={monthlyPaid}
           monthlyPrice={prices.monthly}
           payDeadline={deadline}

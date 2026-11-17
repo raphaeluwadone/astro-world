@@ -11,6 +11,7 @@ import {
   fetchPrices,
   markRefunded,
   markSpotPaid,
+  addToMatchday,
   setPrice,
   startPayment,
   verifyPayment,
@@ -81,6 +82,18 @@ export function useMarkRefunded() {
   return useMutation({
     mutationFn: markRefunded,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payments'] }),
+    onError: (e) => toast.error(e.message),
+  })
+}
+
+export function useAddToMatchday() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ matchdayId, playerId, waive }: { matchdayId: string; playerId: string; waive: boolean }) => addToMatchday(matchdayId, playerId, waive),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+      queryClient.invalidateQueries({ queryKey: ['matchday'] })
+    },
     onError: (e) => toast.error(e.message),
   })
 }

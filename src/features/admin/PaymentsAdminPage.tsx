@@ -1,6 +1,8 @@
 import { digitsOnly, withCommas } from '@/lib/numbers'
 import { withConfirm } from '@/components/dialogs/confirm'
 import { useState, type ReactNode } from 'react'
+import { AstroSelect } from '@/components/ui/astro-select'
+import { useAllPlayers } from '@/features/kitty/hooks'
 import { toast } from 'sonner'
 import { Scene } from '@/components/states/Scene'
 import { NothingHere } from '@/components/states/NothingHere'
@@ -12,6 +14,7 @@ import { useNextMatchday } from '@/features/matchday/hooks'
 import { formatDeadline, payDeadline } from '@/features/matchday/payDeadline'
 import { formatNaira, type AdminPaymentRow, type PriceKind, type UnmatchedPayment } from '@/features/payments/api'
 import {
+  useAddToMatchday,
   useAdminPayments,
   useMarkRefunded,
   useMarkSpotPaid,
@@ -74,6 +77,46 @@ function PaymentLine({ p, action }: { p: AdminPaymentRow; action?: ReactNode }) 
         </span>
       </span>
       {action}
+    </div>
+  )
+}
+
+function AddToSunday({ matchdayId }: { matchdayId: string }) {
+  const { data: players = [] } = useAllPlayers()
+  const add = useAddToMatchday()
+  const [playerId, setPlayerId] = useState('')
+  const [waive, setWaive] = useState(true)
+  const name = players.find((p) => p.id === playerId)?.nickname ?? ''
+  return (
+    <div className="mb-4 rounded-lg border border-white/[0.08] p-3.5">
+      <div className="mb-2 text-[13px] font-extrabold text-astro-text">Add a player to this Sunday</div>
+      <AstroSelect
+        value={playerId}
+        onValueChange={setPlayerId}
+        options={players.map((p) => ({ value: p.id, label: p.nickname }))}
+        placeholder="Choose a player"
+        aria-label="Player to add"
+      />
+      <label className="mt-2.5 flex cursor-pointer items-center gap-2 text-[12.5px] text-astro-text-muted">
+        <input type="checkbox" checked={waive} onChange={(e) => setWaive(e.target.checked)} className="size-4 accent-astro-cyan" />
+        Waive the payment
+      </label>
+      <p className="mt-1 text-[11.5px] text-astro-text-dim">
+        They get a spot even if every spot is taken. {waive ? 'Nothing is charged and the spot is never dropped for non-payment.' : 'They still have to pay by the deadline.'}
+      </p>
+      <button
+        type="button"
+        disabled={!playerId || add.isPending}
+        onClick={() =>
+          withConfirm(
+            { tone: 'admin', eyebrow: 'Payments', title: `Add ${name} to this Sunday?`, body: waive ? 'Their payment is waived. If every spot is taken, the Sunday goes over its spots. They are told they are in.' : 'They hold a spot but still pay by the deadline. They are told they are in.', confirmLabel: 'Add them' },
+            () => add.mutate({ matchdayId, playerId, waive }, { onSuccess: () => { toast.success(`${name} added`); setPlayerId('') } }),
+          )
+        }
+        className="mt-3 h-10 rounded-[10px] bg-astro-accent px-4 text-[13px] font-extrabold text-astro-on-accent disabled:opacity-50"
+      >
+        Add to Sunday
+      </button>
     </div>
   )
 }
@@ -235,6 +278,7 @@ export function PaymentsAdminPage() {
                   {roster.length - unpaid.length} of {roster.length} paid in the app
                 </div>
               </div>
+              <AddToSunday matchdayId={matchday.id} />
               <div className="flex max-h-[420px] flex-col gap-1.5 overflow-y-auto pr-1">
                 {roster.length === 0 && <NothingHere compact icon={<Scene kind="bench" />} title="Nobody has a spot yet" body="Players show up here as they claim a spot." />}
                 {roster.map((r) => (
@@ -242,7 +286,7 @@ export function PaymentsAdminPage() {
                     <span className="truncate text-[13px] font-bold text-astro-text">{r.nickname}</span>
                     <span className="flex shrink-0 items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.06em]">
                       <span className="text-astro-text-dim">{r.kind}</span>
-                      <span className={r.paid ? 'text-[#4ade80]' : 'text-astro-amber'}>{r.paid ? 'Paid' : 'Not paid'}</span>
+                      <span className={r.paid ? 'text-[#4ade80]' : 'text-astro-amber'}>{r.waived ? 'Waived' : r.paid ? 'Paid' : 'Not paid'}</span>
                       {!r.paid && prices[r.kind] !== undefined && (
                         <button
                           type="button"

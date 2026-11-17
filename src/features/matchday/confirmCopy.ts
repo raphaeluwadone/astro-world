@@ -9,7 +9,7 @@ export const CONFIRM_CLAIM: ConfirmOptions = {
 
 export const CONFIRM_JOIN_STANDBY: ConfirmOptions = {
   title: 'Join standby?',
-  body: 'If a spot frees up, everyone on standby hears at once and the first to claim it plays.',
+  body: 'Standby is free. If a spot frees up, everyone on standby hears at once and the first to claim it plays. You only pay if you take the spot.',
   confirmLabel: 'Join standby',
 }
 

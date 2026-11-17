@@ -33,6 +33,7 @@ interface Props {
   isLeavingStandby: boolean
   weeklyPrice: number | undefined
   isPaid: boolean
+  isWaived?: boolean
   isMonthlyPaid: boolean
   monthlyPrice: number | undefined
   payDeadline: Date
@@ -64,6 +65,7 @@ export function AvailabilityCard({
   isLeavingStandby,
   weeklyPrice,
   isPaid,
+  isWaived = false,
   isMonthlyPaid,
   monthlyPrice,
   payDeadline,
@@ -179,7 +181,7 @@ export function AvailabilityCard({
             </div>
             {isPaid ? (
               <div className="rounded-full border border-[rgba(74,222,128,0.45)] px-3 py-2 text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#4ade80]">
-                Paid
+                {isWaived ? 'Covered by an admin' : 'Paid'}
               </div>
             ) : (
               weeklyPrice !== undefined && (
@@ -218,6 +220,7 @@ export function AvailabilityCard({
             >
               Leave standby
             </button>
+            <p className="basis-full text-xs text-astro-text-dim">You only pay if a spot opens and you take it.</p>
           </div>
         ) : heldUntil && weeklyPrice !== undefined ? (
           <div className="mt-5">
@@ -261,6 +264,7 @@ export function AvailabilityCard({
             {isClaiming ? 'Claiming…' : `Claim your spot · ${spotsRemaining} left`}
           </button>
         ) : (
+          <>
           <button
             type="button"
             disabled={isJoiningStandby}
@@ -269,10 +273,14 @@ export function AvailabilityCard({
           >
             {isJoiningStandby ? 'Joining…' : 'Spots are full · join standby'}
           </button>
+          <p className="mt-2 max-w-md text-xs text-astro-text-dim [text-wrap:pretty]">
+            Every weekly spot is taken. Standby is free: you pay only if a spot opens and you take it. Paying for the month now would also start you on standby for this Sunday.
+          </p>
+          </>
         )}
       </div>
       <PullOutDialog
-        kind={confirming === 'claim' && isPaid ? 'paidClaim' : (confirming ?? 'claim')}
+        kind={confirming === 'claim' && isPaid && !isWaived ? 'paidClaim' : (confirming ?? 'claim')}
         open={confirming !== null}
         onOpenChange={(open) => !open && setConfirming(null)}
         isPending={confirming === 'claim' ? isWithdrawing : isLeavingStandby}

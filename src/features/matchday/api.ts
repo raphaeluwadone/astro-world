@@ -21,6 +21,7 @@ export interface AvailabilityRow {
 export interface WeeklyClaimRow {
   player_id: string
   claimed_at: string
+  waived_by: string | null
   players: PlayerSummary
 }
 
@@ -127,7 +128,7 @@ export async function fetchAvailability(matchdayId: string): Promise<Availabilit
 export async function fetchWeeklyClaims(matchdayId: string): Promise<WeeklyClaimRow[]> {
   const { data, error } = await supabase
     .from('weekly_claims')
-    .select(`player_id, claimed_at, players (${PLAYER_SUMMARY_COLS})`)
+    .select(`player_id, claimed_at, waived_by, players (${PLAYER_SUMMARY_COLS})`)
     .eq('matchday_id', matchdayId)
     .order('claimed_at', { ascending: true })
   if (error) throw error

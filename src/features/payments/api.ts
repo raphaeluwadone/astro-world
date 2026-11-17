@@ -78,19 +78,20 @@ export interface SlotRosterRow {
   nickname: string
   kind: PriceKind
   paid: boolean
+  waived: boolean
 }
 
 /** Everyone holding a spot for this Sunday, and whether a verified payment backs it. Admin only. */
 export async function fetchSlotRoster(matchdayId: string, month: string): Promise<SlotRosterRow[]> {
   const [weekly, monthly, paid] = await Promise.all([
-    supabase.from('weekly_claims').select('id, claimed_at, players (nickname)').eq('matchday_id', matchdayId).order('claimed_at'),
+    supabase.from('weekly_claims').select('id, claimed_at, waived_by, players (nickname)').eq('matchday_id', matchdayId).order('claimed_at'),
     supabase.from('monthly_memberships').select('id, claimed_at, players (nickname)').eq('month', month).order('claimed_at'),
     supabase.from('payments').select('weekly_claim_id, monthly_membership_id').eq('status', 'paid').or(`matchday_id.eq.${matchdayId},month.eq.${month}`),
   ])
   for (const r of [weekly, monthly, paid]) if (r.error) throw r.error
   const paidIds = new Set((paid.data ?? []).flatMap((p) => [p.weekly_claim_id, p.monthly_membership_id]))
-  const rows = (kind: PriceKind, data: Array<{ id: string; players: { nickname: string } | null }> | null) =>
-    (data ?? []).map((c) => ({ id: c.id, nickname: c.players?.nickname ?? 'Unknown', kind, paid: paidIds.has(c.id) }))
+  const rows = (kind: PriceKind, data: Array<{ id: string; waived_by?: string | null; players: { nickname: string } | null }> | null) =>
+    (data ?? []).map((c) => ({ id: c.id, nickname: c.players?.nickname ?? 'Unknown', kind, paid: paidIds.has(c.id) || !!c.waived_by, waived: !!c.waived_by }))
   return [...rows('monthly', monthly.data), ...rows('weekly', weekly.data)]
 }
 
@@ -128,6 +129,11 @@ export async function reconcileNow() {
 
 export async function markSpotPaid(kind: PriceKind, targetId: string) {
   const { error } = await supabase.rpc('mark_spot_paid', { p_kind: kind, p_target: targetId })
+  if (error) throw error
+}
+
+export async function addToMatchday(matchdayId: string, playerId: string, waive: boolean) {
+  const { error } = await supabase.rpc('admin_add_to_matchday', { p_matchday: matchdayId, p_player: playerId, p_waive: waive })
   if (error) throw error
 }
 

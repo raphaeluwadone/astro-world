@@ -2805,18 +2805,24 @@ export type Database = {
           id: string
           matchday_id: string
           player_id: string
+          waived_at: string | null
+          waived_by: string | null
         }
         Insert: {
           claimed_at?: string
           id?: string
           matchday_id: string
           player_id: string
+          waived_at?: string | null
+          waived_by?: string | null
         }
         Update: {
           claimed_at?: string
           id?: string
           matchday_id?: string
           player_id?: string
+          waived_at?: string | null
+          waived_by?: string | null
         }
         Relationships: [
           {
@@ -3197,6 +3203,10 @@ export type Database = {
           p_month?: string
         }
         Returns: Database["public"]["Tables"]["payments"]["Row"]
+      }
+      admin_add_to_matchday: {
+        Args: { p_matchday: string; p_player: string; p_waive?: boolean }
+        Returns: string
       }
       mark_spot_paid: {
         Args: { p_kind: Database['public']['Enums']['payment_kind']; p_target: string }
