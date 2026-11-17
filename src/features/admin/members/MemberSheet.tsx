@@ -174,7 +174,7 @@ function SheetBody({ m }: { m: MemberRow }) {
           <Field label="Full name">
             <input className={INPUT} value={form.full_name} maxLength={60} onChange={(e) => set({ full_name: e.target.value })} />
           </Field>
-          <Field label="Positions" className="col-span-2">
+          <Field label="Position" className="col-span-2">
             <div className="flex gap-1.5">
               {POSITIONS.map((p) => {
                 const on = form.positions.includes(p)
@@ -194,6 +194,7 @@ function SheetBody({ m }: { m: MemberRow }) {
                 )
               })}
             </div>
+            <p className="mt-1.5 text-[11.5px] text-astro-text-dim">One outfield position (DEF, ATT or UTIL), plus GK if they go in goal.</p>
           </Field>
           <Field label="Foot">
             <AstroSelect

@@ -81,7 +81,7 @@ export function DetailsCard({
             placeholder="e.g. 7"
             value={draft.favourite_number}
             onChange={(v) => onChange({ favourite_number: v })}
-            hint="Not a jersey number. Doesn't have to be unique."
+            hint="Not a jersey number. Doesn't have to be unique. Number 4 is retired."
           />
           <div>
             <FieldLabel>Favourite club</FieldLabel>

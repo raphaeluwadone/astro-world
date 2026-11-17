@@ -66,7 +66,7 @@ export function QuickLinks({
           className="font-display flex size-6 shrink-0 items-center justify-center rounded-[7px] border border-astro-accent/40 bg-astro-surface-2 text-[13px] text-astro-accent-soft"
           style={{ clipPath: 'polygon(0 0,100% 0,100% 74%,74% 100%,0 100%)' }}
         >
-          13
+          4
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[9px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">In memory</div>

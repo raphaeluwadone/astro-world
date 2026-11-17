@@ -19,7 +19,7 @@ export function ScheduleMatchdayPage() {
   const createMatchday = useCreateMatchday()
 
   const [date, setDate] = useState(nextSunday())
-  const [time, setTime] = useState('09:30')
+  const [time, setTime] = useState('07:45')
   const [venue, setVenue] = useState('')
   const [capacity, setCapacity] = useState<30 | 36>(30)
   const [error, setError] = useState<string | null>(null)
@@ -83,7 +83,7 @@ export function ScheduleMatchdayPage() {
             {matchday.venue ?? 'No venue set'} &middot; {matchday.capacity} spots &middot; status: {matchday.status}
           </p>
           <p className="mb-5 text-[12.5px] text-astro-text-dim">
-            One matchday at a time keeps the ballot unambiguous. This one needs to reach{' '}
+            One matchday at a time keeps spots and standby unambiguous. This one needs to reach{' '}
             <span className="font-semibold text-astro-text-muted">complete</span> before you can open the next.
           </p>
           <Link to="/matchday" className="text-sm font-semibold text-astro-accent">

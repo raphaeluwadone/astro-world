@@ -125,7 +125,7 @@ export const AWARD_COPY: Record<string, AwardCopy> = {
     ],
   },
   'ramos-energy': {
-    recognition: 'Overall defender of the year',
+    recognition: 'Best-rated defender or keeper of the year',
     personality: 'Authority, resilience, leadership, commitment, defensive intelligence, competitiveness and determination.',
     variations: [
       {
@@ -181,9 +181,9 @@ export const AWARD_COPY: Record<string, AwardCopy> = {
     ],
   },
   'messi-ah': {
-    recognition: 'Overall player of the year',
+    recognition: 'Best average rating of the year',
     personality:
-      'Effortless genius, understated confidence, creativity, consistency, versatility and the ability to influence every aspect of the game.',
+      'Consistency, quality and the respect of everyone you play with, shown in the best average rating of the year.',
     variations: [
       {
         title: 'The Chosen One',

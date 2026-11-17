@@ -62,7 +62,7 @@ export function CupBanner({ cup }: { cup: CupQuarter }) {
         style={{ animation: 'astro-drift 13s ease-in-out infinite' }}
         aria-hidden="true"
       >
-        13
+        4
       </div>
 
       <div className="relative flex flex-wrap items-center justify-between gap-5">
@@ -78,7 +78,7 @@ export function CupBanner({ cup }: { cup: CupQuarter }) {
           </div>
           <p className="max-w-[58ch] text-sm text-astro-text-muted [text-wrap:pretty]">
             {when}
-            {cup.venue ? ` at ${cup.venue}` : ''}. Not the weekly ballot. Played for Ade, four times a year.
+            {cup.venue ? ` at ${cup.venue}` : ''}. Not a normal Sunday. Played for Ade, four times a year.
           </p>
         </div>
         <div className="flex shrink-0 flex-col gap-2.5">

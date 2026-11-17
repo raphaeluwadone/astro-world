@@ -38,7 +38,7 @@ export function TributeComposer({
         open={open}
         onOpenChange={setOpen}
         title="Say something about Ade"
-        body="It stays on his page for good, next to everyone else's. There's no length to aim for, some of the best ones are a line."
+        body="It stays on his page until you take it down, next to everyone else's. There's no length to aim for, some of the best ones are a line."
         cancelLabel="Not now"
         confirmLabel={
           isSubmitting ? (

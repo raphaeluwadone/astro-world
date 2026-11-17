@@ -100,7 +100,7 @@ function SignInForm({ redirectTo, notice }: { redirectTo?: string; notice?: stri
             <div className="font-display text-2xl leading-none text-astro-accent-soft">NEW HERE?</div>
             <p className="mb-3.5 mt-1.5 text-[12.5px] text-astro-text-muted">You need the group code. Then find your name on the list.</p>
             <Link to="/signup" className="flex min-h-11 items-center justify-center rounded-xl bg-astro-accent text-[14px] font-extrabold text-astro-on-accent no-underline hover:bg-astro-accent-soft">
-              Find your name
+              Join with the group code
             </Link>
           </div>
         )

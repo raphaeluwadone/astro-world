@@ -70,7 +70,7 @@ function OpenQuarterForm({ lastAmount }: { lastAmount: number }) {
     <div className="astro-card max-w-lg p-6">
       <div className="font-display mb-2 text-2xl leading-none text-astro-text">Open Q{quarter} {year}</div>
       <p className="mb-4 text-[13px] text-astro-text-muted">
-        The design's own figure is an unconfirmed placeholder. Set the real amount whenever you have it.
+        Prefilled from the last quarter. Change it if this quarter's amount is different.
       </p>
       <div className="flex flex-col gap-4">
         <TextField label="Amount per player (₦)" type="money" placeholder="e.g. 5,000" value={amount} onChange={setAmount} />

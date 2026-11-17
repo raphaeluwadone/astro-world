@@ -44,7 +44,7 @@ export function useAdminAttention(): AttentionItem[] {
       section: 'members',
       tone: 'cyan',
       badge: String(claims.length),
-      line: `${claims.length} record ${claims.length === 1 ? 'claim' : 'claims'} waiting`,
+      line: `${claims.length} old ${claims.length === 1 ? 'claim' : 'claims'} waiting`,
     })
   }
 

@@ -26,7 +26,7 @@ export function AddMemberDialog({ open, onOpenChange, onCreated }: { open: boole
       { nickname, fullName, positions },
       {
         onSuccess: (id) => {
-          toast.success(`${nickname.trim()} added. They can claim the record when they join.`)
+          toast.success(`${nickname.trim()} added. They can pick this name when they join.`)
           reset()
           onOpenChange(false)
           onCreated(id)
@@ -52,7 +52,7 @@ export function AddMemberDialog({ open, onOpenChange, onCreated }: { open: boole
           <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-astro-cyan">Members</div>
           <DialogPrimitive.Title className="mb-1.5 font-display text-[28px] font-normal leading-none text-astro-text">Add a player</DialogPrimitive.Title>
           <DialogPrimitive.Description className="mb-4 text-[13px] text-astro-text-muted">
-            For someone who plays but hasn&rsquo;t signed up. Their record is ready to claim when they do.
+            For someone who plays but hasn&rsquo;t signed up. Their name appears in the list new players pick from.
           </DialogPrimitive.Description>
           <form
             className="flex flex-col gap-3"
@@ -82,6 +82,7 @@ export function AddMemberDialog({ open, onOpenChange, onCreated }: { open: boole
                 )
               })}
             </div>
+            <p className="-mt-1 text-[11.5px] text-astro-text-dim">One outfield position (DEF, ATT or UTIL), plus GK if they go in goal.</p>
             <div className="mt-2 flex justify-end gap-2">
               <DialogPrimitive.Close className="rounded-[8px] px-3 py-2 text-[13px] font-bold text-astro-text-muted hover:text-astro-text">Cancel</DialogPrimitive.Close>
               <button

@@ -77,7 +77,7 @@ function stepsFor(cup: CupQuarter | null): Step[] {
     {
       label: 'Getting in',
       title: 'Enter, then squads are drawn',
-      body: 'Say you\'re in on this page before entries close. Squads are drawn from everyone who entered, not from the weekly ballot.',
+      body: 'Say you\'re in on this page before entries close. Squads are made from everyone who entered, not from the Sunday spots.',
       points: [
         cup ? `Entries close ${formatWhen(cup.entries_close_at)}.` : 'Entries close a few days before the cup.',
         cup

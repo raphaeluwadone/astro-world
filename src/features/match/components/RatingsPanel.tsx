@@ -46,7 +46,7 @@ export function RatingsPanel({
       <p className="text-[13px] text-astro-text-muted">
         {isOpen
           ? "Numbers stay hidden while voting's still open, watching them tick up would give away who voted."
-          : 'Every score is an average of the other eleven. Nobody sees who gave what.'}
+          : 'Every score is an average of everyone else’s votes. Nobody sees who gave what.'}
       </p>
     </div>
   )

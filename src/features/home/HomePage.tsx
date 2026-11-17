@@ -108,7 +108,7 @@ export function HomePage() {
       <div className="mb-1.5 flex items-start justify-between gap-3 md:flex-wrap md:items-end md:gap-4 max-md:order-1">
         <div className="min-w-0">
           <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-            Sunday football, weekly ballot
+            Sunday football
           </div>
           <h1 className="font-display text-[40px] leading-[0.95] tracking-[0.01em] text-astro-text md:text-[52px]">
             {player ? `Alright, ${player.nickname}` : 'Alright'}

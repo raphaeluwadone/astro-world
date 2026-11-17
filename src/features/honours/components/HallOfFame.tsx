@@ -88,7 +88,7 @@ export function HallOfFameCompact({
   const current = hall.find((h) => h.year === year)
   return (
     <div className="astro-card p-5">
-      <h2 className="mb-3 font-display text-[28px] leading-none text-astro-text">Hall of fame</h2>
+      <h2 className="mb-3 font-display text-[28px] leading-none text-astro-text">Roll of honour</h2>
       {hall.length === 0 ? (
         <p className="text-sm text-astro-text-dim">The first names go up once the first titles are confirmed.</p>
       ) : (
@@ -125,7 +125,7 @@ export function HonoursBoard({ hall, year, onYear }: { hall: HallYear[]; year: n
       </div>
 
       {!current || current.cups.length + current.titles.length === 0 ? (
-        <p className="py-4 text-sm text-astro-text-muted">Nothing on the board for {year} yet. Yearly titles go up once an admin confirms them.</p>
+        <p className="py-4 text-sm text-astro-text-muted">Nothing on the board for {year} yet. Yearly titles go up once the year is done.</p>
       ) : (
         <>
           {current.cups.filter(isSilverware).map((e) => (

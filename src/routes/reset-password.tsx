@@ -17,7 +17,7 @@ function ResetPasswordPage() {
   if (!session)
     return (
       <AuthLayout subtitle="Link expired">
-        <p className="text-sm text-astro-text-muted">This reset link has expired or was already used. Ask for a new one from the sign-in page.</p>
+        <p className="text-sm text-astro-text-muted">This reset link has expired or was already used. Password reset by email is switched off. Ask an admin.</p>
         <Link to="/login" search={{ view: 'signin' }} className="mt-5 block text-center text-sm font-semibold text-astro-accent">
           Back to sign in
         </Link>

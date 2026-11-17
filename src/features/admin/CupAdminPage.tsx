@@ -446,7 +446,7 @@ export function CupAdminPage() {
             <div className="astro-card max-w-lg p-6">
               <div className="font-display mb-2 text-2xl leading-none text-astro-text">Run the draw</div>
               <p className="mb-4 text-[13px] text-astro-text-muted">
-                Splits entrants into squads of 6, same random draw Sunday uses. Needs a multiple of 6 entrants.
+                Splits entrants at random into squads of 6. Needs a multiple of 6 entrants.
               </p>
               {drawError && <p className="mb-3 text-xs text-astro-red">{drawError}</p>}
               <Button onClick={draw} disabled={!canDraw || runDraw.isPending} className="w-fit">

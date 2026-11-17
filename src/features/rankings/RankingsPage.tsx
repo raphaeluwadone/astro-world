@@ -279,8 +279,8 @@ export function RankingsPage() {
       </h1>
       <p className="mb-5 text-sm text-astro-text-muted">
         {view === 'players'
-          ? 'Season average, voted by everyone who had to play with you. Minimum 5 appearances.'
-          : "Three points a win, one for a draw. The ballot fills the sides with different people every Sunday, but the points stay with the shirt, and the shirt on top at the end of the year is crowned champion."}
+          ? 'Career average, voted by everyone who had to play with you. Only players with at least 5 appearances are listed.'
+          : "Three points a win, one for a draw. Sides change every Sunday, but the points stay with the shirt, and the shirt on top at the end of the year is crowned champion."}
       </p>
 
       <div className="mb-5 flex gap-2">

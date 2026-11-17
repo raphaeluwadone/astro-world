@@ -163,7 +163,7 @@ function CupCardBody() {
     <>
       <HoverCardEyebrow color="#f7c25e">{cup ? `${cup.label} · ${CUP_STATUS[cup.status] ?? cup.status}` : 'Salami Cup'}</HoverCardEyebrow>
       <div className="bg-[linear-gradient(180deg,#ffe8b5,#f2a93b)] bg-clip-text font-display text-[24px] leading-none text-transparent">The Salami Cup</div>
-      <div className="mb-2 mt-1 text-xs text-astro-text-muted">Played four times a year in Ade Salami&rsquo;s name, with squads picked by hand.</div>
+      <div className="mb-2 mt-1 text-xs text-astro-text-muted">Played four times a year in Ade Salami&rsquo;s name, with squads set by the admins.</div>
       {cup && (
         <div className="text-[12.5px] text-astro-text">
           {when}

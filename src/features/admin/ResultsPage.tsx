@@ -222,7 +222,7 @@ export function ResultsPage() {
           Filed.
         </h1>
         <p className="mb-6 text-sm text-astro-text-muted">
-          Ratings are now open for anyone who played. The league table and profiles pick this up automatically.
+          Players who were in a game can rate it. The league table and profiles pick this up automatically.
         </p>
         <Link to="/matchday" className="text-sm font-semibold text-astro-accent">
           Back to the matchday &rarr;
@@ -340,7 +340,7 @@ export function ResultsPage() {
       cards: f.cards.filter((c) => c.teamId === f.teamAId || c.teamId === f.teamBId),
     }))
 
-    const ok = await confirmAction({ tone: 'admin', eyebrow: 'Results', title: 'File these results?', body: `${fixtures.length} game${fixtures.length === 1 ? '' : 's'} and ${checkedIn.length} players. Stats update for everyone and ratings open.`, confirmLabel: 'File results' })
+    const ok = await confirmAction({ tone: 'admin', eyebrow: 'Results', title: 'File these results?', body: `${fixtures.length} game${fixtures.length === 1 ? '' : 's'} and ${checkedIn.length} players. Stats update for everyone, and the players in each game can rate it.`, confirmLabel: 'File results' })
     if (!ok) return
     try {
       await fileResults.mutateAsync({ fixtures, checkedIn })

@@ -90,7 +90,7 @@ export function MatchdayPage() {
     return (
       <div>
         <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.16em] text-astro-text-dim">
-          The ballot
+          Sunday football
         </div>
         <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
           Matchday
@@ -140,7 +140,7 @@ export function MatchdayPage() {
             {matchday.venue ? ` · ${matchday.venue}` : ''}
           </div>
           <h1 className="font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
-            The Ballot
+            Matchday
           </h1>
         </div>
         {player?.is_admin && (
@@ -160,7 +160,7 @@ export function MatchdayPage() {
         onOpenChange={setConfirmingCancel}
         eyebrow="Matchday control"
         title="Cancel this matchday"
-        body="Claims and standby stay recorded, but it won't be played. Anyone who already claimed a spot stays on record either way."
+        body="Players are told it's off, and anyone who already paid is flagged for a refund. Claims and standby stay on record."
         cancelLabel="Keep it on"
         confirmLabel="Cancel matchday"
         isPending={cancelMatchday.isPending}
@@ -246,8 +246,8 @@ export function MatchdayPage() {
                 </div>
               </div>
               <p className="text-xs text-astro-text-dim">
-                {monthlyMembers.length} held monthly, the rest first-to-pay. Randomising into
-                teams happens after entries close, on game day.
+                {monthlyMembers.length} held monthly, the rest first-to-pay. Teams are made on game day, by the
+                draw or by captains pick, and published by an admin.
               </p>
             </div>
           )}
@@ -262,17 +262,17 @@ export function MatchdayPage() {
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3.5">
               <div>
                 <h2 className="mb-[5px] font-display text-[26px] leading-none text-astro-text">
-                  The Draw
+                  Teams
                 </h2>
                 <p className="text-[13px] text-astro-text-muted">
                   {teams.length > 0
-                    ? `${teams.length} teams of 6, drawn.`
+                    ? `${teams.length} teams.`
                     : `${confirmedCount} confirmed, ${standbyEntries.length} on standby.`}
                 </p>
               </div>
               {player?.is_admin && matchday.status === 'open' && teams.length === 0 && (
                 <Button asChild>
-                  <Link to="/admin/pitch">Run the draw on Pitch-side</Link>
+                  <Link to="/admin/pitch">Make the teams on Pitch-side</Link>
                 </Button>
               )}
             </div>

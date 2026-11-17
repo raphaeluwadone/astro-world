@@ -98,7 +98,7 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
             </svg>
             <div className="min-w-0">
               <div className="text-[12.5px] font-extrabold text-astro-cyan">Admin portal</div>
-              <div className="text-[10px] text-astro-text-dim">Claims &amp; matchday are live</div>
+              <div className="text-[10px] text-astro-text-dim">Admin tools</div>
             </div>
           </Link>
         )}

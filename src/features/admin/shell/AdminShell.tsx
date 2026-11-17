@@ -15,7 +15,7 @@ const TONE: Record<AttentionTone, { bg: string; fg: string }> = {
 
 const MATCHDAY_STATUS: Record<string, string> = {
   open: 'Spots open',
-  drawn: 'Teams drawn',
+  drawn: 'Teams are out',
 }
 
 function NavIcon({ item }: { item: AdminNavItem }) {

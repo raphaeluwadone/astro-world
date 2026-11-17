@@ -6,7 +6,7 @@ const X0 = 20
 const STEP = 180 / 7
 const Y = 70
 
-/** Sunday to Sunday: the ball rolls to Wednesday's close, waits, then on to kick-off. */
+/** Sunday to Sunday: the ball rolls to Saturday's payment deadline, waits, then on to kick-off. */
 export function WeekScene() {
   return (
     <svg viewBox="0 0 220 130" aria-hidden="true" className="h-auto w-[min(340px,78vw)]">
@@ -21,7 +21,7 @@ export function WeekScene() {
       />
       {DAYS.map((d, i) => {
         const x = X0 + i * STEP
-        const close = i === 3
+        const close = i === 6
         const kickoff = i === 7
         return (
           <g key={i}>
@@ -40,15 +40,15 @@ export function WeekScene() {
           </g>
         )
       })}
-      <circle cx={X0 + 3 * STEP} cy={Y} r="6" fill="none" stroke={GOLD} strokeWidth="2" style={own('gd-ping 7s ease-out infinite')} />
+      <circle cx={X0 + 6 * STEP} cy={Y} r="6" fill="none" stroke={GOLD} strokeWidth="2" style={own('gd-ping 7s ease-out infinite')} />
       <circle cx={X0 + 7 * STEP} cy={Y} r="6" fill="none" stroke={SOFT} strokeWidth="2" style={own('gd-kick 7s ease-out infinite')} />
 
       <g>
-        <rect x={X0 + 3 * STEP - 20} y="26" width="40" height="16" rx="5" fill={GOLD} fillOpacity="0.16" stroke={GOLD} strokeOpacity="0.6" />
-        <text x={X0 + 3 * STEP} y="37.5" textAnchor="middle" fontSize="8.5" fontWeight="800" fill={GOLD}>
+        <rect x={X0 + 6 * STEP - 20} y="6" width="40" height="16" rx="5" fill={GOLD} fillOpacity="0.16" stroke={GOLD} strokeOpacity="0.6" />
+        <text x={X0 + 6 * STEP} y="17.5" textAnchor="middle" fontSize="8.5" fontWeight="800" fill={GOLD}>
           20:00
         </text>
-        <path d={`M${X0 + 3 * STEP} 42v14`} stroke={GOLD} strokeOpacity="0.5" strokeWidth="1.5" strokeDasharray="2 2" />
+        <path d={`M${X0 + 6 * STEP} 22v34`} stroke={GOLD} strokeOpacity="0.5" strokeWidth="1.5" strokeDasharray="2 2" />
       </g>
       <g>
         <rect x={X0 + 7 * STEP - 22} y="26" width="34" height="16" rx="5" fill={ACCENT} fillOpacity="0.18" stroke={SOFT} strokeOpacity="0.6" />

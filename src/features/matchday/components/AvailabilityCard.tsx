@@ -111,7 +111,7 @@ export function AvailabilityCard({
         <p className="mt-2 text-sm text-astro-text-muted">
           {isMonthlyMember
             ? "You're in every Sunday this month. Only opt out if you genuinely can't make this one."
-            : 'First to pay gets the spot. No half-answers, no ballot.'}
+            : 'First to pay gets the spot.'}
         </p>
 
         {!playerId ? (

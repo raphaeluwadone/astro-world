@@ -9,7 +9,7 @@ export function PasswordCard() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="mb-1 font-display text-[28px] leading-none text-astro-text">Password</h2>
-          <p className="text-xs text-astro-text-dim">Signed in with Google or a code? Set one here to use a password too.</p>
+          <p className="text-xs text-astro-text-dim">Change the password you sign in with.</p>
         </div>
         {!open && (
           <button type="button" onClick={() => setOpen(true)} className="shrink-0 rounded-[10px] border border-white/[0.12] px-3 py-2 text-xs font-bold text-astro-text hover:border-astro-accent/50">

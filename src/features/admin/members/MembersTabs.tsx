@@ -7,7 +7,7 @@ export function MembersTabs() {
   const { data: claims = [] } = usePendingClaims()
   const tabs = [
     { to: '/admin/members', label: 'Roster', active: !pathname.startsWith('/admin/members/claims') },
-    { to: '/admin/members/claims', label: 'Record claims', active: pathname.startsWith('/admin/members/claims'), badge: claims.length },
+    { to: '/admin/members/claims', label: 'Old claims', active: pathname.startsWith('/admin/members/claims'), badge: claims.length },
   ] as const
   return (
     <div className="mb-6 flex gap-1 border-b border-white/[0.09]">

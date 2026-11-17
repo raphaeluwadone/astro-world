@@ -205,7 +205,7 @@ export function NextMatchdayCard({
         <div className="text-[12.5px] text-astro-text-muted">
           {matchday.status !== 'open'
             ? matchday.status === 'drawn'
-              ? 'Teams drawn'
+              ? 'Teams are out'
               : 'Claims closed'
             : spotsRemaining > 0
               ? `${spotsRemaining} left to claim`
@@ -223,7 +223,7 @@ export function NextMatchdayCard({
           )}
         </div>
         <Link to="/matchday" className="astro-tap text-[13px] font-extrabold text-astro-accent">
-          Ballot &rarr;
+          Matchday &rarr;
         </Link>
       </div>
       {matchday.status !== 'open' && (me.hasWeeklyClaim || (me.isMonthlyMember && me.monthlyOptStatus !== 'out')) && (

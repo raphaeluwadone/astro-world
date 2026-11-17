@@ -24,9 +24,9 @@ const PAID: Record<PaymentKind, Copy> = {
   weekly: {
     kicker: 'Payment confirmed',
     title: 'YOU’RE IN FOR SUNDAY.',
-    body: 'Your spot is paid and locked in. Sides are drawn at the pitch on game day, so nobody knows who they’re with until then.',
+    body: 'Your spot is paid and locked in. Teams are made on game day, by the draw or captains pick, and published by an admin.',
     cta: { label: 'See Matchday', to: '/matchday' },
-    more: { label: 'How the draw works', to: '/guide', search: { c: 'draw' } },
+    more: { label: 'How teams are made', to: '/guide', search: { c: 'draw' } },
   },
   monthly: {
     kicker: 'Payment confirmed',

@@ -129,7 +129,7 @@ export function SalamiCupPage() {
                     disabled={joinCup.isPending}
                     onClick={() =>
                       withConfirm(
-                        { title: 'Enter the Salami Cup?', body: 'Squads are picked by hand once entries close. Withdraw before then if you can’t make it.', confirmLabel: 'I’m in' },
+                        { title: 'Enter the Salami Cup?', body: 'Squads are set by the admins once entries close. Withdraw before then if you can’t make it.', confirmLabel: 'I’m in' },
                         () => joinCup.mutate(player.id),
                       )
                     }
@@ -200,7 +200,7 @@ export function SalamiCupPage() {
             <div className="astro-card p-6">
               <div className="font-display mb-1.5 text-[28px] leading-none text-astro-text">ENTRANTS</div>
               <p className="mb-4 text-[13px] text-astro-text-muted">
-                {entrants.length} in so far. Squads are drawn once entries close.
+                {entrants.length} in so far. Squads are set once entries close.
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {entrants.map((e) => (

@@ -16,19 +16,19 @@ export const STEPS: OnboardingStep[] = [
     body: "Astro runs one game a week. Sides are drawn fresh every Sunday, so you'll rarely play with the same eleven twice.",
     points: [
       'No fixed teams and no captains picking.',
-      'Sunday 09:30, Gbaja Boys Junior High School.',
+      'Sunday 07:45, Gbaja Boys Junior High School.',
       'Everything here is decided by the group, including the rules.',
     ],
     next: 'How it works',
   },
   {
     label: 'Step two of five',
-    title: "PICK THE NAME YOU'LL BE KNOWN BY.",
+    title: "YOUR NICKNAME LEADS.",
     body: "Everyone goes by a nickname here. It's the big text on your card, your real name sits underneath it, smaller.",
     points: [
       'Your nickname is what appears in team draws, rankings and the feed.',
-      "Pick a favourite number too. It isn't exclusive, so take one that's already taken if you like.",
-      'Pick one position: DEF, ATT or UTIL. If you will go in goal, you can add GK as well.',
+      "You can add a favourite number in Edit profile. It isn't exclusive, so take one that's already taken if you like.",
+      'In Edit profile you choose one position: DEF, ATT or UTIL. Add GK as well if you will go in goal.',
     ],
     next: 'Next: getting a game',
   },
@@ -45,7 +45,7 @@ export const STEPS: OnboardingStep[] = [
     body: 'After every match you score the other eleven out of ten. The average is your rating for that Sunday.',
     points: [
       'Votes are anonymous and never shown individually, not even to admins.',
-      'File yours by Tuesday night or they stop counting.',
+      'Rate by Tuesday 23:59.',
       "You can tag yourself with two playstyles. The group votes the rest onto you, and you can't remove those.",
       'No attribute bars. Nobody is reduced to six numbers here.',
     ],
@@ -57,16 +57,16 @@ export const STEPS: OnboardingStep[] = [
     body: 'Ade Salami played with us for years. He started the group chat and bought the first set of bibs. We lost him, and four times a year the Salami Cup is played in his name.',
     points: [
       'His page is always in the sidebar. Tributes are open for good.',
-      "Thirteen was his number. It's yours too if you want it.",
-      'The cup runs quarterly, with squads picked by hand rather than drawn.',
+      "Four was his number. It is retired in his memory and nobody can take it.",
+      'The cup runs quarterly, with squads set by the admins.',
     ],
     next: "I'm ready",
   },
   {
     label: "That's everything",
     title: 'RIGHT. SEE YOU SUNDAY.',
-    body: 'One thing left: claim your spot for Sunday on Matchday before claims close.',
-    points: ['Claims for this Sunday close Wednesday at eight.', 'Anything unclear later lives in How Astro works, in the sidebar.'],
+    body: 'One thing left: claim your spot for Sunday on Matchday and pay for it.',
+    points: ['Pay by Saturday 20:00, or your spot goes to standby.', 'Anything unclear later lives in How Astro works, in the sidebar.'],
     next: 'Claim my Sunday spot',
   },
 ]

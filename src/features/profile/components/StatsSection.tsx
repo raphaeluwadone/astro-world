@@ -63,7 +63,7 @@ export function StatsSection({
         </div>
       </div>
       <div className="mb-4 text-[12.5px] text-astro-text-dim">
-        {mode === 'career' ? 'Every match, since joining.' : 'Since 1 August.'}
+        {mode === 'career' ? 'Every match, including the almanac.' : 'Since 1 August.'}
       </div>
       <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))' }}>
         {stats.map((s) => (

@@ -1,6 +1,5 @@
 import { NothingHere } from '@/components/states/NothingHere'
 import { Scene } from '@/components/states/Scene'
-import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { isToday, isYesterday } from 'date-fns'
 import { useState } from 'react'
@@ -38,13 +37,7 @@ export function NotificationsPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-[44px] leading-[0.95] text-astro-text md:text-[56px]">Notifications</h1>
-          <p className="mt-1 text-sm text-astro-text-muted">
-            Choose which of these also come by email in{' '}
-            <Link to="/profile/edit" hash="email-settings" className="font-bold text-astro-accent hover:underline">
-              email settings
-            </Link>
-            .
-          </p>
+          <p className="mt-1 text-sm text-astro-text-muted">Badges, matchday news and mentions land here.</p>
         </div>
         {unread > 0 && (
           <button

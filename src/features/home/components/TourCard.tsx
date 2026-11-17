@@ -20,7 +20,7 @@ export function TourCard({ className }: { className?: string }) {
       <div className="min-w-0 flex-1 basis-[220px]">
         <div className="astro-eyebrow">New here?</div>
         <div className="mt-0.5 text-[14px] font-extrabold text-astro-text">Take the one-minute tour</div>
-        <div className="text-[12.5px] text-astro-text-muted">How spots, teams and ratings work, in five short steps.</div>
+        <div className="text-[12.5px] text-astro-text-muted">How spots, teams and ratings work, in a few short steps.</div>
       </div>
       <div className="flex items-center gap-2">
         <Link

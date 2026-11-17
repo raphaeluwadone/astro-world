@@ -28,7 +28,7 @@ export function ShirtAwardPage() {
           <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#f7c25e]">Team award &middot; yearly</div>
           <h1 className="mt-1 font-display text-[46px] leading-[0.95] text-astro-text md:text-[56px]">Shirt of the Year</h1>
           <p className="mt-2 max-w-[54ch] text-sm text-astro-text-muted [text-wrap:pretty]">
-            Not for any player. The ballot puts different people in each shirt every Sunday, but the points stay with the shirt. Three for a win, one for a draw, and the shirt on top
+            Not for any player. Different people wear each shirt every Sunday, but the points stay with the shirt. Three for a win, one for a draw, and the shirt on top
             when the year closes is crowned. It earns a gold star on its name for good.
           </p>
           {last ? (

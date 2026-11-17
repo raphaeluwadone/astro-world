@@ -1,5 +1,6 @@
 import { undoToast } from '@/components/dialogs/confirm'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { useState } from 'react'
 import { BackLink } from '@/components/navigation/BackLink'
 import { InlineLoader } from '@/components/states/InlineLoader'
@@ -10,7 +11,6 @@ import { useCareerStats, useMatchRatings, usePlayerTags } from '@/features/profi
 import { CardPhotoCard } from './components/CardPhotoCard'
 import { DetailsCard, type DraftFields } from './components/DetailsCard'
 import { DisplaySettingsCard } from './components/DisplaySettingsCard'
-import { EmailSettingsCard } from './components/EmailSettingsCard'
 import { PasswordCard } from './components/PasswordCard'
 import { LeaveGroupCard } from './components/LeaveGroupCard'
 import { LockedFieldsCard } from './components/LockedFieldsCard'
@@ -73,6 +73,10 @@ export function EditProfilePage() {
 
   async function save() {
     if (!draft) return
+    if (Number(draft.favourite_number) === 4) {
+      toast.error('Number 4 is retired in memory of Ade Salami. Pick another number.')
+      return
+    }
     await updatePlayer.mutateAsync({
       nickname: draft.nickname,
       full_name: draft.full_name,
@@ -146,7 +150,7 @@ export function EditProfilePage() {
           <LockedFieldsCard
             fields={[
               { label: 'Overall rating', why: 'Averaged from everyone else’s scores.', value: careerAvg?.toString() ?? '—' },
-              { label: 'Appearances', why: 'Counted from the matches you’ve actually played.', value: (careerStats?.appearances ?? 0).toString() },
+              { label: 'Appearances', why: 'Past appearances plus every match recorded.', value: ((careerStats?.appearances ?? 0) + player.legacy_appearances).toString() },
               { label: 'Goals / assists', why: 'Logged from the matchday record.', value: `${careerStats?.goals ?? 0} / ${careerStats?.assists ?? 0}` },
               { label: 'Man of the Match', why: 'Voted by the group, tallied per matchday.', value: (careerStats?.motm ?? 0).toString() },
               {
@@ -156,7 +160,7 @@ export function EditProfilePage() {
               },
               {
                 label: 'Joined',
-                why: 'Set when your account was created.',
+                why: 'Set when you joined the group.',
                 value: new Date(player.joined_at).toLocaleDateString('en-GB', {
                   month: 'short',
                   year: 'numeric',
@@ -165,7 +169,6 @@ export function EditProfilePage() {
             ]}
           />
           <DisplaySettingsCard />
-          <EmailSettingsCard />
           <PasswordCard />
           <LeaveGroupCard />
         </div>

@@ -26,12 +26,11 @@ export function AdminClaimsPage() {
         Members
       </div>
       <h1 className="mb-1.5 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">
-        Record claims
+        Old claims
       </h1>
       <p className="mb-5 max-w-lg text-sm text-astro-text-muted">
-        Records hold ratings other people voted for, so a claim on one waits here until an admin
-        confirms it's genuinely that person. Rejecting keeps their account; they just start as a new
-        player.
+        Only claims made before the group code are listed here. New players are linked straight away.
+        Rejecting a claim keeps their account; they just start as a new player.
       </p>
       <MembersTabs />
 
@@ -40,7 +39,7 @@ export function AdminClaimsPage() {
       ) : isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : claims.length === 0 ? (
-        <EmptyState icon={<Scene kind="whistle" />} title="Nothing to review." body="New claims will show up here." />
+        <EmptyState icon={<Scene kind="whistle" />} title="Nothing to review." body="Old claims will show up here." />
       ) : (
         <div className="flex flex-col gap-3">
           {claims.map((c) => (

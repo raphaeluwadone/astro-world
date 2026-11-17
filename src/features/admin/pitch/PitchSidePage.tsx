@@ -94,7 +94,7 @@ function PlayerFinder({
           tone: 'admin' as const,
           eyebrow: 'Add player',
           title: `Add ${name} to ${team.greek_name}?`,
-          body: `${guest ? `${name} is made a guest with no account, who can claim the record later. ` : ''}They join the side, are marked here, and the teams post on the feed is updated.`,
+          body: `${guest ? `${name} is made a guest with no account, who can pick this name when they join. ` : ''}They join the side, are marked here, and the teams post on the feed is updated.`,
           confirmLabel: 'Add them',
         }
   const choose = (playerId: string, name: string) =>
@@ -1158,7 +1158,7 @@ function DrawStep({ matchdayId, capacity }: { matchdayId: string; capacity: numb
     return (
       <section className="rounded-[14px] border border-white/[0.09] bg-astro-admin-card p-4">
         <h2 className="mb-1 font-display text-[26px] leading-none text-astro-text">The draw</h2>
-        <EmptyState icon={<Scene kind="bench" />} title="Nobody has a spot yet." body="The draw opens up once players have claimed spots for this Sunday." meta={`0 of ${capacity} confirmed`} />
+        <EmptyState icon={<Scene kind="bench" />} title="Nobody has a spot yet." body="Teams can be made once players have taken spots for this Sunday." meta={`0 of ${capacity} confirmed`} />
       </section>
     )
 
@@ -1212,7 +1212,7 @@ function DrawStep({ matchdayId, capacity }: { matchdayId: string; capacity: numb
       ) : manual ? (
         <>
           <p className="mb-3 text-[12.5px] text-astro-text-muted">
-            The draw is off. Put each of the {confirmed.length} confirmed on a side, then publish.
+            Pick teams by hand: put each of the {confirmed.length} confirmed on a side, then publish.
           </p>
           <PickTeams key={confirmed.length} matchdayId={matchdayId} confirmed={confirmed} />
         </>
@@ -1348,7 +1348,7 @@ export function PitchSidePage() {
     return (
       <div>
         <h1 className="mb-6 font-display text-[40px] leading-[0.95] text-astro-text md:text-[52px]">Pitch-side</h1>
-        <EmptyState icon={<Scene kind="bench" />} title="No teams drawn yet." body="Pitch-side opens once the teams for the next matchday are drawn." />
+        <EmptyState icon={<Scene kind="bench" />} title="No teams yet." body="Pitch-side opens once the teams for the next matchday are made." />
       </div>
     )
 

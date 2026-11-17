@@ -12,7 +12,7 @@ export function StandbyQueue({
   return (
     <div className="mt-4 grid gap-3.5 sm:grid-cols-2">
       <div className="rounded-xl bg-astro-surface-2 p-3.5">
-        <div className="astro-eyebrow mb-3">Confirmed (weekly) &middot; {weeklyClaims.length}</div>
+        <div className="astro-eyebrow mb-3">Weekly spots &middot; {weeklyClaims.length}</div>
         <div className="space-y-1.5">
           {weeklyClaims.map((e) => (
             <div key={e.player_id} className="text-sm font-semibold text-astro-text">
@@ -20,7 +20,7 @@ export function StandbyQueue({
             </div>
           ))}
           {weeklyClaims.length === 0 && (
-            <NothingHere compact icon={<Scene kind="bench" />} body="Nobody&rsquo;s paid for a weekly spot yet." />
+            <NothingHere compact icon={<Scene kind="bench" />} body="Nobody&rsquo;s taken a weekly spot yet." />
           )}
         </div>
       </div>

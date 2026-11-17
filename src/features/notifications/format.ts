@@ -33,7 +33,7 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
 
   switch (n.kind) {
     case 'spot':
-      return { title: `You're on for ${sunday(d.played_at)}`, body: `Spot ${d.spot} of ${d.capacity}. Teams are drawn on game day.`, icon: Ticket, color: PURPLE }
+      return { title: `You're on for ${sunday(d.played_at)}`, body: `Spot ${d.spot} of ${d.capacity}. Teams are made on game day.`, icon: Ticket, color: PURPLE }
     case 'standby':
       return { title: `You're on standby for ${sunday(d.played_at)}`, body: `Number ${d.position} in line. We'll tell you if a spot opens.`, icon: Hourglass, color: PURPLE }
     case 'spot_open':
@@ -70,7 +70,7 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
     case 'team_champion':
       return { title: `${d.team} are the ${d.cycle} champions`, body: `The shirt finished top of the table and wins Shirt of the Year.`, icon: Award, color: AMBER }
     case 'rate':
-      return { title: 'Rate your teammates', body: `Votes for ${sunday(d.played_at)} are open.`, icon: Star, color: PURPLE }
+      return { title: 'Rate the players', body: `Votes for ${sunday(d.played_at)} are open.`, icon: Star, color: PURPLE }
     case 'badge_won': {
       const shared: string[] = d.shared_with ?? []
       return {
@@ -100,7 +100,7 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
     case 'dues_paid':
       return { title: 'Dues received', body: `${d.marked_by ?? 'An admin'} marked your ${quarter} dues as paid.`, icon: Wallet, color: GREEN }
     case 'dues_due':
-      return { title: `${quarter} dues are due ${shortDate(d.due_date)}`, body: `${naira(d.amount)}. Pay an admin and they'll mark you as paid.`, icon: Wallet, color: AMBER }
+      return { title: `${quarter} dues are due ${shortDate(d.due_date)}`, body: `${naira(d.amount)}. Pay on the Kitty page, or pay an admin.`, icon: Wallet, color: AMBER }
     case 'dues_late':
       return { title: `${quarter} dues are overdue`, body: `${naira(d.amount)}, was due ${shortDate(d.due_date)}.`, icon: Wallet, color: AMBER }
     case 'photo_changed':
