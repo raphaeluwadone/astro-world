@@ -80,7 +80,7 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   'ramos-energy': { name: 'The Ramos Protocol', tier: 'year', icon: 'shield', for: 'Best-rated defender or keeper of the year' },
   'messi-ah': { name: 'La Pulga Supreme', tier: 'year', icon: 'crown', for: 'Best average rating of the year' },
   'main-character': { name: 'Main Character', tier: 'year', icon: 'star', for: 'Most Man of the Match wins' },
-  'new-month-same-me': { name: 'New month, same me', tier: 'year', icon: 'calendar', for: 'Won the same monthly award two months running' },
+  'new-month-same-me': { name: 'New month, same me', tier: 'year', icon: 'calendar', for: 'Won the same monthly badge two months running' },
   'sunday-disciple': { name: 'Sunday Disciple', tier: 'year', icon: 'calendar', for: 'Played every matchday of the year' },
   'most-capped': { name: 'Most Capped', tier: 'year', icon: 'shirt', for: 'Most appearances of the year' },
   'early-bird': { name: 'Early Bird', tier: 'year', icon: 'clock', for: 'First to claim a weekly spot most often' },
@@ -123,7 +123,7 @@ export function badgeDef(key: string, title: string | null): BadgeDef {
   if (MONTHLY_DEFS[key]) return MONTHLY_DEFS[key]
   if (key.startsWith('month-')) {
     const slug = key.slice('month-'.length)
-    return { name: title ?? slug, tier: 'month', icon: 'star', for: `Monthly award: ${title ?? slug}` }
+    return { name: title ?? slug, tier: 'month', icon: 'star', for: `Monthly badge: ${title ?? slug}` }
   }
   return { name: title ?? key, tier: 'year', icon: 'star', for: '' }
 }

@@ -202,7 +202,7 @@ const cupConfig: ScopeConfig = {
   summary: (p) => `${p.cupsPlayed} cups · ${p.cupsWon} won · ${p.cupGoals} goals`,
   verdict: cupVerdict,
   footnote:
-    'Cup numbers stay with the cup. Cup goals count toward career goals, but never toward the monthly or yearly awards, and nothing from Sundays shows up here.',
+    'Cup numbers stay with the cup. Cup goals count toward career goals, but never toward the monthly or yearly badges, and nothing from Sundays shows up here.',
 }
 
 const CONFIGS: Record<CompareScope, ScopeConfig> = {

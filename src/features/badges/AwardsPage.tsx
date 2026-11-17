@@ -16,7 +16,7 @@ const CUP_FILL = 'linear-gradient(170deg,#ffe2a1,#f2a93b 55%,#a8650f)'
 type Filter = 'all' | 'todo' | 'won'
 
 const FILTERS: { id: Filter; label: string }[] = [
-  { id: 'all', label: 'All awards' },
+  { id: 'all', label: 'All badges' },
   { id: 'todo', label: 'Still to win' },
   { id: 'won', label: 'Won' },
 ]
@@ -72,7 +72,7 @@ export function AwardsPage() {
               {wonCount}
               <span className="text-astro-text-dim"> / {awards.length}</span>
             </div>
-            <div className="text-xs text-astro-text-dim">awards you&rsquo;ve won</div>
+            <div className="text-xs text-astro-text-dim">badges you&rsquo;ve won</div>
           </div>
         )}
       </header>

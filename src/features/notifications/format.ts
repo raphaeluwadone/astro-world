@@ -74,7 +74,7 @@ export function formatNotification(n: NotificationRow): FormattedNotification {
     case 'badge_won': {
       const shared: string[] = d.shared_with ?? []
       return {
-        title: `New badge: ${badge?.name ?? 'Award'}`,
+        title: `New badge: ${badge?.name ?? 'Badge'}`,
         body: shared.length ? `Shared with ${names(shared)}.` : (d.detail ?? badge?.for ?? ''),
         icon: Award,
         color: badgeColor,

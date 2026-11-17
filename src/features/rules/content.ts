@@ -163,7 +163,7 @@ export const RULE_SECTIONS: RuleSection[] = [
     title: 'PROFILE & TRAITS',
     items: [
       { k: '6.1', text: 'You set your nickname, real name, one position (DEF, ATT or UTIL, plus GK if you will go in goal), foot, bio, photo, favourite number and up to two traits.' },
-      { k: '6.2', text: 'Rating, stats, achievements and traits from the group are earned, not set.' },
+      { k: '6.2', text: 'Rating, stats, badges and traits from the group are earned, not set.' },
       { k: '6.3', text: 'Anyone can invent a trait. Three votes and it joins the pool, and three votes on a player puts it on their card.' },
       {
         k: '6.4',

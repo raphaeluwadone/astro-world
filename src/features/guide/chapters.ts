@@ -113,12 +113,12 @@ export const GUIDE_CHAPTERS: GuideChapter[] = [
   },
   {
     id: 'cup',
-    name: 'Salami Cup & awards',
+    name: 'Salami Cup & badges',
     title: 'WE PLAY FOR SALAMI.',
     body: 'Four times a year the Salami Cup is played in memory of Ade Salami, who started the group. Squads are set by the admins, drawn at random or picked fairly.',
     points: [
       'Cup goals and wins count towards your career, like any Sunday.',
-      'At the end of the year the group hands out awards and badges for the season.',
+      'At the end of the year the group hands out the yearly badges for the season.',
       'Four was his number, retired in his memory. His page is always in the sidebar.',
     ],
     scene: { kind: 'trophy', variant: 0 },

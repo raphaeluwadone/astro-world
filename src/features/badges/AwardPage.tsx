@@ -202,7 +202,7 @@ function Photo({ awardKey, def, holders, wonOn }: { awardKey: string; def: Badge
             <a href={img.source} target="_blank" rel="noreferrer" className="underline decoration-white/20 underline-offset-2 hover:text-astro-text">
               {img.license} via Wikimedia Commons
             </a>
-            . Shown for illustration; {img.player} has no connection to this award or to Astro.
+            . Shown for illustration; {img.player} has no connection to this badge or to Astro.
           </span>
         )}
         {hasHolder && (
@@ -326,14 +326,14 @@ export function AwardPage({ awardKey }: { awardKey: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <BackLink to="/awards" label="All awards" />
+      <BackLink to="/awards" label="All badges" />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col gap-5">
           <header>
             <div className="mb-2 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.16em]" style={{ color: isCup ? '#f7c25e' : color }}>
               <span className="size-2 rounded-[2px]" style={{ background: isCup ? 'linear-gradient(#ffe2a1,#f2a93b)' : color }} />
-              {TIER_LABEL[def.tier]} award · {TIER_LASTS[def.tier]}
+              {TIER_LABEL[def.tier]} badge · {TIER_LASTS[def.tier]}
             </div>
             <h1 className={cn('font-display text-[52px] leading-[0.92] md:text-[72px]', isCup ? GOLD_TEXT : 'text-astro-text')}>{def.name}</h1>
             <p className="mt-2 text-[15px] font-bold text-astro-text-muted">{copy?.recognition ?? def.for}</p>

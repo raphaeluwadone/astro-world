@@ -123,7 +123,7 @@ export async function fetchMentionables(): Promise<Mentionable[]> {
   if (awards.error) throw awards.error
   const badges = new Map<string, string>(MENTIONABLE_BADGES.map((b) => [b.name, `${TIER_LABEL[b.tier]} badge`]))
   for (const a of awards.data ?? []) {
-    if (!/^unknown/i.test(a.award_name) && !badges.has(a.award_name)) badges.set(a.award_name, 'Monthly award')
+    if (!/^unknown/i.test(a.award_name) && !badges.has(a.award_name)) badges.set(a.award_name, 'Monthly badge')
   }
   const achievementNames = [...badges.keys()].sort()
   return [

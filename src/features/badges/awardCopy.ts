@@ -457,13 +457,13 @@ Object.assign(AWARD_COPY, {
     ],
   },
   'new-month-same-me': {
-    recognition: 'Won the same monthly award two months running',
+    recognition: 'Won the same monthly badge two months running',
     personality: 'Form, consistency and the rare knack of doing it all again.',
     variations: [
       {
         title: 'Same Again',
         paragraphs: [
-          'Winning a monthly award is hard. Winning the same one the very next month is something else entirely.',
+          'Winning a monthly badge is hard. Winning the same one the very next month is something else entirely.',
           'Everyone knew who to watch. Defenders paid closer attention, the bar went up, and you cleared it anyway.',
           'It means turning up Sunday after Sunday for two months straight and keeping the standard where it was.',
           'This badge is a reminder that, for two months running, you were the one everybody else was chasing.',
@@ -475,7 +475,7 @@ Object.assign(AWARD_COPY, {
         paragraphs: [
           'Form comes and goes for most of us. Yours arrived, stayed for the month, then signed on for another.',
           'The touches were sharper, the decisions were quicker and the results followed, twice.',
-          'One monthly award could be a hot streak. The same award two months in a row is a pattern.',
+          'One monthly badge could be a hot streak. The same badge two months in a row is a pattern.',
           "Here's to making it three.",
           'Congratulations, New month, same me.',
         ],
@@ -484,7 +484,7 @@ Object.assign(AWARD_COPY, {
         title: 'Same Me, Better Month',
         paragraphs: [
           'Every player has a month they look back on fondly. You had two in a row, with the same silverware both times.',
-          "A monthly award isn't won in one game. Defending one means doing it all over again with everyone now watching.",
+          "A monthly badge isn't won in one game. Defending one means doing it all over again with everyone now watching.",
           'You managed that, and you did it well enough to finish on top again.',
           "That's worth a badge of its own, and now you have one.",
           'Congratulations, New month, same me. Same again soon?',

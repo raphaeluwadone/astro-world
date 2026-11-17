@@ -163,7 +163,7 @@ function BadgeCollection({
       <SheetContent side="right" className="w-full gap-0 overflow-y-auto border-white/[0.07] bg-astro-surface p-0 text-astro-text sm:max-w-md">
         <div className="border-b border-white/[0.07] px-6 pb-5 pt-6">
           <SheetTitle className="font-display text-[30px] font-normal leading-none text-astro-text">{nickname}&rsquo;s collection</SheetTitle>
-          <SheetDescription className="mt-1.5 text-[13px] text-astro-text-muted">Every badge they&rsquo;ve won, newest first. Tap one to read about the award.</SheetDescription>
+          <SheetDescription className="mt-1.5 text-[13px] text-astro-text-muted">Every badge they&rsquo;ve won, newest first. Tap one to read about it.</SheetDescription>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {tally.map(({ t, n }) => (
               <span

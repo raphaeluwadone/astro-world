@@ -79,7 +79,7 @@ export function BadgeHoverCard({
           className={cn(triggerClassName ?? 'inline-flex rounded-[10px]', 'outline-none focus-visible:ring-2 focus-visible:ring-astro-accent/60')}
           onPointerDown={(e) => (pointer.current = e.pointerType)}
           role="link"
-          aria-label={`${def.name}: about this award`}
+          aria-label={`${def.name}: about this badge`}
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
