@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { BrandMarkIcon } from '@/components/icons/nav-icons'
 import { Wordmark } from '@/components/icons/Wordmark'
 import { JoinBackdrop } from '@/components/layout/JoinBackdrop'
+import { signOut } from '@/features/auth/api'
 import { groupCodeMemory, type FreeName } from './api'
 import { useFreeNames, useJoinGroup } from './hooks'
 
@@ -221,6 +222,22 @@ export function JoinPage() {
         )}
 
         {!who && error && <p className="mt-3 text-sm text-astro-red">{error}</p>}
+
+        {!who && (
+          <button
+            type="button"
+            disabled={join.isPending}
+            onClick={async () => {
+              groupCodeMemory.clear()
+              await signOut()
+              qc.clear()
+              await navigate({ to: '/login', search: { view: 'signin' } })
+            }}
+            className="mt-6 min-h-11 text-[13px] font-bold text-astro-text-muted hover:text-astro-text"
+          >
+            Wrong account? Sign out and go back
+          </button>
+        )}
       </div>
     </div>
   )
