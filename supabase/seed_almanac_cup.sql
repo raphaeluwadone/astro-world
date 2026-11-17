@@ -118,3 +118,45 @@ begin
     on conflict do nothing;
   end if;
 end $$;
+
+-- Also keep the rest of the cup's tables: goal involvements, the defender points table and yellow cards.
+-- Runs every time, so it also fills in a cup that was imported before these were added.
+update cup_quarters
+set recap = recap || jsonb_build_object(
+  'ga_leaders', (select coalesce(jsonb_agg(jsonb_build_object('player_id', p.id, 'nickname', p.nickname, 'club', x.club, 'g', x.g, 'a', x.a) order by x.g + x.a desc, x.g desc, p.nickname), '[]'::jsonb)
+    from (values
+      ('Yaya', 'Sons of Pitches', 3, 1),
+      ('zeazou', 'Predators FC', 2, 1),
+      ('DB', 'Hawks FC', 2, 1),
+      ('Oliver', 'Plug & Playmakers', 2, 1),
+      ('Uzkhov', 'Hawks FC', 1, 2),
+      ('oreos', 'Sons of Pitches', 3, 0),
+      ('Fred', 'Plug & Playmakers', 0, 2),
+      ('Tobi', 'Predators FC', 2, 0)
+    ) as x(nick, club, g, a) join players p on lower(p.nickname) = lower(x.nick)),
+  'dotm_rules', 'CS x5 | Goal x3 | Assist x2 | Yellow -1 | Red -3 | OG -2 | Tiebreak: most CS',
+  'dotm', (select coalesce(jsonb_agg(jsonb_build_object('player_id', p.id, 'nickname', p.nickname, 'club', x.club, 'cs', x.cs, 'g', x.g, 'a', x.a, 'yc', x.yc, 'pts', x.pts) order by x.pts desc, x.cs desc, p.nickname), '[]'::jsonb)
+    from (values
+      ('Oliver', 'Plug & Playmakers', 3, 2, 1, 0, 23),
+      ('oreos', 'Sons of Pitches', 2, 3, 0, 0, 19),
+      ('Vinny', 'Hawks FC', 3, 1, 0, 0, 18),
+      ('Triumph', 'Predators FC', 3, 0, 1, 0, 17),
+      ('Emmanuel', 'Plug & Playmakers', 3, 0, 1, 0, 17),
+      ('Mustee', 'Predators FC', 3, 0, 0, 0, 15),
+      ('Ette', 'Plug & Playmakers', 3, 0, 0, 0, 15),
+      ('Ajegs', 'Hawks FC', 3, 0, 0, 0, 15),
+      ('Dante', 'Hawks FC', 3, 0, 0, 0, 15),
+      ('Allison', 'Hawks FC', 3, 0, 0, 0, 15),
+      ('Famade', 'Sons of Pitches', 2, 1, 0, 0, 13),
+      ('Dan J', 'Sons of Pitches', 2, 0, 1, 0, 12),
+      ('Bass', 'Sons of Pitches', 2, 0, 0, 0, 10),
+      ('Chukkie', 'The Syndicate', 1, 1, 0, 0, 8),
+      ('Machado', 'The Syndicate', 1, 0, 1, 0, 7),
+      ('George', 'Crexas FC', 1, 0, 1, 0, 7),
+      ('Tony Vodka', 'The Syndicate', 1, 0, 0, 0, 5),
+      ('Bald Hermit', 'Crexas FC', 1, 0, 0, 0, 5),
+      ('Killz', 'Crexas FC', 1, 0, 0, 0, 5)
+    ) as x(nick, club, cs, g, a, yc, pts) join players p on lower(p.nickname) = lower(x.nick)),
+  'yellow_cards', (select coalesce(jsonb_agg(p.nickname order by p.nickname), '[]'::jsonb) from players p where lower(p.nickname) in ('tomi', 'zeazou'))
+)
+where label = 'Q4 2026' and recap is not null;

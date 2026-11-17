@@ -1,6 +1,6 @@
 import { toast } from 'sonner'
 import { cupRecap } from './recap'
-import { RecapHighlights, RecapTable } from './components/CupRecap'
+import { RecapDefenders, RecapHighlights, RecapTable } from './components/CupRecap'
 import { undoToast, withConfirm } from '@/components/dialogs/confirm'
 import { NothingHere } from '@/components/states/NothingHere'
 import { Scene } from '@/components/states/Scene'
@@ -278,6 +278,7 @@ export function SalamiCupPage() {
 
           {!hasResults && recap && <RecapTable recap={recap} colourOf={recapColour} />}
           {recap && <RecapHighlights recap={recap} />}
+          {recap && <RecapDefenders recap={recap} />}
 
           <div className="astro-card p-6">
             <div className="font-display mb-4 text-[28px] leading-none text-astro-text">HONOURS</div>
