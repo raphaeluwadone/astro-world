@@ -34,7 +34,7 @@ export function LeagueList({ picks, rows, config, onToggle }: ViewProps) {
           <div className="font-display text-2xl leading-none text-astro-text">{config.rank.title}</div>
           <div className="mt-1 text-[12px] text-astro-text-muted">
             {config.rank.note}
-            {config.minGames > 1 && ` Ranked from ${config.minGames} games, so one lucky outing can't top the list.`}
+            {config.minGames > 1 && ` Ranked from ${config.minLabel}, so one lucky outing can't top the list.`}
           </div>
         </div>
         <div className="flex items-center gap-1.5">
@@ -62,7 +62,7 @@ export function LeagueList({ picks, rows, config, onToggle }: ViewProps) {
           compact
           icon={<Scene kind="bench" />}
           title="Nobody's played enough yet"
-          body={`The ranking starts once someone reaches ${config.minGames} games.`}
+          body={`The ranking starts once someone reaches ${config.minLabel}.`}
           action={
             rows.length > 0 && (
               <button type="button" onClick={toggleEveryone} className="text-[12px] font-extrabold" style={{ color: theme.soft }}>
@@ -83,7 +83,7 @@ export function LeagueList({ picks, rows, config, onToggle }: ViewProps) {
               <div key={p.id}>
                 {everyone && index === qualified.length && (
                   <div className="mb-1 mt-3 border-t border-border px-2 pt-3 text-[10.5px] font-extrabold uppercase tracking-[0.13em] text-astro-text-dim">
-                    Under {config.minGames} games, not ranked
+                    Under {config.minLabel}, not ranked
                   </div>
                 )}
                 <button

@@ -41,6 +41,8 @@ export interface Axis {
 export interface ScopeConfig {
   theme: Theme
   minGames: number
+  /** The minimum in words, e.g. '3 games this season', for the copy. */
+  minLabel: string
   games: (p: CompareRow) => number
   rows: Metric[]
   /** Six spokes for the hexagon, clockwise from the top. */
@@ -117,6 +119,7 @@ function sundayConfig(scope: 'season' | 'career'): ScopeConfig {
   return {
     theme: SUNDAY_THEME,
     minGames: season ? 3 : 10,
+    minLabel: season ? '3 games this season' : '10 career games',
     games: (p) => p.apps,
     rows: [
       { label: 'Appearances', note: season ? 'Games this season' : 'Including the almanac', get: (p) => p.apps, neutral: true },
@@ -163,6 +166,7 @@ function sundayConfig(scope: 'season' | 'career'): ScopeConfig {
 const cupConfig: ScopeConfig = {
   theme: CUP_THEME,
   minGames: 1,
+  minLabel: '1 cup game',
   games: (p) => p.cupGames,
   rows: [
     { label: 'Cups played', note: 'Salami Cups entered', get: (p) => p.cupsPlayed, neutral: true },
