@@ -89,3 +89,13 @@ export function sides(state: DraftState): Side[] {
 export function teamsFromDraft(state: DraftState): string[][] {
   return sides(state).map((s) => [s.captainId, ...s.picks.map((p) => p.player_id)])
 }
+
+/** Fisher-Yates shuffle. Used to draw the captains' pick order so nobody chooses who picks first. */
+export function shuffled<T>(items: readonly T[], random: () => number = Math.random): T[] {
+  const out = [...items]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}

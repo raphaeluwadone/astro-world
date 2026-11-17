@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { onTheClock, poolLeft, roundNote, slotForPick, teamsFromDraft, totalPicks, type DraftState } from './turn'
+import { onTheClock, poolLeft, roundNote, shuffled, slotForPick, teamsFromDraft, totalPicks, type DraftState } from './turn'
 
 const seq = (teams: number, count: number) => Array.from({ length: count }, (_, i) => slotForPick(i + 1, teams))
 
@@ -55,5 +55,19 @@ describe('draft state', () => {
     expect(roundNote(1, 6)).toBe('Round 1: Alpha to Zeta')
     expect(roundNote(7, 6)).toBe('Round 2: Zeta back to Alpha')
     expect(roundNote(13, 6)).toBe('Round 3: Alpha to Zeta')
+  })
+})
+
+describe('shuffled', () => {
+  it('keeps everyone and leaves the input alone', () => {
+    const input = ['a', 'b', 'c', 'd']
+    const out = shuffled(input)
+    expect([...out].sort()).toEqual(['a', 'b', 'c', 'd'])
+    expect(input).toEqual(['a', 'b', 'c', 'd'])
+  })
+  it('puts each person first about equally often', () => {
+    const counts: Record<string, number> = { a: 0, b: 0, c: 0 }
+    for (let n = 0; n < 6000; n++) counts[shuffled(['a', 'b', 'c'])[0]]++
+    for (const k of Object.keys(counts)) expect(counts[k]).toBeGreaterThan(1700)
   })
 })
