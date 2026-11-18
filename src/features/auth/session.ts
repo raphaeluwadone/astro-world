@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js'
 import { useSyncExternalStore } from 'react'
+import { setMonitoredPlayer } from '@/lib/monitoring'
 import { supabase } from '@/lib/supabase'
 
 interface SessionState {
@@ -12,7 +13,10 @@ let onboardedUser: string | null = null
 const listeners = new Set<() => void>()
 
 function set(session: Session | null) {
-  if (session?.user.id !== state.session?.user.id) onboardedUser = null
+  if (session?.user.id !== state.session?.user.id) {
+    onboardedUser = null
+    setMonitoredPlayer(null, session?.user.id)
+  }
   state = { session, loading: false }
   listeners.forEach((l) => l())
 }

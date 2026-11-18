@@ -1,5 +1,6 @@
 // Paystack's server-to-server notice. Covers players who close the tab before being sent back.
 import { secretKey, serviceClient, verifyAndSettle } from '../_shared/paystack.ts'
+import { serve } from '../_shared/monitoring.ts'
 
 async function signatureMatches(raw: string, signature: string | null) {
   if (!signature) return false
@@ -12,7 +13,7 @@ async function signatureMatches(raw: string, signature: string | null) {
   return diff === 0
 }
 
-Deno.serve(async (req) => {
+serve('paystack-webhook', async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 })
   const raw = await req.text()
   if (!(await signatureMatches(raw, req.headers.get('x-paystack-signature')))) {

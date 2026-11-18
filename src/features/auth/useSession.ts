@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { setMonitoredPlayer } from '@/lib/monitoring'
 import { supabase } from '@/lib/supabase'
 import { useSession } from './session'
 
@@ -35,6 +36,10 @@ export function useCurrentPlayer() {
     },
     enabled: !!userId,
   })
+
+  useEffect(() => {
+    if (query.data) setMonitoredPlayer(query.data, userId)
+  }, [query.data, userId])
 
   useEffect(() => {
     if (query.isSuccess && query.data === null) {

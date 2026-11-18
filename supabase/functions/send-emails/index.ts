@@ -1,6 +1,7 @@
 // Drains email_outbox. Sends through Resend when RESEND_API_KEY is set, otherwise into the local Mailpit inbox.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { buildTicket, renderTicket } from '../_shared/email.ts'
+import { serve } from '../_shared/monitoring.ts'
 
 const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
@@ -26,7 +27,7 @@ async function send(to: string, subject: string, html: string) {
   if (!res.ok) throw new Error(`Mailpit ${res.status}: ${await res.text()}`)
 }
 
-Deno.serve(async () => {
+serve('send-emails', async () => {
   const { data: batch, error } = await supabase.rpc('claim_email_batch', { p_limit: 20 })
   if (error) return Response.json({ error: error.message }, { status: 500 })
 

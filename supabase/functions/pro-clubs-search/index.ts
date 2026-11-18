@@ -3,6 +3,7 @@
 // season-gated the way player statistics are (confirmed live), so this
 // works the same regardless of the account's plan.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { serve } from '../_shared/monitoring.ts'
 
 const API_FOOTBALL_KEY = Deno.env.get('API_FOOTBALL_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -17,7 +18,7 @@ interface ApiFootballTeam {
   }
 }
 
-Deno.serve(async (req) => {
+serve('pro-clubs-search', async (req) => {
   const { query } = await req.json().catch(() => ({ query: '' }))
   const trimmed = typeof query === 'string' ? query.trim() : ''
   if (trimmed.length < 2) {

@@ -1,6 +1,7 @@
 // Runs every 5 minutes from pg_cron, and on demand from the admin Payments page.
 // Re-verifies open payments with Paystack, then sweeps Paystack's own list of successful charges for anything Astro hasn't recorded.
 import { cors, json, paystack, serviceClient, userClient, verifyAndSettle, type Payment } from '../_shared/paystack.ts'
+import { reportError, serve } from '../_shared/monitoring.ts'
 
 const SWEEP_DAYS = 3
 const STALE_HOURS = 24
@@ -33,7 +34,7 @@ interface PaystackListItem {
   customer: { email: string | null } | null
 }
 
-Deno.serve(async (req) => {
+serve('payments-reconcile', async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const admin = serviceClient()
   if (!(await isAllowed(req, admin))) return json({ error: 'Not allowed' }, 401)
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
     summary.errors.push(`sweep: ${e instanceof Error ? e.message : e}`)
   }
 
-  if (summary.errors.length) console.error('payments-reconcile', summary.errors)
+  if (summary.errors.length) await reportError('payments-reconcile', new Error(`${summary.errors.length} payment(s) failed to reconcile`), { errors: summary.errors })
   return json(summary)
 })
 

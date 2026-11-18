@@ -1,5 +1,6 @@
 import { createRouter } from '@tanstack/react-router'
 import { PageLoader } from '@/components/states/PageLoader'
+import { RouteErrorPage } from '@/components/states/RouteErrorPage'
 import { routeTree } from './routeTree.gen'
 
 export const router = createRouter({
@@ -9,6 +10,7 @@ export const router = createRouter({
   defaultPendingMs: 100,
   defaultPendingMinMs: 300,
   defaultPendingComponent: PageLoader,
+  defaultErrorComponent: RouteErrorPage,
 })
 
 declare module '@tanstack/react-router' {

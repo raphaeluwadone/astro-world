@@ -1,7 +1,8 @@
 // Called when Paystack sends the player back. Checks the reference with Paystack itself, never the browser's word.
 import { cors, json, serviceClient, userClient, verifyAndSettle } from '../_shared/paystack.ts'
+import { serve } from '../_shared/monitoring.ts'
 
-Deno.serve(async (req) => {
+serve('payments-verify', async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 

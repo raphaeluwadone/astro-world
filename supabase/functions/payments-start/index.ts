@@ -1,5 +1,6 @@
 // Opens a payment for the signed-in player and returns Paystack's checkout URL.
 import { cors, json, paystack, serviceClient, userClient } from '../_shared/paystack.ts'
+import { serve } from '../_shared/monitoring.ts'
 
 const RETURN_PATH = '/pay/return'
 
@@ -8,7 +9,7 @@ function paystackEmail(email: string, playerId: string) {
   return /\.(local|test|localhost)$/i.test(email) ? `player-${playerId}@example.com` : email
 }
 
-Deno.serve(async (req) => {
+serve('payments-start', async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
