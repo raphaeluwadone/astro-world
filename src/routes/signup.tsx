@@ -125,7 +125,7 @@ function SignupPage() {
       </form>
       {EMAIL_AUTH_ENABLED && (
         <button type="button" disabled={sending} onClick={sendCode} className="mt-3 w-full text-center text-xs font-semibold text-astro-accent disabled:opacity-50">
-          {sending ? 'Sending…' : 'No password? Email me a code instead'}
+          {sending ? 'Sending…' : 'No password? Get a 6-digit code by email.'}
         </button>
       )}
       <p className="mt-5 text-center text-xs text-astro-text-muted">

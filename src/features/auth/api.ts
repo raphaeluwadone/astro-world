@@ -77,7 +77,7 @@ export const EMAIL_AUTH_ENABLED = import.meta.env.VITE_AUTH_EMAIL === 'true'
 export function authMessage(err: unknown): string {
   const msg = err instanceof Error ? err.message : ''
   if (/invalid login credentials/i.test(msg)) return 'That email and password don’t match.'
-  if (/signups not allowed for otp|user not found/i.test(msg)) return 'There’s no account with that email. Use the Join button to sign up.'
+  if (/signups not allowed for otp|user not found/i.test(msg)) return 'No account with that email yet. First time here? Tap “Join the group” below.'
   if (/expired|invalid/i.test(msg) && /token|otp|code/i.test(msg)) return 'That code is wrong or has expired.'
   if (/rate limit|security purposes|too many/i.test(msg)) return 'Too many tries. Wait a minute and try again.'
   if (/already registered/i.test(msg)) return 'That email already has an account. Sign in instead.'

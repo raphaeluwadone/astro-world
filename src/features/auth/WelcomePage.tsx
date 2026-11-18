@@ -93,14 +93,16 @@ function SignInForm({ redirectTo, notice }: { redirectTo?: string; notice?: stri
   const forgot = step === 'forgot'
   return (
     <AuthLayout
-      subtitle={forgot ? 'Reset your password' : 'Sunday football at Gbaja Boys'}
+      subtitle={forgot ? 'Reset your password' : 'Sunday football at Gbaja Boys. Sign in to see your matchday, stats and badges.'}
       footer={
         forgot ? undefined : (
           <div className="mt-4 rounded-2xl border border-[rgba(166,63,255,0.4)] bg-astro-surface p-5 text-center">
-            <div className="font-display text-2xl leading-none text-astro-accent-soft">NEW HERE?</div>
-            <p className="mb-3.5 mt-1.5 text-[12.5px] text-astro-text-muted">You need the group code. Then find your name on the list.</p>
+            <div className="font-display text-2xl leading-none text-astro-accent-soft">NEW TO ASTRO?</div>
+            <p className="mb-3.5 mt-1.5 text-[12.5px] text-astro-text-muted [text-wrap:pretty]">
+              You need the group code from the group chat. Your name is probably already on the list, so you just tap it.
+            </p>
             <Link to="/signup" className="flex min-h-11 items-center justify-center rounded-xl bg-astro-accent text-[14px] font-extrabold text-astro-on-accent no-underline hover:bg-astro-accent-soft">
-              Join with the group code
+              Join the group
             </Link>
           </div>
         )
@@ -142,7 +144,7 @@ function SignInForm({ redirectTo, notice }: { redirectTo?: string; notice?: stri
         </Button>
       </form>
       {!forgot && !EMAIL_AUTH_ENABLED && (
-        <p className="mt-4 text-center text-xs text-astro-text-muted">Forgot your password? Ask an admin in the group chat.</p>
+        <p className="mt-4 text-center text-xs text-astro-text-muted">Forgot your password? Message an admin in the Astro group chat and they’ll reset it.</p>
       )}
       {!forgot && EMAIL_AUTH_ENABLED && (
         <button
@@ -151,7 +153,7 @@ function SignInForm({ redirectTo, notice }: { redirectTo?: string; notice?: stri
           onClick={() => withEmail((email) => sendEmailCode(email, { createUser: false, redirect: redirectTo }), 'code')}
           className="mt-3 w-full text-center text-xs font-semibold text-astro-accent disabled:opacity-50"
         >
-          {sending ? 'Sending…' : 'Email me a sign-in code instead'}
+          {sending ? 'Sending…' : 'No password? Get a 6-digit code by email.'}
         </button>
       )}
       {forgot && (

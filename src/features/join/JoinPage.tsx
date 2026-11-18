@@ -38,7 +38,6 @@ export function JoinPage() {
   const [newNick, setNewNick] = useState('')
   const [newFull, setNewFull] = useState('')
   const [code, setCode] = useState(groupCodeMemory.get)
-  const [askCode, setAskCode] = useState(() => !groupCodeMemory.get())
   const [insta, setInsta] = useState('')
   const [month, setMonth] = useState<number | null>(null)
   const [day, setDay] = useState('')
@@ -70,10 +69,7 @@ export function JoinPage() {
         setWho(null)
         void refetch()
       }
-      if (message.includes('group code')) {
-        setAskCode(true)
-        setWho(null)
-      }
+      if (message.includes('group code')) setWho(null)
     }
   }
 
@@ -102,12 +98,11 @@ export function JoinPage() {
               Most of the group is already on our list. Tap your name and your record is yours.
             </p>
 
-            {askCode && (
-              <div className="astro-card mb-4 p-5">
-                <div className={LABEL}>Group code</div>
-                <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="From the group chat" autoCapitalize="characters" autoCorrect="off" className={FIELD} />
-              </div>
-            )}
+            <div className="astro-card mb-4 p-5">
+              <div className={LABEL}>Group code</div>
+              <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="From the group chat" autoCapitalize="characters" autoCorrect="off" className={FIELD} />
+              <p className="mt-2 text-[12.5px] text-astro-text-muted">Ask in the group chat if you don’t have it.</p>
+            </div>
 
             <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your name" aria-label="Search your name" className={cn(FIELD, 'mb-3')} />
 
