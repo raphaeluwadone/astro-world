@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCurrentPlayer } from '@/features/auth/useSession'
 import { grantWriter, revokeWriter } from '@/features/articles/api'
-import { createMember, fetchMembers, setAdmin, setLeft, updateMember, type MemberPatch } from './api'
+import { createMember, fetchMembers, fetchStuckAccounts, linkAccount, setAdmin, setLeft, updateMember, type MemberPatch } from './api'
 
 export function useMembers() {
   return useQuery({ queryKey: ['admin-members'], queryFn: fetchMembers })
@@ -37,5 +37,21 @@ export function useCreateMember() {
     mutationFn: ({ nickname, fullName, positions }: { nickname: string; fullName: string; positions: Parameters<typeof createMember>[2] }) =>
       createMember(nickname, fullName, positions),
     onSuccess: invalidate,
+  })
+}
+
+export function useStuckAccounts() {
+  return useQuery({ queryKey: ['admin-stuck-accounts'], queryFn: fetchStuckAccounts })
+}
+
+export function useLinkAccount() {
+  const invalidate = useInvalidateMembers()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, playerId }: { userId: string; playerId: string }) => linkAccount(userId, playerId),
+    onSuccess: () => {
+      invalidate()
+      qc.invalidateQueries({ queryKey: ['admin-stuck-accounts'] })
+    },
   })
 }

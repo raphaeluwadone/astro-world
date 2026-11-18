@@ -95,3 +95,22 @@ export async function createMember(nickname: string, fullName: string, positions
   if (error) throw error
   return data.id
 }
+
+export interface StuckAccount {
+  user_id: string
+  email: string
+  created_at: string
+  last_sign_in_at: string | null
+}
+
+/** Sign-ups that never finished joining. */
+export async function fetchStuckAccounts(): Promise<StuckAccount[]> {
+  const { data, error } = await supabase.rpc('admin_stuck_accounts')
+  if (error) throw error
+  return data ?? []
+}
+
+export async function linkAccount(userId: string, playerId: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_link_account', { p_user: userId, p_player: playerId })
+  if (error) throw error
+}

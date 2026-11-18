@@ -3239,6 +3239,14 @@ export type Database = {
         }
         Returns: Database["public"]["Tables"]["payments"]["Row"]
       }
+      admin_stuck_accounts: {
+        Args: Record<PropertyKey, never>
+        Returns: { user_id: string; email: string; created_at: string; last_sign_in_at: string | null }[]
+      }
+      admin_link_account: {
+        Args: { p_user: string; p_player: string }
+        Returns: string
+      }
       admin_add_to_matchday: {
         Args: { p_matchday: string; p_player: string; p_waive?: boolean }
         Returns: string

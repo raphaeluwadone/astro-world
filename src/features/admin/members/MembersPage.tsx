@@ -11,6 +11,7 @@ import { useMembers } from './hooks'
 import { AddMemberDialog } from './AddMemberDialog'
 import { MemberSheet } from './MemberSheet'
 import { MembersTabs } from './MembersTabs'
+import { StuckAccounts } from './StuckAccounts'
 
 export type Filter = 'active' | 'admins' | 'writers' | 'unclaimed' | 'left' | 'all'
 
@@ -90,6 +91,7 @@ export function MembersPage({ initialFilter = 'active' }: { initialFilter?: Filt
         <ErrorState onRetry={() => refetch()} />
       ) : (
         <>
+          <StuckAccounts members={members} />
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {FILTERS.map((f) => {
               const n = members.filter(f.test).length
