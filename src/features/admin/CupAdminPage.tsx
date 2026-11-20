@@ -171,9 +171,14 @@ function SquadsPanel({ cupId }: { cupId: string }) {
           />
           <div className="mb-3 flex flex-wrap gap-1.5">
             {s.members.map((m) => (
-              <div key={m.id} className="flex items-center gap-1.5 rounded-md border border-white/[0.07] bg-astro-surface-2 px-2.5 py-1 text-[11.5px] font-bold text-astro-text-muted">
+              <div key={m.id} className="flex items-center gap-0.5 rounded-md border border-white/[0.07] bg-astro-surface-2 py-0.5 pl-2.5 pr-0.5 text-[11.5px] font-bold text-astro-text-muted">
                 {m.nickname}
-                <button type="button" onClick={() => removePlayer.mutate({ squadId: s.id, playerId: m.id }, { onSuccess: () => undoToast(`${m.nickname} out of ${s.name}`, () => addPlayer.mutate({ squadId: s.id, playerId: m.id })) })} className="text-astro-text-dim hover:text-astro-red">
+                <button
+                  type="button"
+                  aria-label={`Remove ${m.nickname} from ${s.name}`}
+                  onClick={() => removePlayer.mutate({ squadId: s.id, playerId: m.id }, { onSuccess: () => undoToast(`${m.nickname} out of ${s.name}`, () => addPlayer.mutate({ squadId: s.id, playerId: m.id })) })}
+                  className="flex size-7 items-center justify-center rounded-[6px] text-[14px] leading-none text-astro-text-dim hover:bg-astro-red/[0.15] hover:text-astro-red"
+                >
                   &times;
                 </button>
               </div>
@@ -260,7 +265,7 @@ function ScorerList({
             type="button"
             aria-label="Remove scorer"
             onClick={() => onChange(scorers.filter((_, j) => j !== i))}
-            className="px-1 text-sm font-bold text-astro-text-dim hover:text-astro-red"
+            className="flex size-9 shrink-0 items-center justify-center rounded-[8px] text-base font-bold text-astro-text-dim hover:bg-astro-red/[0.15] hover:text-astro-red"
           >
             ×
           </button>

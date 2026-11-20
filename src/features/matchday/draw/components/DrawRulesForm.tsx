@@ -22,13 +22,13 @@ export function DrawRulesForm({ rules, onChange, disabled }: { rules: DrawRules;
       {RULE_ORDER.map((key, i) => (
         <li key={key} className={cn('px-3.5 py-2.5', i > 0 && 'border-t border-white/[0.06]')}>
           <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
+            <label htmlFor={`rule-switch-${key}`} className={cn('min-w-0 flex-1', !disabled && 'cursor-pointer')}>
               <div id={`rule-${key}`} className="text-[13.5px] font-bold text-astro-text">
                 {RULE_COPY[key].label}
               </div>
               <div className="text-[12px] text-astro-text-muted">{RULE_COPY[key].detail}</div>
-            </div>
-            <Switch checked={rules[key]} disabled={disabled} onCheckedChange={(on) => onChange({ ...rules, [key]: on })} aria-labelledby={`rule-${key}`} />
+            </label>
+            <Switch id={`rule-switch-${key}`} checked={rules[key]} disabled={disabled} onCheckedChange={(on) => onChange({ ...rules, [key]: on })} aria-labelledby={`rule-${key}`} />
           </div>
           {key === 'ratings' && rules.ratings && (
             <div className="mt-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Ratings from">

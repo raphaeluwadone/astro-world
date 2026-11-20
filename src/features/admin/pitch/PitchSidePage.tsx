@@ -580,7 +580,7 @@ function GoalEditor({
                         type="button"
                         aria-label="Undo goal"
                         onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Pitch-side', title: g.scorer_id ? `Remove ${nameOf(g.scorer_id)}’s goal?` : 'Remove this goal?', body: 'It comes off the score and their stats.', confirmLabel: 'Remove goal' }, () => act.mutate(() => api.deleteGoal(g.id), { onSuccess: () => toast('Goal removed.'), onError: fail('remove that goal') }))}
-                        className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
+                        className="flex size-9 shrink-0 items-center justify-center rounded-[8px] text-base font-bold text-astro-text-dim hover:bg-astro-red/[0.15] hover:text-astro-red"
                       >
                         &times;
                       </button>
@@ -603,7 +603,7 @@ function GoalEditor({
                           type="button"
                           aria-label="Undo card"
                           onClick={() => withConfirm({ tone: 'admin', eyebrow: 'Pitch-side', title: `Remove ${nameOf(c.player_id)}’s card?`, body: 'It comes off their record for this game.', confirmLabel: 'Remove card' }, () => act.mutate(() => api.deleteCard(c.id), { onSuccess: () => toast('Card removed.'), onError: fail('remove that card') }))}
-                          className="px-1.5 text-base font-bold text-astro-text-dim hover:text-astro-red"
+                          className="flex size-9 shrink-0 items-center justify-center rounded-[8px] text-base font-bold text-astro-text-dim hover:bg-astro-red/[0.15] hover:text-astro-red"
                         >
                           &times;
                         </button>
