@@ -17,6 +17,7 @@ import {
   renameSquad,
   runCupDraw,
   updateCupStatus,
+  type CupGoal,
   type CupStatus,
   type NewCupMatchFields,
   type NewCupQuarterFields,
@@ -150,8 +151,8 @@ export function useCreateCupMatch(cupQuarterId: string | undefined) {
 export function useRecordCupMatchScore(cupQuarterId: string | undefined) {
   const invalidate = useInvalidateCup(cupQuarterId)
   return useMutation({
-    mutationFn: (params: { matchId: string; scoreA: number; scoreB: number }) =>
-      recordCupMatchScore(params.matchId, params.scoreA, params.scoreB),
+    mutationFn: (params: { matchId: string; scoreA: number; scoreB: number; goals: CupGoal[] }) =>
+      recordCupMatchScore(params.matchId, params.scoreA, params.scoreB, params.goals),
     onSuccess: invalidate,
   })
 }

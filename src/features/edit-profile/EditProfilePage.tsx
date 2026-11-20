@@ -1,5 +1,9 @@
+import { undoToast } from '@/components/dialogs/confirm'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
+import { BackLink } from '@/components/navigation/BackLink'
 import { InlineLoader } from '@/components/states/InlineLoader'
 import { PageLoader } from '@/components/states/PageLoader'
 import { useCurrentPlayer } from '@/features/auth/useSession'
@@ -7,6 +11,8 @@ import { useTagPool } from '@/features/community/hooks'
 import { useCareerStats, useMatchRatings, usePlayerTags } from '@/features/profile/hooks'
 import { CardPhotoCard } from './components/CardPhotoCard'
 import { DetailsCard, type DraftFields } from './components/DetailsCard'
+import { DisplaySettingsCard } from './components/DisplaySettingsCard'
+import { PasswordCard } from './components/PasswordCard'
 import { LeaveGroupCard } from './components/LeaveGroupCard'
 import { LockedFieldsCard } from './components/LockedFieldsCard'
 import { SelfTagsCard } from './components/SelfTagsCard'
@@ -48,11 +54,14 @@ export function EditProfilePage() {
   const removeSelfTag = useRemoveSelfTag(playerId)
 
   const [draft, setDraft] = useState<DraftFields | null>(null)
+  const [initial, setInitial] = useState<DraftFields | null>(null)
+  useUnsavedGuard(!!draft && !!initial && JSON.stringify(draft) !== JSON.stringify(initial), { body: 'Your profile changes haven’t been saved. If you leave now, they’re lost.' })
   if (player && !draft) {
     // Initialize local edit state from the fetched player the first time
     // it's available: a conditional setState during render, not an
     // effect, since this only ever needs to run once per player load.
     setDraft(toDraft(player))
+    setInitial(toDraft(player))
   }
 
   if (!player || !draft) {
@@ -68,6 +77,10 @@ export function EditProfilePage() {
 
   async function save() {
     if (!draft) return
+    if (Number(draft.favourite_number) === 4) {
+      toast.error('Number 4 is retired in memory of Ade Salami. Pick another number.')
+      return
+    }
     await updatePlayer.mutateAsync({
       nickname: draft.nickname,
       full_name: draft.full_name,
@@ -80,20 +93,12 @@ export function EditProfilePage() {
       positions: draft.positions,
       preferred_foot: draft.preferred_foot,
     })
-    navigate({ to: '/profile' })
+    navigate({ to: '/profile', ignoreBlocker: true })
   }
 
   return (
     <div>
-      <Link
-        to="/profile"
-        className="mb-[18px] inline-flex items-center gap-[7px] text-[12.5px] font-bold text-astro-text-muted hover:text-astro-text"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M15.6 3.6 7.2 12l8.4 8.4Z" />
-        </svg>
-        Back to profile
-      </Link>
+      <BackLink to="/profile" label="Back to profile" className="mb-[18px]" />
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -133,27 +138,33 @@ export function EditProfilePage() {
             allTags={tags}
             tagPool={tagPool}
             onAdd={(tagId) => addSelfTag.mutate(tagId)}
-            onRemove={(rowId) => removeSelfTag.mutate(rowId)}
+            onRemove={(rowId) => {
+              const label = tags.find((t) => t.id === rowId)?.label
+              const poolId = tagPool.find((t) => t.label === label)?.id
+              removeSelfTag.mutate(rowId, {
+                onSuccess: () => label && poolId && undoToast(`Removed ${label}`, () => addSelfTag.mutate(poolId)),
+              })
+            }}
             isMutating={addSelfTag.isPending || removeSelfTag.isPending}
           />
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
-          <CardPhotoCard />
+          <CardPhotoCard playerId={player.id} nickname={player.nickname} />
           <LockedFieldsCard
             fields={[
               { label: 'Overall rating', why: 'Averaged from everyone else’s scores.', value: careerAvg?.toString() ?? '—' },
-              { label: 'Appearances', why: 'Counted from the matches you’ve actually played.', value: (careerStats?.appearances ?? 0).toString() },
-              { label: 'Goals / assists', why: 'Logged from the matchday record.', value: `${careerStats?.goals ?? 0} / ${careerStats?.assists ?? 0}` },
+              { label: 'Appearances', why: 'Past appearances plus every match recorded.', value: ((careerStats?.appearances ?? 0) + player.legacy_appearances).toString() },
+              { label: 'Goals / assists', why: 'Past totals plus the matchday record.', value: `${(careerStats?.goals ?? 0) + player.legacy_goals} / ${(careerStats?.assists ?? 0) + player.legacy_assists}` },
               { label: 'Man of the Match', why: 'Voted by the group, tallied per matchday.', value: (careerStats?.motm ?? 0).toString() },
               {
-                label: 'Community tags',
+                label: 'Traits from the group',
                 why: 'Voted onto you by the group.',
                 value: communityTags.length > 0 ? communityTags.map((t) => t.label).join(', ') : 'None yet',
               },
               {
                 label: 'Joined',
-                why: 'Set when your account was created.',
+                why: 'Set when you joined the group.',
                 value: new Date(player.joined_at).toLocaleDateString('en-GB', {
                   month: 'short',
                   year: 'numeric',
@@ -161,6 +172,8 @@ export function EditProfilePage() {
               },
             ]}
           />
+          <DisplaySettingsCard />
+          <PasswordCard />
           <LeaveGroupCard />
         </div>
       </div>

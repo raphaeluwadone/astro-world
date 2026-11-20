@@ -15,7 +15,7 @@ export interface RosterPlayer {
  * fetchActivePlayers (matchday/api.ts) deliberately excludes unclaimed
  * players, which is right for ballot participation but wrong here. */
 export async function fetchAllPlayers(): Promise<RosterPlayer[]> {
-  const { data, error } = await supabase.from('players').select('id, nickname').order('nickname', { ascending: true })
+  const { data, error } = await supabase.from('players').select('id, nickname').is('left_at', null).order('nickname', { ascending: true })
   if (error) throw error
   return data ?? []
 }

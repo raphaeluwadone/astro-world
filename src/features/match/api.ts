@@ -21,8 +21,10 @@ export interface LineupRow {
 
 export interface GoalRow {
   id: string
+  match_id: string
   team_id: string
-  minute: number
+  minute: number | null
+  own_goal: boolean
   scorer: PlayerSummary
   assist: PlayerSummary | null
 }
@@ -33,7 +35,7 @@ export interface RatingsIntegrity {
   lowest_avg: number | null
 }
 
-const PLAYER_SUMMARY_COLS = 'id, nickname, full_name'
+const PLAYER_SUMMARY_COLS = 'id, nickname, full_name, favourite_number'
 
 export async function fetchMatch(matchId: string): Promise<MatchDetail | null> {
   // maybeSingle, not single: an unknown/mistyped matchId is a normal
@@ -79,16 +81,23 @@ export async function fetchLineups(matchId: string): Promise<LineupRow[]> {
   }))
 }
 
+const GOAL_COLS = `id, match_id, team_id, minute, own_goal,
+  scorer:players!goals_scorer_id_fkey (${PLAYER_SUMMARY_COLS}),
+  assist:players!goals_assist_id_fkey (${PLAYER_SUMMARY_COLS})`
+
+export async function fetchGoalsForMatches(matchIds: string[]): Promise<GoalRow[]> {
+  if (matchIds.length === 0) return []
+  const { data, error } = await supabase.from('goals').select(GOAL_COLS).in('match_id', matchIds).order('minute', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true })
+  if (error) throw error
+  return data as unknown as GoalRow[]
+}
+
 export async function fetchGoals(matchId: string): Promise<GoalRow[]> {
   const { data, error } = await supabase
     .from('goals')
-    .select(
-      `id, team_id, minute,
-       scorer:players!goals_scorer_id_fkey (${PLAYER_SUMMARY_COLS}),
-       assist:players!goals_assist_id_fkey (${PLAYER_SUMMARY_COLS})`,
-    )
+    .select(GOAL_COLS)
     .eq('match_id', matchId)
-    .order('minute', { ascending: true })
+    .order('minute', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true })
   if (error) throw error
   return data as unknown as GoalRow[]
 }

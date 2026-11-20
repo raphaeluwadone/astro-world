@@ -1,3 +1,4 @@
+import { togglePosition as pickPosition } from '@/lib/positions'
 import type { Database } from '@/types/database'
 import { ClubSearchSelect } from './ClubSearchSelect'
 import { FieldHint, FieldLabel, TextField } from './FieldInput'
@@ -36,10 +37,7 @@ export function DetailsCard({
   onChange: (patch: Partial<DraftFields>) => void
 }) {
   function togglePosition(p: PositionType) {
-    const has = draft.positions.includes(p)
-    onChange({
-      positions: has ? draft.positions.filter((x) => x !== p) : [...draft.positions, p],
-    })
+    onChange({ positions: pickPosition(draft.positions, p) })
   }
 
   return (
@@ -64,12 +62,14 @@ export function DetailsCard({
           <TextField
             label="Height (cm)"
             type="number"
+            placeholder="e.g. 178"
             value={draft.height_cm}
             onChange={(v) => onChange({ height_cm: v })}
           />
           <TextField
             label="Weight (kg)"
             type="number"
+            placeholder="e.g. 75"
             value={draft.weight_kg}
             onChange={(v) => onChange({ weight_kg: v })}
           />
@@ -78,9 +78,10 @@ export function DetailsCard({
           <TextField
             label="Favourite number"
             type="number"
+            placeholder="e.g. 7"
             value={draft.favourite_number}
             onChange={(v) => onChange({ favourite_number: v })}
-            hint="Not a jersey number. Doesn't have to be unique."
+            hint="Not a jersey number. Doesn't have to be unique. Number 4 is retired."
           />
           <div>
             <FieldLabel>Favourite club</FieldLabel>
@@ -106,7 +107,7 @@ export function DetailsCard({
               </button>
             ))}
           </div>
-          <FieldHint>Pick as many as you honestly play. Utility means you&rsquo;ll go anywhere.</FieldHint>
+          <FieldHint>Pick the one you play. Utility means you&rsquo;ll go anywhere. Add GK as well if you&rsquo;ll go in goal.</FieldHint>
         </div>
 
         <div>

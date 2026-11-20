@@ -1,36 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import {
-  createNewPlayer,
-  fetchMyLatestClaim,
-  fetchUnclaimedPlayers,
-  submitClaim,
-  updatePlayerJoinDetails,
-  type JoinDetails,
-} from './api'
+import { fetchFreeNames, fetchMyLatestClaim, joinGroup, type JoinInput } from './api'
 
-export function useUnclaimedPlayers() {
-  return useQuery({ queryKey: ['unclaimed-players'], queryFn: fetchUnclaimedPlayers })
+export function useFreeNames() {
+  return useQuery({ queryKey: ['free-names'], queryFn: fetchFreeNames })
 }
 
-export function useSubmitClaim() {
-  return useMutation({
-    mutationFn: ({ playerId, userId, details }: { playerId: string; userId: string; details: JoinDetails }) =>
-      submitClaim(playerId, userId, details),
-  })
-}
-
-export function useCreateNewPlayer() {
-  return useMutation({
-    mutationFn: ({ userId, nickname, fullName }: { userId: string; nickname: string; fullName: string }) =>
-      createNewPlayer(userId, nickname, fullName),
-  })
-}
-
-export function useUpdatePlayerJoinDetails() {
-  return useMutation({
-    mutationFn: ({ playerId, fields }: { playerId: string; fields: JoinDetails }) =>
-      updatePlayerJoinDetails(playerId, fields),
-  })
+export function useJoinGroup() {
+  return useMutation({ mutationFn: (input: JoinInput) => joinGroup(input) })
 }
 
 export function useMyLatestClaim(userId: string | undefined) {

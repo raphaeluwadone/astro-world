@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
+import { RichEditor } from '@/components/editor/RichEditor'
 import { MemorialModal } from '@/components/dialogs/MemorialModal'
 import { VigilLoaderSmall } from '@/components/states/VigilLoader'
 
@@ -13,6 +15,7 @@ export function TributeComposer({
 }) {
   const [open, setOpen] = useState(false)
   const [content, setContent] = useState('')
+  useUnsavedGuard(content.trim().length > 0, { title: 'Leave without posting?', body: 'Your tribute hasn’t been posted. If you leave now, it’s lost.', confirmLabel: 'Discard' })
 
   function submit() {
     const trimmed = content.trim()
@@ -37,7 +40,7 @@ export function TributeComposer({
         open={open}
         onOpenChange={setOpen}
         title="Say something about Ade"
-        body="It stays on his page for good, next to everyone else's. There's no length to aim for, some of the best ones are a line."
+        body="It stays on his page until you take it down, next to everyone else's. There's no length to aim for, some of the best ones are a line."
         cancelLabel="Not now"
         confirmLabel={
           isSubmitting ? (
@@ -52,13 +55,17 @@ export function TributeComposer({
         onConfirm={submit}
         confirmDisabled={isSubmitting || !content.trim()}
       >
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={2}
-          placeholder="He never once passed to me."
-          className="w-full resize-none rounded-xl border border-[rgba(203,213,245,0.25)] bg-[#151c30] px-[17px] py-[15px] font-serif text-[17px] text-[#e8ecfa] placeholder:text-[#4d5578] focus:outline-none"
-        />
+        <div className="rounded-xl border border-[rgba(203,213,245,0.25)] bg-[#151c30] px-[17px] py-3 focus-within:border-[rgba(203,213,245,0.5)]">
+          <RichEditor
+            value={content}
+            onChange={setContent}
+            autoFocus
+            onSubmit={() => !isSubmitting && submit()}
+            placeholder="He never once passed to me."
+            aria-label="Your tribute"
+            contentClassName="min-h-[3.2em] font-serif text-[17px] leading-[1.5] text-[#e8ecfa]"
+          />
+        </div>
       </MemorialModal>
     </>
   )

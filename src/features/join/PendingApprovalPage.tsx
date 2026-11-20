@@ -43,7 +43,7 @@ export function PendingApprovalPage() {
             </h1>
             <p className="mb-6 text-sm leading-[1.6] text-astro-text-muted [text-wrap:pretty]">
               {claim
-                ? `They'll confirm you're ${claim.players.nickname} and your record unlocks. Usually the same evening.`
+                ? `Your claim on ${claim.players.nickname} is waiting on an admin. Ask in the group chat.`
                 : "We couldn't find a pending claim for your account. If you think that's wrong, try joining again."}
             </p>
           </>

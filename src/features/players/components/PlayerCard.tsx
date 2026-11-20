@@ -1,14 +1,44 @@
 import { Link } from '@tanstack/react-router'
 import type { PlayerCardRow } from '../api'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
+import { PlayerPhoto } from '@/features/photos/PlayerPhoto'
 
-export function PlayerCard({ player }: { player: PlayerCardRow }) {
+export function PlayerCard({
+  player,
+  pickColour,
+  onPick,
+}: {
+  player: PlayerCardRow
+  /** Set while it's on the compare shortlist. */
+  pickColour?: string
+  /** In compare mode a tap picks the card instead of opening the profile. */
+  onPick?: () => void
+}) {
   return (
     <Link
       to="/players/$playerId"
       params={{ playerId: player.id }}
       className="astro-card--special relative block p-4"
+      aria-pressed={onPick ? Boolean(pickColour) : undefined}
+      style={pickColour ? { outline: `2.5px solid ${pickColour}`, outlineOffset: 2 } : undefined}
+      onClick={
+        onPick
+          ? (e) => {
+              e.preventDefault()
+              onPick()
+            }
+          : undefined
+      }
     >
       <div className="astro-foil" />
+      {onPick && (
+        <div
+          className="absolute right-3 top-3 z-10 flex size-6 items-center justify-center rounded-full border-2 text-[11px] font-extrabold"
+          style={pickColour ? { background: pickColour, borderColor: pickColour, color: '#000' } : { borderColor: 'rgba(255,255,255,0.3)', background: 'rgba(10,15,31,0.6)' }}
+        >
+          {pickColour ? '✓' : ''}
+        </div>
+      )}
       {player.favourite_number != null && (
         <div className="astro-ghost -right-1.5 top-[26px] text-[118px]">{player.favourite_number}</div>
       )}
@@ -28,16 +58,18 @@ export function PlayerCard({ player }: { player: PlayerCardRow }) {
         )}
       </div>
 
-      <div
-        className="relative mb-3 flex h-[112px] items-end justify-center overflow-hidden rounded-[11px]"
+      <PlayerPhoto
+        playerId={player.id}
+        alt={player.nickname}
+        className="relative mb-3 flex h-[112px] items-end justify-center rounded-[11px]"
         style={{ background: 'linear-gradient(160deg, #243463, #131c3a)' }}
-      >
-        <div className="h-[78%] w-[56%] rounded-t-full bg-white/5" />
-      </div>
+        fallback={<div className="h-[78%] w-[56%] rounded-t-full bg-white/5" />}
+      />
 
       <div className="relative min-w-0">
-        <div className="font-display truncate text-[27px] leading-none text-astro-text">
-          {player.nickname}
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="font-display truncate text-[27px] leading-none text-astro-text">{player.nickname}</div>
+          <BadgeMark playerId={player.id} size={18} max={2} />
         </div>
         <div className="mb-2.5 truncate text-[11.5px] text-astro-text-dim">{player.full_name}</div>
         {player.favourite_club && (
@@ -58,7 +90,7 @@ export function PlayerCard({ player }: { player: PlayerCardRow }) {
         )}
         {player.tags.length > 0 && (
           <div className="flex flex-wrap gap-[5px]">
-            {player.tags.map((t) => (
+            {player.tags.slice(0, 2).map((t) => (
               <span
                 key={t}
                 className="rounded-md border border-border bg-astro-surface-2 px-2 py-1 text-[10.5px] font-bold text-astro-text-muted"

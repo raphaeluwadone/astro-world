@@ -1,3 +1,5 @@
+import { NothingHere } from '@/components/states/NothingHere'
+import { Scene } from '@/components/states/Scene'
 import { Link } from '@tanstack/react-router'
 import type { ArticleRow } from '@/features/articles/api'
 
@@ -7,16 +9,16 @@ export function ArticlesPreview({ articles }: { articles: ArticleRow[] }) {
     <div className="astro-card p-[22px]">
       <div className="mb-3.5 flex items-center justify-between">
         <h2 className="font-display text-[26px] leading-none text-astro-text">Articles</h2>
-        <Link to="/articles" className="text-xs font-extrabold text-astro-accent">
+        <Link to="/articles" className="astro-tap text-xs font-extrabold text-astro-accent">
           All
         </Link>
       </div>
       {recent.length === 0 ? (
-        <p className="text-sm text-astro-text-dim">No articles published yet.</p>
+        <NothingHere compact icon={<Scene kind="notebook" />} body="No articles published yet." />
       ) : (
         <div className="flex flex-col gap-3">
           {recent.map((a) => (
-            <div key={a.id} className="flex items-center gap-3.5">
+            <Link key={a.id} to="/articles/$articleId" params={{ articleId: a.id }} className="group flex items-center gap-3.5 no-underline">
               <div
                 className="h-14 w-[72px] shrink-0 rounded-[10px]"
                 style={{ background: 'linear-gradient(140deg, #243463, #182448)' }}
@@ -27,9 +29,9 @@ export function ArticlesPreview({ articles }: { articles: ArticleRow[] }) {
                     {a.kicker}
                   </div>
                 )}
-                <div className="text-sm font-bold text-astro-text [text-wrap:pretty]">{a.title}</div>
+                <div className="text-sm font-bold text-astro-text [text-wrap:pretty] group-hover:underline">{a.title}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

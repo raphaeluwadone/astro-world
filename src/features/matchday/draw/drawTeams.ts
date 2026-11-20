@@ -26,26 +26,12 @@
 
 const TEAM_SIZE = 6
 
-/**
- * A canonical, order-independent key for a pair of player ids, so
- * "A paired with B" and "B paired with A" are the same entry in a Set.
- *
- * TODO(Raphael): implement this.
- */
+/** Order-independent key for a pair of player ids, so A+B and B+A are the same Set entry. */
 export function pairKey(playerA: string, playerB: string): string {
   return playerA < playerB ? `${playerA}-${playerB}` : `${playerB}-${playerA}`
 }
 
-/**
- * Returns a new array containing the same elements as `items`, in a
- * uniformly random order. Must not mutate the input array.
- *
- * TODO(Raphael): implement this. Worth knowing before you start: the
- * common one-liner `array.sort(() => Math.random() - 0.5)` is a real,
- * well-documented bias trap — it does NOT produce a uniform shuffle.
- * We'll talk through why, and the standard correct algorithm, before
- * you write this one.
- */
+/** Fisher-Yates: a uniform shuffle into a new array. `sort(() => Math.random() - 0.5)` is biased. */
 export function shuffle<T>(items: T[]): T[] {
   const result = [...items]
   for (let i = result.length - 1; i > 0; i--) {

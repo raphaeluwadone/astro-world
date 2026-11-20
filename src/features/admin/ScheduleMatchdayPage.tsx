@@ -1,5 +1,8 @@
+import { confirmAction } from '@/components/dialogs/confirm'
+import { RatingSettingsCard } from '@/features/voting/components/RatingSettingsCard'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useUnsavedGuard } from '@/hooks/useUnsavedGuard'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/states/ErrorState'
 import { PageLoader } from '@/components/states/PageLoader'
@@ -17,10 +20,15 @@ export function ScheduleMatchdayPage() {
   const createMatchday = useCreateMatchday()
 
   const [date, setDate] = useState(nextSunday())
-  const [time, setTime] = useState('09:30')
+  const [time, setTime] = useState('07:45')
   const [venue, setVenue] = useState('')
   const [capacity, setCapacity] = useState<30 | 36>(30)
   const [error, setError] = useState<string | null>(null)
+  const [initial] = useState({ date, time, venue, capacity })
+  useUnsavedGuard(
+    !createMatchday.isSuccess && (date !== initial.date || time !== initial.time || venue.trim() !== initial.venue || capacity !== initial.capacity),
+    { body: 'This matchday hasn’t been opened yet. If you leave now, what you entered is lost.' },
+  )
 
   async function open() {
     if (!date || !time) {
@@ -28,6 +36,15 @@ export function ScheduleMatchdayPage() {
       return
     }
     setError(null)
+    const when = new Date(`${date}T${time}`)
+    const ok = await confirmAction({
+      tone: 'admin',
+      eyebrow: 'Schedule',
+      title: 'Open this matchday?',
+      body: `${when.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} at ${time}, ${capacity} spots. Claims open for everyone straight away.`,
+      confirmLabel: 'Open it',
+    })
+    if (!ok) return
     try {
       await createMatchday.mutateAsync({
         playedAt: new Date(`${date}T${time}`).toISOString(),
@@ -72,7 +89,7 @@ export function ScheduleMatchdayPage() {
             {matchday.venue ?? 'No venue set'} &middot; {matchday.capacity} spots &middot; status: {matchday.status}
           </p>
           <p className="mb-5 text-[12.5px] text-astro-text-dim">
-            One matchday at a time keeps the ballot unambiguous. This one needs to reach{' '}
+            One matchday at a time keeps spots and standby unambiguous. This one needs to reach{' '}
             <span className="font-semibold text-astro-text-muted">complete</span> before you can open the next.
           </p>
           <Link to="/matchday" className="text-sm font-semibold text-astro-accent">
@@ -119,6 +136,10 @@ export function ScheduleMatchdayPage() {
           </div>
         </div>
       )}
+
+      <div className="mt-5">
+        <RatingSettingsCard />
+      </div>
     </div>
   )
 }

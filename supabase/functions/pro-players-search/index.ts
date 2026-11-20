@@ -4,6 +4,7 @@
 // by external_id. Runs with the service role since pro_players has no
 // public insert policy, only the callers of this function may write to it.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { serve } from '../_shared/monitoring.ts'
 
 const API_FOOTBALL_KEY = Deno.env.get('API_FOOTBALL_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -19,7 +20,7 @@ interface ApiFootballProfile {
   }
 }
 
-Deno.serve(async (req) => {
+serve('pro-players-search', async (req) => {
   const { query } = await req.json().catch(() => ({ query: '' }))
   const trimmed = typeof query === 'string' ? query.trim() : ''
   if (trimmed.length < 2) {

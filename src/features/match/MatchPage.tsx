@@ -10,7 +10,7 @@ import { RatingsPanel } from './components/RatingsPanel'
 import { ScoreBanner } from './components/ScoreBanner'
 import { useGoals, useLineups, useMatch, useMotmWinner, useRatingsIntegrity } from './hooks'
 
-/** Ratings close the Saturday after the match, 23:59 Europe/London: an
+/** Ratings close the Saturday after the match, 23:59 Lagos time: an
  * approximation for display copy only, the real cutoff is enforced server-side. */
 function ratingsStillOpen(matchPlayedAt: string) {
   const daysSince = (Date.now() - new Date(matchPlayedAt).getTime()) / (1000 * 60 * 60 * 24)
@@ -48,7 +48,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
         Matchday
       </Link>
 
-      <ScoreBanner match={match} />
+      <ScoreBanner match={match} goals={goals} />
 
       <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
         {motm && <MotmCard motm={motm} />}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { MemorialModal } from '@/components/dialogs/MemorialModal'
+import { RichText } from '@/components/editor/RichText'
 import type { TributeRow } from '../api'
 
 function relativeTime(iso: string) {
@@ -47,7 +48,7 @@ export function TributeCard({
           </button>
         )}
       </div>
-      <p className="text-[14.5px] leading-[1.6] text-astro-text [text-wrap:pretty]">{tribute.content}</p>
+      <RichText content={tribute.content} className="text-[14.5px] leading-[1.6] text-astro-text [text-wrap:pretty]" />
 
       <MemorialModal
         open={confirming}

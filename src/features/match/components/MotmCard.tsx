@@ -1,4 +1,5 @@
 import type { MotmWinner } from '../api'
+import { BadgeMark } from '@/features/badges/components/BadgeMark'
 
 export function MotmCard({ motm }: { motm: MotmWinner }) {
   return (
@@ -10,8 +11,9 @@ export function MotmCard({ motm }: { motm: MotmWinner }) {
           style={{ background: 'linear-gradient(150deg, #2c3c74, #131c3a)' }}
         />
         <div className="min-w-0">
-          <div className="font-display text-4xl leading-[0.95] text-astro-text">
+          <div className="flex items-center gap-2 font-display text-4xl leading-[0.95] text-astro-text">
             {motm.player.nickname}
+            <BadgeMark playerId={motm.player.id} size={20} max={2} />
           </div>
           <div className="truncate text-[12.5px] text-astro-text-muted">{motm.player.full_name}</div>
         </div>

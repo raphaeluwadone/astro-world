@@ -7,6 +7,7 @@
 // than presenting one season's number as "career". Bump SEASONS once
 // the plan covers more.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { serve } from '../_shared/monitoring.ts'
 
 const API_FOOTBALL_KEY = Deno.env.get('API_FOOTBALL_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -35,7 +36,7 @@ async function fetchSeasonPlStats(externalId: string, season: number): Promise<A
   return stats.filter((s) => s.league.id === PREMIER_LEAGUE_ID)
 }
 
-Deno.serve(async (req) => {
+serve('pro-players-refresh-stats', async (req) => {
   const { proPlayerId } = await req.json().catch(() => ({ proPlayerId: null }))
   if (!proPlayerId) {
     return new Response(JSON.stringify({ error: 'proPlayerId is required' }), { status: 400 })

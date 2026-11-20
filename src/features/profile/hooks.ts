@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Database } from '@/types/database'
+import { fetchPlayerAlmanac } from './almanac'
 import {
   castVote,
   createComparison,
@@ -10,6 +11,7 @@ import {
   fetchLastDropped,
   fetchMatchHistory,
   fetchMatchRatings,
+  fetchCardCounts,
   fetchMotmCount,
   fetchPlayer,
   fetchPlayerAwards,
@@ -43,18 +45,29 @@ export function useMatchHistory(playerId: string | undefined) {
   })
 }
 
-export function useCareerStats(playerId: string | undefined) {
+/** Pass `since` (ISO) for a season's totals; without it, the whole career. */
+export function useCareerStats(playerId: string | undefined, since?: string) {
   return useQuery({
-    queryKey: ['player-career-stats', playerId],
+    queryKey: ['player-career-stats', playerId, since ?? 'career'],
     queryFn: async () => {
-      const [appearances, goalsAssists, motm] = await Promise.all([
-        fetchAppearanceCount(playerId!),
-        fetchGoalsAndAssists(playerId!),
-        fetchMotmCount(playerId!),
+      const [appearances, goalsAssists, motm, cards] = await Promise.all([
+        fetchAppearanceCount(playerId!, since),
+        fetchGoalsAndAssists(playerId!, since),
+        fetchMotmCount(playerId!, since),
+        fetchCardCounts(playerId!, since),
       ])
-      return { appearances, ...goalsAssists, motm }
+      return { appearances, ...goalsAssists, motm, ...cards }
     },
     enabled: !!playerId,
+  })
+}
+
+export function usePlayerAlmanac(playerId: string | undefined) {
+  return useQuery({
+    queryKey: ['player-almanac', playerId],
+    queryFn: () => fetchPlayerAlmanac(playerId!),
+    enabled: !!playerId,
+    staleTime: 10 * 60 * 1000,
   })
 }
 

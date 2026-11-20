@@ -1,81 +1,52 @@
 import { supabase } from '@/lib/supabase'
 
-export interface UnclaimedPlayer {
+export interface FreeName {
   id: string
   nickname: string
   full_name: string
-  joined_at: string
-  avg_rating: number | null
-  appearances: number
-  goals: number
-  tags: string[]
 }
 
-/** The pre-existing roster: records with no linked account yet. */
-export async function fetchUnclaimedPlayers(): Promise<UnclaimedPlayer[]> {
-  const [{ data: players, error: playersError }, { data: stats, error: statsError }, { data: tags, error: tagsError }] =
-    await Promise.all([
-      supabase.from('players').select('id, nickname, full_name, joined_at').is('user_id', null),
-      supabase.rpc('player_career_stats'),
-      supabase.from('player_tags').select('player_id, tags (label)'),
-    ])
-  if (playersError) throw playersError
-  if (statsError) throw statsError
-  if (tagsError) throw tagsError
-
-  const statsByPlayer = new Map((stats ?? []).map((s) => [s.player_id, s]))
-  const tagsByPlayer = new Map<string, string[]>()
-  for (const row of tags ?? []) {
-    const label = (row.tags as unknown as { label: string } | null)?.label
-    if (!label) continue
-    const list = tagsByPlayer.get(row.player_id) ?? []
-    list.push(label)
-    tagsByPlayer.set(row.player_id, list)
-  }
-
-  return (players ?? []).map((p) => {
-    const s = statsByPlayer.get(p.id)
-    return {
-      ...p,
-      avg_rating: s?.avg_rating ?? null,
-      appearances: s?.appearances ?? 0,
-      goals: s?.goals ?? 0,
-      tags: tagsByPlayer.get(p.id) ?? [],
-    }
-  })
-}
-
-export interface JoinDetails {
-  instagram_handle: string | null
-  birthday_month: number | null
-  birthday_day: number | null
-}
-
-/** Instagram/birthday ride along on the claim itself rather than being
- * written straight to the target player row: the claimant doesn't own
- * that row yet (user_id is still null until an admin approves), so
- * players_update_own_or_admin would reject a direct write. Approval
- * copies these across. */
-export async function submitClaim(playerId: string, claimantUserId: string, details: JoinDetails) {
-  const { error } = await supabase
-    .from('player_claims')
-    .insert({ player_id: playerId, claimant_user_id: claimantUserId, ...details })
-  if (error) throw error
-}
-
-export async function createNewPlayer(userId: string, nickname: string, fullName: string) {
+/** Roster names nobody has claimed yet. */
+export async function fetchFreeNames(): Promise<FreeName[]> {
   const { data, error } = await supabase
     .from('players')
-    .insert({ user_id: userId, nickname, full_name: fullName })
-    .select('id')
-    .single()
+    .select('id, nickname, full_name')
+    .is('user_id', null)
+    .is('left_at', null)
+    .order('nickname')
   if (error) throw error
-  return data.id as string
+  return data ?? []
 }
 
-export async function updatePlayerJoinDetails(playerId: string, fields: JoinDetails) {
-  const { error } = await supabase.from('players').update(fields).eq('id', playerId)
+export async function checkGroupCode(code: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('group_code_ok', { p_code: code })
   if (error) throw error
+  return data === true
+}
+
+export interface JoinInput {
+  code: string
+  /** A free roster name to claim; null adds a new player from nickname and fullName. */
+  playerId: string | null
+  nickname: string
+  fullName: string
+  instagram: string
+  birthdayMonth: number | null
+  birthdayDay: number | null
+}
+
+export async function joinGroup(input: JoinInput): Promise<string> {
+  const { data, error } = await supabase.rpc('join_group', {
+    p_code: input.code,
+    p_player_id: input.playerId ?? undefined,
+    p_nickname: input.nickname,
+    p_full_name: input.fullName,
+    p_instagram: input.instagram,
+    p_birthday_month: input.birthdayMonth ?? undefined,
+    p_birthday_day: input.birthdayDay ?? undefined,
+  })
+  if (error) throw error
+  return data
 }
 
 export interface MyClaim {
@@ -85,8 +56,7 @@ export interface MyClaim {
   players: { nickname: string }
 }
 
-/** The signed-in user's most recent claim, if any: used to route a
- * pending/rejected claimant to the right screen instead of `/join` again. */
+/** Claims made before joining went code-based can still be waiting on an admin. */
 export async function fetchMyLatestClaim(userId: string): Promise<MyClaim | null> {
   const { data, error } = await supabase
     .from('player_claims')
@@ -97,4 +67,31 @@ export async function fetchMyLatestClaim(userId: string): Promise<MyClaim | null
     .maybeSingle()
   if (error) throw error
   return data as unknown as MyClaim | null
+}
+
+const CODE_KEY = 'astro:group-code'
+
+/** The code is kept for the few seconds between sign-up and picking a name. */
+export const groupCodeMemory = {
+  get(): string {
+    try {
+      return sessionStorage.getItem(CODE_KEY) ?? ''
+    } catch {
+      return ''
+    }
+  },
+  set(code: string) {
+    try {
+      sessionStorage.setItem(CODE_KEY, code)
+    } catch {
+      // Storage blocked: the join screen asks for the code again.
+    }
+  },
+  clear() {
+    try {
+      sessionStorage.removeItem(CODE_KEY)
+    } catch {
+      // Nothing to clear.
+    }
+  },
 }

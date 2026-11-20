@@ -1,20 +1,21 @@
+import { onlineManager } from '@tanstack/react-query'
 import { FlatBallIcon } from './icons'
 
-/**
- * "Flat Ball": offline and server errors, the one state illustration
- * that isn't a loader or an empty result. Whatever the query, nothing
- * downstream should look right when this fires, so this replaces page
- * content rather than sitting inline with it.
- */
+/** Offline and server errors. Replaces page content rather than sitting inline with it. */
 export function ErrorState({
-  title = "That didn't load.",
-  body = 'Check your connection and try again.',
+  title,
+  body,
   onRetry,
 }: {
   title?: string
   body?: string
   onRetry?: () => void
 }) {
+  const offline = !onlineManager.isOnline()
+  title ??= offline ? 'Flat ball. No connection.' : 'That one didn’t come off.'
+  body ??= offline
+    ? 'The match is on hold until you’re back online. We’ll pick it up from where you left off.'
+    : 'Something went wrong on our end. Have another go.'
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
       <FlatBallIcon />

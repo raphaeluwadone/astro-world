@@ -1,6 +1,6 @@
 /** Simplified but on-brand art for each onboarding step. Faithful to the
  * design's motifs (orbiting ball, player card, ballot grid, rating chips,
- * No.13 vigil, goal net) without reproducing every decorative overlay. */
+ * No.4 vigil, goal net) without reproducing every decorative overlay. */
 import { useEffect, useState } from 'react'
 import { TEAM_ID } from '@/lib/teamId'
 
@@ -195,7 +195,7 @@ export function MemorialArt() {
         className="font-display relative text-[34px] leading-[0.95] text-astro-text"
         style={{ animation: 'ob-rise 900ms cubic-bezier(.16,.84,.24,1) both' }}
       >
-        NO. 13
+        NO. 4
       </div>
     </div>
   )

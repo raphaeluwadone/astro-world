@@ -2,19 +2,18 @@
 // confirmed against the group's real rules. Revisit once real content
 // arrives (STATUS.md notes a data-collection form went to the client
 // covering exactly this).
-export const LAST_AMENDED = '2 Sep 2026'
 
 export const RULE_GLANCE_STATIC: Array<{ k: string; v: string }> = [
-  { k: 'Availability closes', v: 'Wed 20:00' },
-  { k: 'Draw runs', v: 'Wed 20:00' },
+  { k: 'Pay for your spot by', v: 'Sat 20:00' },
+  { k: 'Teams made', v: 'Game day' },
   { k: 'Selection', v: 'Sun 07:40' },
   { k: 'Kick-off', v: 'Sun 07:45' },
   { k: 'Ratings close', v: 'Tue 23:59' },
   { k: 'Spots per Sunday', v: '30' },
   { k: 'Monthly ten', v: '1st, 08:00' },
-  { k: 'Weekly ballot', v: '20 spots' },
-  { k: 'Sides', v: '5 × 6' },
-  { k: 'Self-set tags', v: '2 max' },
+  { k: 'Weekly spots', v: '20, first to pay' },
+  { k: 'Sides', v: '5 or 6 teams' },
+  { k: 'Self-set traits', v: '2 max' },
   { k: 'Salami Cup', v: 'Quarterly' },
 ]
 
@@ -34,20 +33,20 @@ export interface RuleSection {
 export const RULE_SECTIONS: RuleSection[] = [
   {
     n: '01',
-    title: 'THE BALLOT',
+    title: 'GETTING A SPOT',
     items: [
-      { k: '1.1', text: 'Availability opens Sunday evening and closes Wednesday at 20:00. Nothing is accepted after that.' },
-      { k: '1.2', text: 'No reply counts as unavailable. Ghosting is not a maybe.' },
-      { k: '1.3', text: 'Pull out before Wednesday 20:00 and nothing happens. After it, tell the admin and find your own replacement.' },
+      { k: '1.1', text: 'Spots open as soon as an admin schedules the matchday. Claim one and pay for it by Saturday 20:00, or it goes to the next person on standby.' },
+      { k: '1.2', text: 'No spot, no game. Ghosting is not a maybe.' },
+      { k: '1.3', text: 'Pull out before the teams are made and a paid weekly spot is flagged for a refund. After that, tell an admin and find your own replacement.' },
       {
         k: '1.4',
-        text: 'Thirty play each Sunday, and they arrive two ways. Ten are the monthly ten. The other twenty are balloted weekly from everyone who marked themselves in.',
+        text: 'Thirty play each Sunday, and they arrive two ways. Ten are the monthly ten. The other twenty are first to pay each week.',
         tag: 'Amended Sep 2026',
         tagTone: 'changed',
       },
       {
         k: '1.5',
-        text: 'The monthly ten is first come, first served. Entry opens at 08:00 on the 1st of the month, costs one payment for the whole month, and closes the moment the tenth person pays. You are then in every Sunday that month with no ballot and no standby.',
+        text: 'The monthly ten is first come, first served. Entry opens at 08:00 on the 1st of the month, costs one payment for the whole month, and closes the moment the tenth person pays. You are then in every Sunday that month without claiming a spot each week.',
         tag: 'New Sep 2026',
         tagTone: 'changed',
       },
@@ -65,7 +64,7 @@ export const RULE_SECTIONS: RuleSection[] = [
       },
       {
         k: '1.8',
-        text: 'Everyone who misses the weekly draw goes on standby, and standby order favours the longest wait. Miss out two Sundays running and you are in the next one.',
+        text: 'When every spot is gone you can join standby. It is first come, first served: when a spot frees up, standby is told and the first in line can pay for it. An admin can also add someone in directly.',
         tag: 'New Sep 2026',
         tagTone: 'changed',
       },
@@ -73,11 +72,11 @@ export const RULE_SECTIONS: RuleSection[] = [
   },
   {
     n: '02',
-    title: 'THE DRAW',
+    title: 'MAKING THE TEAMS',
     items: [
       {
         k: '2.1',
-        text: 'At Wednesday 20:00 the twenty weekly spots are drawn, then all thirty names, the ten included, are drawn into sides. Paying early buys you a game, never a team.',
+        text: 'On game day, once everyone has checked in, all thirty names, the ten included, are made into teams by a random draw or by captains pick. Paying early buys you a game, never a team.',
         tag: 'Amended Sep 2026',
         tagTone: 'changed',
       },
@@ -92,7 +91,7 @@ export const RULE_SECTIONS: RuleSection[] = [
     items: [
       {
         k: '3.1',
-        text: 'Team selection starts at 07:40 and kick-off is 07:45. If you are on the ballot, be there before 07:40, not at it.',
+        text: 'Team selection starts at 07:40 and kick-off is 07:45. If you have a spot, be there before 07:40, not at it.',
         tag: 'Amended Sep 2026',
         tagTone: 'changed',
       },
@@ -161,11 +160,11 @@ export const RULE_SECTIONS: RuleSection[] = [
   },
   {
     n: '06',
-    title: 'PROFILE & TAGS',
+    title: 'PROFILE & TRAITS',
     items: [
-      { k: '6.1', text: 'You set your nickname, real name, positions, foot, bio, photo and up to two tags.' },
-      { k: '6.2', text: 'Rating, stats, achievements, jersey number and community tags are earned, not set.' },
-      { k: '6.3', text: 'Anyone can invent a tag. Three votes and it shows on the card.' },
+      { k: '6.1', text: 'You set your nickname, real name, one position (DEF, ATT or UTIL, plus GK if you will go in goal), foot, bio, photo, favourite number and up to two traits.' },
+      { k: '6.2', text: 'Rating, stats, badges and traits from the group are earned, not set.' },
+      { k: '6.3', text: 'Anyone can invent a trait. Three votes and it joins the pool, and three votes on a player puts it on their card.' },
       {
         k: '6.4',
         text: '“I am him” is your own claim, three at most. “You are him” belongs to the group.',
@@ -192,7 +191,10 @@ export const RULE_SECTIONS: RuleSection[] = [
 ]
 
 export interface Amendment {
+  /** ISO date the change took effect. */
   date: string
+  /** Short form for the Home strip. */
+  headline: string
   text: string
   by: string
   vote: string
@@ -200,28 +202,62 @@ export interface Amendment {
 
 export const AMENDMENTS: Amendment[] = [
   {
-    date: '18 Sep 2026',
+    date: '2026-09-18',
+    headline: 'Selection 07:40, kick-off 07:45',
     text: 'Kick-off moved to 07:45 with selection at 07:40, late excuses cut back to life-changing events with evidence, and substitute rotation added so everyone who turns up gets on. Applies to admins too.',
     by: 'The admins',
     vote: 'Announced',
   },
-  { date: '2 Sep 2026', text: 'Teams renamed from colours to the Greek alphabet. Colours kept as identifiers only.', by: 'Debo', vote: '22–33' },
   {
-    date: '26 Aug 2026',
+    date: '2026-09-02',
+    headline: 'Teams renamed to the Greek alphabet',
+    text: 'Teams renamed from colours to the Greek alphabet. Colours kept as identifiers only.',
+    by: 'Debo',
+    vote: '22–33',
+  },
+  {
+    date: '2026-08-26',
+    headline: '“I am him” added',
     text: '“I am him” added alongside “you are him”, both capped at three with up and down votes.',
     by: 'Wale',
     vote: '17–9',
   },
   {
-    date: '12 Aug 2026',
+    date: '2026-08-12',
+    headline: 'Ballot night moved to Wednesday',
     text: 'Ballot night moved from Saturday 20:00 to Wednesday 20:00 to give people midweek notice.',
     by: 'Kunle',
     vote: '19–6',
   },
-  { date: '5 Aug 2026', text: 'Positions simplified to GK, DEF, ATT and UTIL. Players may hold more than one.', by: 'Fred', vote: '24–1' },
-  { date: '14 Jul 2026', text: 'Numeric attribute ratings scrapped. Playstyle tags replaced them.', by: 'Wale', vote: '26–0' },
-  { date: '3 Mar 2025', text: 'No. 13 retired in memory of Ade Salami.', by: 'The group', vote: 'Unanimous' },
+  {
+    date: '2026-08-05',
+    headline: 'Positions simplified',
+    text: 'Positions simplified to GK, DEF, ATT and UTIL. Players may hold more than one.',
+    by: 'Fred',
+    vote: '24–1',
+  },
+  {
+    date: '2026-07-14',
+    headline: 'Attribute ratings scrapped',
+    text: 'Numeric attribute ratings scrapped. Playstyle tags replaced them.',
+    by: 'Wale',
+    vote: '26–0',
+  },
+  {
+    date: '2025-03-03',
+    headline: 'No. 4 retired',
+    text: 'No. 4 retired in memory of Ade Salami.',
+    by: 'The group',
+    vote: 'Unanimous',
+  },
 ]
+
+export const LATEST_AMENDMENT = AMENDMENTS[0]
+
+export function formatAmendmentDate(iso: string, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }) {
+  // en-GB abbreviates September as "Sept"; the design uses "Sep".
+  return new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', opts).replace('Sept', 'Sep')
+}
 
 export interface Punishment {
   name: string
@@ -233,14 +269,14 @@ export interface Punishment {
 export const PUNISHMENTS: Punishment[] = [
   {
     name: 'No-show without notice',
-    sanction: 'Miss the next ballot',
-    detail: "Balloted in, didn't turn up, told nobody before 07:30.",
+    sanction: 'Sit out the next Sunday',
+    detail: "Held a spot, didn't turn up, told nobody before 07:30.",
     severity: 'Heavy',
   },
   {
     name: 'Late withdrawal',
     sanction: 'Back of the standby queue',
-    detail: 'Pulled out after the draw but in time for a replacement.',
+    detail: 'Pulled out after the teams were made but in time for a replacement.',
     severity: 'Light',
   },
   {

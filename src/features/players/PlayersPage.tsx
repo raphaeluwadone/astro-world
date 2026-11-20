@@ -1,10 +1,14 @@
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Scene } from '@/components/states/Scene'
 import { useMemo, useState } from 'react'
 import type { Database } from '@/types/database'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
-import { OutOfPlayIcon } from '@/components/states/icons'
 import { PageLoader } from '@/components/states/PageLoader'
+import { Pager } from '@/components/ui/pager'
 import { PlayerCard } from './components/PlayerCard'
+import { nextPicks, PICK_COLOURS } from '@/features/compare/metrics'
+import { CompareBar, CompareToggle } from '@/features/compare/components/CompareMode'
 import { usePlayerCards } from './hooks'
 
 type PositionType = Database['public']['Enums']['position_type']
@@ -22,8 +26,11 @@ const PER_PAGE = 8
 export function PlayersPage() {
   const { data: players = [], isLoading, isError, refetch } = usePlayerCards()
   const [filter, setFilter] = useState<PositionType | 'ALL'>('ALL')
-  const [search, setSearch] = useState('')
+  const search = useSearch({ from: '/_app/players/' }).q ?? ''
+  const navigate = useNavigate()
   const [page, setPage] = useState(0)
+  const [comparing, setComparing] = useState(false)
+  const [picks, setPicks] = useState<string[]>([])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -45,13 +52,21 @@ export function PlayersPage() {
   }
 
   function updateSearch(value: string) {
-    setSearch(value)
+    navigate({ to: '/players', search: { q: value || undefined }, replace: true })
     setPage(0)
   }
 
+  function togglePick(id: string) {
+    setPicks((p) => nextPicks(p, id))
+  }
+
+  function toggleComparing() {
+    setComparing((c) => !c)
+    setPicks([])
+  }
+
   function clearSearch() {
-    setSearch('')
-    setPage(0)
+    updateSearch('')
   }
 
   return (
@@ -63,7 +78,7 @@ export function PlayersPage() {
         {players.length} in the group. Thirty spots every Sunday.
       </p>
 
-      <div className="mb-3.5 flex min-w-0 items-center gap-2.5 rounded-[11px] border border-white/[0.09] bg-astro-surface px-3.5">
+      <div className="mb-3.5 flex min-w-0 items-center gap-2.5 rounded-[11px] border border-white/[0.09] bg-astro-surface px-3.5 md:hidden">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="#6d7496" className="shrink-0">
           <path
             fillRule="evenodd"
@@ -72,6 +87,7 @@ export function PlayersPage() {
         </svg>
         <input
           value={search}
+          autoFocus={hasSearch}
           onChange={(e) => updateSearch(e.target.value)}
           placeholder='Nickname or real name, try "ade"'
           className="min-w-0 flex-1 bg-transparent py-3.5 text-sm font-semibold text-astro-text placeholder:text-astro-text-dim focus:outline-none"
@@ -105,6 +121,7 @@ export function PlayersPage() {
             {f.label}
           </button>
         ))}
+        <CompareToggle on={comparing} onClick={toggleComparing} className="ml-auto" />
       </div>
 
       {isLoading ? (
@@ -113,7 +130,7 @@ export function PlayersPage() {
         <ErrorState onRetry={() => refetch()} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<OutOfPlayIcon />}
+          icon={<Scene kind="search" />}
           title={hasSearch ? 'Nobody by that name.' : 'Nobody fits that.'}
           body={hasSearch ? `Nobody matches “${search.trim()}”.` : "Loosen a filter and we'll find someone."}
           action={
@@ -135,38 +152,33 @@ export function PlayersPage() {
             style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 208px), 1fr))' }}
           >
             {pageItems.map((p) => (
-              <PlayerCard key={p.id} player={p} />
+              <PlayerCard
+                key={p.id}
+                player={p}
+                onPick={comparing ? () => togglePick(p.id) : undefined}
+                pickColour={picks.includes(p.id) ? PICK_COLOURS[picks.indexOf(p.id)] : undefined}
+              />
             ))}
           </div>
 
-          <div className="mt-4.5 flex flex-wrap items-center justify-between gap-3.5">
-            <div className="text-[12.5px] text-astro-text-dim">
-              {filtered.length} &middot; Page {clampedPage + 1} of {pageCount}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={clampedPage === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="flex size-9 items-center justify-center rounded-lg border border-border bg-astro-surface-2 text-astro-text-muted disabled:opacity-40"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M15.6 3.6 7.2 12l8.4 8.4Z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                disabled={clampedPage >= pageCount - 1}
-                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                className="flex size-9 items-center justify-center rounded-lg border border-border bg-astro-surface-2 text-astro-text-muted disabled:opacity-40"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8.4 3.6 16.8 12l-8.4 8.4Z" />
-                </svg>
-              </button>
-            </div>
-          </div>
+          <Pager
+            className="mt-4.5"
+            page={clampedPage + 1}
+            pageSize={PER_PAGE}
+            total={filtered.length}
+            onPageChange={(p) => setPage(p - 1)}
+            noun="players"
+          />
         </>
+      )}
+
+      {comparing && (
+        <CompareBar
+          picks={picks}
+          nameOf={(id) => players.find((p) => p.id === id)?.nickname}
+          onRemove={togglePick}
+          hint="Tap the cards, two to four of them."
+        />
       )}
     </div>
   )
