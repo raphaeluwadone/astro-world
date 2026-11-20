@@ -10,15 +10,16 @@ export function RatingSettingsCard() {
       <h2 className="mb-1 font-display text-[28px] leading-none text-astro-text">Ratings</h2>
       <p className="mb-4 text-xs text-astro-text-dim">Applies to the matchday being rated now and every one after.</p>
       <div className="flex items-center justify-between gap-4">
-        <div>
+        <label htmlFor="ratings-open-switch" className="flex-1 cursor-pointer">
           <div id="ratings-open-to-everyone" className="text-[13.5px] font-bold text-astro-text">
             Open to everyone
           </div>
           <div className="text-[12px] text-astro-text-muted">
             {everyone ? 'Every member can rate, whether they played or not.' : 'Only players from the matchday can rate.'}
           </div>
-        </div>
+        </label>
         <Switch
+          id="ratings-open-switch"
           checked={everyone}
           disabled={isLoading || set.isPending}
           onCheckedChange={(v) => set.mutate(v, { onError: () => toast.error('Couldn’t change that. Try again.') })}

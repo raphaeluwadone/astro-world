@@ -99,7 +99,7 @@ export function ScheduleMatchdayPage() {
       ) : (
         <div className="astro-card max-w-lg p-6">
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2">
               <TextField label="Date" type="date" value={date} onChange={setDate} />
               <TextField label="Kick-off" type="time" value={time} onChange={setTime} />
             </div>

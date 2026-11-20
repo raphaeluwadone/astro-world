@@ -11,6 +11,7 @@ export function Switch({
   onCheckedChange: (checked: boolean) => void
   disabled?: boolean
   className?: string
+  id?: string
   'aria-label'?: string
   'aria-labelledby'?: string
 }) {
@@ -22,7 +23,8 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        'relative h-5 w-9 shrink-0 rounded-full border transition-colors disabled:opacity-55',
+        // The ::before pads the tap area to about 44px without changing the look.
+        "relative h-5 w-9 shrink-0 rounded-full border transition-colors before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] disabled:opacity-55",
         checked ? 'border-astro-accent/60 bg-astro-accent/70' : 'border-white/15 bg-white/[0.08] hover:bg-white/[0.14]',
         className,
       )}
